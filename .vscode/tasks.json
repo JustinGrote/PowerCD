@@ -1,0 +1,122 @@
+// Available variables which can be used inside of strings.
+// ${workspaceRoot}: the root folder of the team
+// ${file}: the current opened file
+// ${relativeFile}: the current opened file relative to workspaceRoot
+// ${fileBasename}: the current opened file's basename
+// ${fileDirname}: the current opened file's dirname
+// ${fileExtname}: the current opened file's extension
+// ${cwd}: the current working directory of the spawned process
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+	"version": "2.0.0",
+
+    // Start PowerShell
+    "windows": {
+        "command": "powershell.exe",
+        "args": [
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy", "Bypass"
+        ],
+    },
+    "linux": {
+        "command": "pwsh",
+        "args": [
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy", "Bypass"
+        ],
+    },
+    "osx": {
+        "command": "pwsh",
+        "args": [
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy", "Bypass"
+        ],
+    },
+
+    // Associate with test task runner
+    "tasks": [
+        {
+            "label": "Test",
+
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "powershell.exe"
+            },
+            "osx": {
+                "command": "pwsh"
+            },
+            "linux": {
+                "command": "pwsh"
+            },
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Test"
+            ],
+            "problemMatcher": "$pester"
+        },
+        {
+            "label": "Test-with-PSCore",
+            "group": "test",
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Test"
+            ],
+            "problemMatcher": "$pester"
+        },
+        {
+            "label": "Build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "powershell.exe"
+            },
+            "osx": {
+                "command": "pwsh"
+            },
+            "linux": {
+                "command": "pwsh"
+            },
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Build"
+            ],
+            "problemMatcher": "$pester"
+        },
+        {
+            "label": "Test-with-PSCore",
+            "group": "build",
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Build"
+            ],
+            "problemMatcher": "$pester"
+        }
+    ]
+}
