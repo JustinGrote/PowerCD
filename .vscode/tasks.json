@@ -11,37 +11,10 @@
     // for the documentation about the tasks.json format
 	"version": "2.0.0",
 
-    // Start PowerShell
-    "windows": {
-        "command": "powershell.exe",
-        "args": [
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy", "Bypass"
-        ],
-    },
-    "linux": {
-        "command": "pwsh",
-        "args": [
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy", "Bypass"
-        ],
-    },
-    "osx": {
-        "command": "pwsh",
-        "args": [
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy", "Bypass"
-        ],
-    },
-
-    // Associate with test task runner
+    // Powershell Default Tasks
     "tasks": [
         {
             "label": "Test",
-
             "group": {
                 "kind": "test",
                 "isDefault": true
@@ -58,10 +31,8 @@
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                "Invoke-Build Test"
+                "-ExecutionPolicy","Bypass",
+                "-Command","Invoke-Build Test"
             ],
             "problemMatcher": "$pester"
         },
@@ -74,8 +45,7 @@
                 "-NonInteractive",
                 "-ExecutionPolicy",
                 "Bypass",
-                "-Command",
-                "Invoke-Build Test"
+                "-Command","Invoke-Build Test"
             ],
             "problemMatcher": "$pester"
         },
@@ -97,12 +67,9 @@
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                "Invoke-Build Build"
-            ],
-            "problemMatcher": "$pester"
+                "-ExecutionPolicy","Bypass",
+                "-Command","Invoke-Build Build"
+            ]
         },
         {
             "label": "Test-with-PSCore",
@@ -111,12 +78,9 @@
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                "Invoke-Build Build"
-            ],
-            "problemMatcher": "$pester"
+                "-ExecutionPolicy","Bypass",
+                "-Command","Invoke-Build Build"
+            ]
         }
     ]
 }
