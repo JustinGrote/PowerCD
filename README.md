@@ -10,7 +10,7 @@ I wanted to create a standard methodology to build powershell modules, as the op
 
 First Release Goal:
 - Provide an Invoke-Build process that supports two scenarios:
-1. Open Source with Visual Studio Code, GitHub, PSGallery, Appveyor, Travis (for PSCore testing)
+1. Open Source with Visual Studio Code, GitHub, PSGallery, Appveyor
 2. Local Build with no Internet Access
 
 - Make the build process have all external internet-connected dependencies optional, so you can just build locally/privately if you want with nothing more than a local git repository
@@ -26,3 +26,5 @@ Second Release Goal:
 
 Third Release Goal:
 - Add support for VSTS integration (beyond just the GIT repository)
+
+This project uses inspiration and some code from [ZLoeber's ModuleBuild](https://github.com/zloeber/ModuleBuild)
