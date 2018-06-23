@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<plasterManifest
+  schemaVersion="1.1"
+  templateType="Project" xmlns="http://www.microsoft.com/schemas/PowerShell/Plaster/v1">
+  <metadata>
+    <name>PowerCD</name>
+    <id>34bfb116-806a-4cc0-a625-04988aa64999</id>
+    <version>0.1.0</version>
+    <title>New Powershell Module for Continuous Delivery (PowerCD)</title>
+    <description>Create a Powershell Module based on common practices, and configure it for Continuous Delivery</description>
+    <author>Justin Grote</author>
+    <tags>Module, Powershell, Appveyor, Github, Continuous Delivery, CI, CD</tags>
+  </metadata>
+  <parameters>
+    <parameter name='ModuleName'
+               type='text'
+               prompt='
+   ___                     ________ `n
+  / _ \___ _    _____ ____/ ___/ _ \`n
+ / ___/ _ \ |/|/ / -_) __/ /__/ // /`n
+/_/   \___/__,__/\__/_/  \___/____/ `n
+=================================================`n
+The Name of your module | Default'
+               default='MyNewModule'
+    />
+    <parameter name='ModuleDesc'
+               type='text'
+               default='My New Module'
+               prompt='Enter a description of the module. This is required for publishing to the PowerShell Gallery. | Default'
+    />
+    <parameter name='Version'
+               type='text'
+               prompt='Enter the starting version of the module | Default'
+               default='0.1.0'
+    />
+    <parameter name='FullName'
+               type='user-fullname'
+               prompt='Enter your full name or an alias/handle. This will be used for Git commit messages and author information | Default'
+               store='text'
+    />
+    <parameter name='License'
+               type='choice'
+               prompt='Select a license (see http://choosealicense.com for help choosing)'
+               default='0'
+               store='text'>
+
+      <choice label='&amp;MIT'
+        help="Adds a MIT license file (https://choosealicense.com/licenses/mit)."
+        value="MIT"
+      />
+      <choice label='&amp;Apache 2.0'
+        help="Adds a Apache 2.0 license file (https://choosealicense.com/licenses/apache-2.0/)."
+        value="Apache"
+      />
+      <choice label='&amp;GNU GPLv3'
+        help="Adds a GNU GPLv3 license file (https://choosealicense.com/licenses/gpl-3.0/)."
+        value="GNU"
+      />
+      <choice label='&amp;None'
+        help="No license."
+        value="None"
+      />
+    </parameter>
+    <parameter name='Editor' type='choice' prompt='Additional Editor Integrations' default='0' store='text' >
+      <choice label='Visual Studio &amp;Code' help="Your editor is Visual Studio Code." value="VSCode"/>
+      <choice label='&amp;None' help="No editor specified or you don't wish to set up any specific editor integrations" value="None"/>
+    </parameter>
+  </parameters>
+  <content>
+    <!-- Basic Module Scaffolding -->
+    <newModuleManifest destination='${PLASTER_PARAM_ModuleName}.psd1'
+                       moduleVersion='$PLASTER_PARAM_Version'
+                       rootModule='${PLASTER_PARAM_ModuleName}.psm1'
+                       author='$PLASTER_PARAM_FullName'
+                       description='$PLASTER_PARAM_ModuleDesc'
+                       encoding='UTF8-NoBOM'
+    />
+    <file destination='Public\' source='' />
+    <file destination='Private\' source='' />
+    <file destination='Build\' source='' />
+    <file destination='Release\' source='' />
+    <file destination='Tests\' source='' />
+    <file source='Tests\00-PowershellModule.Tests.ps1' destination='' />
+    <file source='.git*' destination='' />
+    <file source='GitVersion.yml' destination='' />
+    <file source='Build\**' destination='Build' />
+
+    <!-- License Files -->
+    <!-- TODO: Substitute Year and Fullname in MIT License using TemplateFile or modify? -->
+    <!-- TODO: Figure out how to substitute Template with MIT -->
+    <file condition="$PLASTER_PARAM_License -eq 'MIT'" source='Templates\Default\license\MIT.txt' destination='LICENSE' />
+    <file condition="$PLASTER_PARAM_License -eq 'Apache'" source='Templates\Default\license\Apache.txt' destination='LICENSE' />
+    <file condition="$PLASTER_PARAM_License -eq 'GNU'" source='Templates\Default\license\GNU.txt' destination='LICENSE' />
+
+  </content>
+</plasterManifest>
