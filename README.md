@@ -1,34 +1,37 @@
 # PowerCD
 
-This project's goal is to deliver a continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery
+This project's goal is to deliver a continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
 
-This will provide a "Getting Started" process to building powershell modules, and will automate as much as possible all the dirty stuff such as building, testing, and deployment/publishing
+This will provide a "Getting Started" process to building powershell modules, and will automate as much as possible all the dirty stuff such as building, testing, and deployment/publishing.
+
+## Project Impetus
 
 "The beauty of standards is that there are so many to choose from"
 
-I wanted to create a standard methodology to build powershell modules, as the options when I was getting started were bewildering and there was no comprehensive guide or solution.
+I wanted to create a standard methodology to build powershell modules, as the options when I was getting started making modules were bewildering and complicated, and there was no comprehensive guide or solution.
 
 ## Release Goals
 
 ### Initial Release Goals
-- Provide an Invoke-Build process that supports two scenarios:
+
+Provide an Invoke-Build process that supports two scenarios:
+
 1. Open Source with Visual Studio Code, GitHub, PSGallery, Appveyor
 2. Local Build with no Internet Access
-
 - Make the build process have all external internet-connected dependencies optional, so you can just build locally/privately if you want with nothing more than a local git repository
 
 - Make the process build once, run anywhere for minimum following platofmrs
 1. Windows with Powershell v5+
 2. Windows with Powershell Core v6.0.1+
 3. Linux with Powershell Core v6.0.1+
-4. <Maybe> MacOS with Powershell Core v6.0.1+
+4. *Maybe* MacOS with Powershell Core v6.0.1+
 
 - Provide a Plaster template for generating the initial module continuous deployment framework
-
 
 This project uses inspiration and some code from [ZLoeber's ModuleBuild](https://github.com/zloeber/ModuleBuild)
 
 ## Design Decisions
+
 Making a template that meets everyone's needs or preferences is nearly impossible, so instead this module's focus is on "smart defaults" and "prescriptive guidance" to help new module builders get a continuous deployment pipeline. Advanced users can fork or add whatever "plugins" they want to the XML to support their personal preferences.
 
 I've tried to select products with broad support, especially within the Powershell Github repository itself, to ensure users have a good ecosystem of support.
@@ -36,9 +39,11 @@ I've tried to select products with broad support, especially within the Powershe
 I've also tried tried to ensure that projects will "build" on any Windows or Linux machine with full documentation/etc. without any external dependencies, so if you choose not to use Github/Appveyor/etc. and want to use PowerCD inside an organization with no internet access, you can.
 
 ### Prescriptive Module Layout and Organization
+
 Based on RamblingCookieMonster's template plus what is seen in the community. (Public/Private/Lib)
 
 ### Prescriptive Services and Products
+
 - Versioning Tool - [GitVersion](https://gitversion.readthedocs.io/en/latest/)
 - Versioning Scheme - [Semantic Versioning](https://semver.org/)
 - Build Tool - [Invoke-Build](https://github.com/nightroman/Invoke-Build). Only used for packaging/versioning, this plaster is primarily for script modules.
@@ -50,21 +55,27 @@ Based on RamblingCookieMonster's template plus what is seen in the community. (P
 - Coding Process - [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) where develop and master are always deployable
 - Repository - [Git](https://git-scm.com/) (Local, [Github](https://github.com/), or [Visual Studio Team Services](https://visualstudio.microsoft.com/team-services/))
 - Deploy Targets
-    - Local (Release Folder .zip)
-    - [GitHub Releases](https://help.github.com/articles/about-releases/),
-    - [Powershell Gallery](https://www.powershellgallery.com/)
-    - [VSTS Package Feeds (https://docs.microsoft.com/en-us/vsts/package/overview?view=vsts)
-    - Any repository supported by Publish-Module.
+  - Local (Release Folder .zip)
+  - [GitHub Releases](https://help.github.com/articles/about-releases/)
+  - [Powershell Gallery](https://www.powershellgallery.com/)
+  - [VSTS Package Feed](https://docs.microsoft.com/en-us/vsts/package/overview?view=vsts)
+  - Any repository supported by Publish-Module.
 
 ### FAQs / Whatabouts
 
+*Why do you only support PS5.1 and PS6 as build environments?*
+
+PS5.1 is the "last" version of Windows Powershell, as such it makes a good Long Term Support (LTS) target. The inclusion of the Powershell Gallery and its proven stability (VMware/AWS/Azure all use it as their primary delivery mechanism) allows requirements and dependencies to be managed.
+
+**You can still use PowerCD to build modules that are compatible with PSv2-4, however there is no inherent testing in the PowerCD process for them and you will have to test separately. Appveyor no longer provides any images that have PSv4 on them**.
+
 *What about Travis?*
 
-Appveyor added Linux support in May 2018 and it works, so we use that for PowerCD builds as the default to keep it consistent. You can always add a Travis build later
+Appveyor added Linux support in May 2018 and it works, so we use that for PowerCD builds as the default to keep it consistent. You can always add a Travis build later.
 
 *What about OSX builds and testing?*
 
-Will add Travis support to do this later, right now focus is just on WindowsPowershell and Powershell Core builds on Windows and Linux (ubuntu as test target)
+Will add Travis support to do this later, right now focus is just on WindowsPowershell and Powershell Core builds on Windows and Linux (ubuntu as test target). If the linux build passes, it's probably going to be OK on OSX.
 
 *Why not a /src directory?*
 
@@ -84,9 +95,11 @@ This plaster is designed so that someone who is new to building modules doesn't 
 
 CodeCov is what the [official Powershell Core repository uses](https://codecov.io/gh/PowerShell/PowerShell), plus I think the reports look cleaner.
 
-*What about Bitbucket?*
+*What about Bitbucket/GitLab/Etc?*
 
-Low demand and trying to keep the compatibility matrix small. If you're concerned about Microsoft buying Github, well, Powershell Core is on Github, so I guess you'll stop using that too right?
+Low demand and trying to keep the compatibility matrix small. You can still build a module and then upload it to one of these, and all the local build tools will still work, but it won't be tested/supported for PowerCD.
+
+If you're concerned about Microsoft buying GitHub, well, Powershell Core is on GitHub, so I guess you'll stop using that too right?
 
 *Why don't you call this Continuous Deployment?*
 
