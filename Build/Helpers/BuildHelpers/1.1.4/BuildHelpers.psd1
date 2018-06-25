@@ -4,7 +4,7 @@
 RootModule = 'BuildHelpers.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '1.1.4'
 
 # ID used to uniquely identify this module
 GUID = 'ec079170-28b7-40b4-aaae-f8ebf76850ab'
@@ -58,7 +58,7 @@ PowerShellVersion = '3.0'
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = @('Add-TestResultToAppveyor','Export-Metadata','Find-NugetPackage','Get-BuildEnvironment','Get-BuildEnvironmentDetail','Get-BuildVariables','Get-GitChangedFile','Get-Metadata','Get-ModuleAliases','Get-ModuleFunctions','Get-NextNugetPackageVersion','Get-NextPSGalleryVersion','Get-ProjectName','Get-PSModuleManifest','Invoke-Git','Set-BuildEnvironment','Set-ModuleAliases','Set-ModuleFormats','Set-ModuleFunctions','Step-ModuleVersion','Step-Version','Update-Metadata')
+FunctionsToExport = @('Add-TestResultToAppveyor','Export-Metadata','Find-NugetPackage','Get-BuildEnvironment','Get-BuildEnvironmentDetail','Get-BuildVariables','Get-GitChangedFile','Get-Metadata','Get-ModuleAliases','Get-ModuleFunctions','Get-NextNugetPackageVersion','Get-NextPSGalleryVersion','Get-ProjectName','Get-PSModuleManifest','Invoke-Git','Set-BuildEnvironment','Set-ModuleAliases','Set-ModuleFormats','Set-ModuleFunctions','Set-ShieldsIoBadge','Step-ModuleVersion','Step-Version','Update-Metadata')
 
 # Cmdlets to export from this module
 CmdletsToExport = '*'
