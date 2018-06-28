@@ -315,7 +315,8 @@ task Pester {
         Script = @{Path = "Tests"; Parameters = @{ModulePath = (split-path $moduleManifestPath)}}
         OutputFile = $PesterResultFile
         OutputFormat = "NunitXML"
-        PassThru = $false
+        PassThru = $true
+        OutVariable = 'TestResults'
     }
 
     #If we are in vscode, add the VSCodeMarkers
@@ -338,7 +339,7 @@ task Pester {
 
     # Failed tests?
     # Need to error out or it will proceed to the deployment. Danger!
-    if ($TestResults.FailedCount -gt 0) {
+    if ($TestResults.failedcount -isnot [int] -or $TestResults.FailedCount -gt 0) {
         Write-Error "Failed '$($TestResults.FailedCount)' tests, build failed"
         $SkipPublish = $true
     }
