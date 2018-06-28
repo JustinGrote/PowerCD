@@ -67,40 +67,45 @@ Based on RamblingCookieMonster's template plus what is seen in the community. (P
 
 PS5.1 is the "last" version of Windows Powershell, as such it makes a good Long Term Support (LTS) target. The inclusion of the Powershell Gallery and its proven stability (VMware/AWS/Azure all use it as their primary delivery mechanism) allows requirements and dependencies to be managed. Also specific to modules, multi-version support became standard so the logic and testing is based around that.
 
-**You can still use PowerCD to build modules that are compatible with PSv2-4, however there is no inherent PSv2-4 specific testing in the PowerCD process and you will have to test separately. Appveyor no longer provides any images that have PSv4 on them so you'll have to do this in Jenkins or a local machine with PSv2-4 installed**.
+You can still use PowerCD to build modules that are compatible with PSv2-4, however there is no inherent PSv2-4 specific testing in the PowerCD process and you will have to test separately. Appveyor no longer provides any images that have PSv4 on them so you'll have to do this in Jenkins or a local machine with PSv2-4 installed.
 
-*What about Travis?*
+**What about Travis?**
 
 Appveyor added Linux support in May 2018 and it works, so we use that for PowerCD builds as the default to keep it consistent. You can always add a Travis build later.
 
-*What about OSX builds and testing?*
+**What about OSX builds and testing?**
 
 Will add Travis support to do this later, right now focus is just on WindowsPowershell and Powershell Core builds on Windows and Linux (ubuntu as test target). If the linux build passes, it's probably going to be OK on OSX.
 
-*Why not a /src directory?*
+**Why not a /src directory?**
 
 Powershell script modules by default in my opinion should usable with import-module from a direct "git checkout" of the source, even if the versioning is inaccurate (because it is dynamically determined by GitVersion at build time). Organizing things into a /src directory would defeat that purpose/goal especially since Powershell doesn't need to be "compiled" like C#, it is an interpreted language.
 
-*What about Binary Modules?*
+**What about Binary Modules?**
 
 This template is targeted for people new to module building, so they probably aren't building .NET-based modules, maybe included a .NET library here or there in /lib. Binary Module support is on the way-later roadmap.
 
-*Why not PSake?*
+**Why not PSake?**
 
 While PSake is more popular, Invoke-Build has sufficient improvements and Powershell Team support, as well as better portability.
 
 This plaster is designed so that someone who is new to building modules doesn't have to touch the build script, they just have to place things into Private, Public, and lib, so it's less important for them to have intimate knowledge of the build script, especially since all it primarily does currently is release management and versioning automation, not actual "building/compiling" of code.
 
-*Why CodeCov? Why not Coveralls?*
+**Why CodeCov? Why not Coveralls?**
 
 CodeCov is what the [official Powershell Core repository uses](https://codecov.io/gh/PowerShell/PowerShell), plus I think the reports look cleaner.
 
-*What about Bitbucket/GitLab/Etc?*
+**What about Bitbucket/GitLab/Etc?**
 
 Low demand and trying to keep the compatibility matrix small. You can still build a module and then upload it to one of these, and all the local build tools will still work, but it won't be tested/supported for PowerCD.
 
 If you're concerned about Microsoft buying GitHub, well, Powershell Core is on GitHub, so I guess you'll stop using that too right?
 
-*Why don't you call this Continuous Deployment?*
+**Why don't you call this Continuous Deployment?**
 
 The function of this module is to publish the modules to places where they can then be consumed, it's not to deploy the software directly into production, hence it is only Continuous Delivery, not Continuous Deployment. If you bolt on a piece in the build code that pushes this directly to production, then it is Continuous Deployment.
+
+**Why is the version tagging so weird?**
+We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track. If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.
+
+Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
