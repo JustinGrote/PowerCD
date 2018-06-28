@@ -1,15 +1,10 @@
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
 version: '{build}-{branch}'
 
-#Publish to PowerShell Gallery with this key
-environment:
-  NuGetApiKey:
-    secure: HncD30pn+cWRepdP28pyB1l4BNg3x3MdvcNV8EysOhQ5kBFMHVyXiQM0whuUW78P
-
 image:
   - Visual Studio 2017
 install:
-  - ps: Install-Module -Name InvokeBuild -Confirm:$false -ErrorAction Stop -Force
+  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer -Confirm:$false -ErrorAction Stop -Force
 
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
