@@ -256,7 +256,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         write-build Green "Task $($task.name)` - In Master/Develop branch, adding Tag Version $ProjectBuildVersion to this build"
         $Script:ProjectVersion = $ProjectBuildVersion
         if (-not (git tag -l $ProjectBuildVersion)) {
-            git tag "$ProjectBuildVersion"
+            git tag "v$ProjectBuildVersion"
         } else {
             write-warning "Tag $ProjectBuildVersion already exists. This is normal if you are running multiple builds on the same commit, otherwise this should not happen."
         }
