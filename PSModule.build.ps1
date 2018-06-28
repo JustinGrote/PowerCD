@@ -1,17 +1,15 @@
 #requires -version 5
-#requires -module BuildHelpers,Powershell-YAML
+#requires -module BuildHelpers
 #Build Script for Powershell Modules
 #Uses Invoke-Build (https://github.com/nightroman/Invoke-Build)
 #Run by changing to the project root directory and run ./Invoke-Build.ps1
 #Uses a master-always-deploys strategy and semantic versioning - http://nvie.com/posts/a-successful-git-branching-model/
 
 param (
-    #Skip deployment and packaging
-    [Switch]$SkipDeploy,
     #Skip publishing to various destinations (Appveyor,Github,PowershellGallery,etc.)
     [Switch]$SkipPublish,
-    #Force deployment step even if we are not in master. If you are following GitFlow or GitHubFlow you should never need to do this.
-    [Switch]$ForceDeploy,
+    #Force publish step even if we are not in master. If you are following GitFlow or GitHubFlow you should never need to do this.
+    [Switch]$ForcePublish,
     #Show detailed environment variables. WARNING: Running this in a CI like appveyor may expose your secrets to the log! Be careful!
     [Switch]$ShowEnvironmentVariables,
     #Powershell modules required for the build process
@@ -20,7 +18,7 @@ param (
     [String[]]$BuildFilesToExclude = @("Build","Release","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder"),
     #Where to perform the building of the module. Defaults to "Release" under the project directory. You can specify either a path relative to the project directory, or a literal alternate path.
     [String]$BuildOutputPath,
-    #NuGet API Key for Powershell Gallery Deployment. Defaults to environment variable of the same name
+    #NuGet API Key for Powershell Gallery Publishing. Defaults to environment variable of the same name
     [String]$NuGetAPIKey = $env:NuGetAPIKey,
     #GitHub User for Github Releases. Defaults to environment variable of the same name
     [String]$GitHubUserName = $env:GitHubAPIKey,
@@ -31,8 +29,12 @@ param (
 #Initialize Build Environment
 Enter-Build {
     #TODO: Make bootstrap module loading more flexible and dynamic
-    $HelpersPath = "$BuildRoot\Build\Helpers"
-    import-module -force -name "$HelpersPath\BuildHelpers"
+    <#
+    if (-not (Get-Command "Set-BuildEnvironment" -module BuildHelpers)) {
+        $HelpersPath = "$Buildroot\Build\Helpers"
+        import-module -force -name "$HelpersPath\BuildHelpers"
+    }
+    #>
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
@@ -47,7 +49,14 @@ Enter-Build {
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
     $Timestamp = Get-date -format "yyyyMMdd-HHmmss"
 
+    #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
+    #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
+    $PowerCDIncludeFiles = @("Build","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder")
+    if ($env:BHProjectName -match 'PowerCD') {
+        $BuildFilesToExclude = $BuildFilesToExclude | where {$PowerCDIncludeFiles -notcontains $PSItem}
+    }
     #Define the Project Build Path
+
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
     #If the branch name is master-test, run the build like we are in "master"
@@ -184,7 +193,7 @@ task Version {
     }
     #>
 
-    #Calcuate the GitVersion
+    #Calculate the GitVersion
     write-verbose "Executing GitVersion to determine version info"
     $GitVersionOutput = Invoke-BuildExec { &$GitVersionEXE $BuildRoot }
 
@@ -229,6 +238,8 @@ task CopyFilesToBuildDir {
 
 #Update the Metadata of the Module with the latest Version
 task UpdateMetadata Version,CopyFilesToBuildDir,{
+    # Update-ModuleManifest butchers PrivateData, using update-metadata from BuildHelpers instead.
+
     # Set the Module Version to the calculated Project Build version. Cannot use update-modulemanifest for this because it will complain the version isn't correct (ironic)
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
@@ -237,7 +248,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     if (-not $moduleFunctionsToExport) {
         write-warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
     } else {
-        Update-ModuleManifest -Path $BuildReleaseManifest -FunctionsToExport $moduleFunctionsToExport
+        Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
     }
 
     # Are we in the master or develop/development branch? Bump the version based on the powershell gallery if so, otherwise add a build tag
@@ -274,16 +285,8 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         #Create an empty file in the root directory of the module for easy identification that its not a valid release.
         "This is a prerelease build and not meant for deployment!" > (Join-Path $BuildReleasePath "PRERELEASE-$ProjectSemVersion")
 
-        #Sanity check on the Project Prerelease tag, has to be less than 20 characters.
-        if ($projectPreReleaseTag.length -gt 20) {
-            $nugetPreReleaseTag = $GitVersion.NugetVersion -split '-' | select -last 1
-            write-warning "Prerelease tag $projectPreReleaseTag is more than 20 characters, using Nuget-Compatible tag for PSGallery..."
-            #Strip any leading "dash" such as feature- or prerelease-
-
-        }
-
-        #Flag this as a prerelease in the module metadata
-        Update-ModuleManifest -Path $BuildReleaseManifest -PreRelease $ProjectPreReleaseTag
+        #Set the prerelease version in the Manifest File
+        Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
     }
 
     # Add Release Notes from current version
@@ -337,13 +340,13 @@ task Pester {
     # Need to error out or it will proceed to the deployment. Danger!
     if ($TestResults.FailedCount -gt 0) {
         Write-Error "Failed '$($TestResults.FailedCount)' tests, build failed"
-        $SkipDeploy = $true
+        $SkipPublish = $true
     }
     "`n"
 }
 
 task Package Version,{
-    $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectBuildVersion.zip")
+    $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectSemVersion.zip")
     write-build Green "Task $($task.name)` - Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
@@ -375,15 +378,16 @@ task PreDeploymentChecks {
         $ErrorActionPreference = $CurrentErrorActionPreference
     }
 
-    if (($BranchName -eq 'master') -or $ForceDeploy) {
-        if (-not (Get-Item $BuildProjectPath/*.psd1 -erroraction silentlycontinue)) {throw "No Powershell Module Found in $BuildProjectPath. Skipping deployment. Did you remember to build it first with {Invoke-Build Build}?"}
+    if (($BranchName -eq 'master') -or $ForcePublish) {
+        if (-not (Get-Item $BuildReleasePath/*.psd1 -erroraction silentlycontinue)) {throw "No Powershell Module Found in $BuildReleasePath. Skipping deployment. Did you remember to build it first with {Invoke-Build Build}?"}
     } else {
-        write-build Magenta "Task $($task.name)` - We are not in master branch, skipping publish. If you wish to deploy anyways such as for testing, run {InvokeBuild Deploy -ForceDeploy:$true}"
+        write-build Magenta "Task $($task.name)` - We are not in master branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
         $script:SkipPublish=$true
     }
 }
 
 task PublishGitHubRelease -if (-not $SkipPublish) Package,{
+    if ($SkipPublish) {$SkipGitHubRelease = $true}
     #TODO: Add Prerelease Logic when message commit says "!prerelease" or is in a release branch
     if ($AppVeyor -and -not $GitHubAPIKey) {
         write-build DarkYellow "Task $($task.name)` - Couldn't find GitHubAPIKey in the Appveyor secure environment variables. Did you save your Github API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://github.com/settings/tokens"
@@ -391,16 +395,17 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
     }
     if (-not $env:GitHubAPIKey) {
         #TODO: Add Windows Credential Store support and some kind of Linux secure storage or caching option
-        write-build DarkYellow "Task $($task.name)` - `$env:GitHubAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build Deploy -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
+        write-build DarkYellow "Task $($task.name)` - `$env:GitHubAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
 
         $SkipGitHubRelease = $true
     }
     if (-not $env:GitHubUserName) {
-        write-build DarkYellow "Task $($task.name)` - `$env:GitHubUserName was not found as an environment variable. Please specify it or use {Invoke-Build Deploy -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
+        write-build DarkYellow "Task $($task.name)` - `$env:GitHubUserName was not found as an environment variable. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
         $SkipGitHubRelease = $true
     }
     if ($SkipGitHubRelease) {
         write-build Magenta "Task $($task.name): Skipping Publish to GitHub Releases"
+        continue
     } else {
         #TODO: Add Prerelease Logic when message commit says "!prerelease" or is in a release branch
         #Inspiration from https://www.herebedragons.io/powershell-create-github-release-with-artifact
@@ -430,11 +435,11 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         $uploadUriBase = $result.upload_url -creplace '\{\?name,label\}'  # Strip the , "?name=$artifact" part
 
         $uploadParams = @{
-        Method = 'POST';
-        Headers = @{
-            Authorization = $auth;
-        }
-        ContentType = 'application/zip';
+            Method = 'POST';
+                Headers = @{
+                    Authorization = $auth;
+                }
+            ContentType = 'application/zip';
         }
         foreach ($artifactItem in $artifactPaths) {
             $uploadparams.URI = $uploadUriBase + "?name=$(split-path $artifactItem -leaf)"
@@ -445,18 +450,20 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
 }
 
 task PublishPSGallery -if (-not $SkipPublish) {
+    if ($SkipPublish) {[switch]$SkipPSGallery = $true}
     if ($AppVeyor -and -not $NuGetAPIKey) {
         write-build DarkYellow "Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
         $SkipPSGallery = $true
     }
     if (-not $NuGetAPIKey) {
         #TODO: Add Windows Credential Store support and some kind of Linux secure storage or caching option
-        write-build DarkYellow '$env:NuGetAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build Deploy -NuGetAPIKey "MyAPIKeyString"}. Have you registered for a Powershell Gallery API key yet? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item'
+        write-build DarkYellow '$env:NuGetAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -NuGetAPIKey "MyAPIKeyString"}. Have you registered for a Powershell Gallery API key yet? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item'
         $SkipPSGallery = $true
     }
 
     if ($SkipPSGallery) {
         Write-Build Magenta "Task $($task.name)` - Skipping Powershell Gallery Publish"
+        continue
     } else {
         $publishParams = @{
                 Path = $BuildReleasePath
@@ -474,7 +481,7 @@ task PublishPSGallery -if (-not $SkipPublish) {
 # These are the only supported items to run directly from Invoke-Build
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Pester
-task Deploy PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
+task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
 
-#Default Task - Build, Test with Pester, Deploy
-task . Clean,Build,Test,Deploy
+#Default Task - Build, Test with Pester, publish
+task . Clean,Build,Test,Publish

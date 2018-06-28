@@ -79,7 +79,7 @@
                 "-NoProfile",
                 "-NonInteractive",
                 "-ExecutionPolicy","Bypass",
-                "-Command","Invoke-Build Build"
+                "-Command","Invoke-Build Build,Test,Package"
             ]
         }
     ]

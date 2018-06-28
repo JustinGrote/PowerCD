@@ -65,9 +65,9 @@ Based on RamblingCookieMonster's template plus what is seen in the community. (P
 
 *Why do you only support PS5.1 and PS6 as build environments?*
 
-PS5.1 is the "last" version of Windows Powershell, as such it makes a good Long Term Support (LTS) target. The inclusion of the Powershell Gallery and its proven stability (VMware/AWS/Azure all use it as their primary delivery mechanism) allows requirements and dependencies to be managed.
+PS5.1 is the "last" version of Windows Powershell, as such it makes a good Long Term Support (LTS) target. The inclusion of the Powershell Gallery and its proven stability (VMware/AWS/Azure all use it as their primary delivery mechanism) allows requirements and dependencies to be managed. Also specific to modules, multi-version support became standard so the logic and testing is based around that.
 
-**You can still use PowerCD to build modules that are compatible with PSv2-4, however there is no inherent testing in the PowerCD process for them and you will have to test separately. Appveyor no longer provides any images that have PSv4 on them**.
+**You can still use PowerCD to build modules that are compatible with PSv2-4, however there is no inherent PSv2-4 specific testing in the PowerCD process and you will have to test separately. Appveyor no longer provides any images that have PSv4 on them so you'll have to do this in Jenkins or a local machine with PSv2-4 installed**.
 
 *What about Travis?*
 

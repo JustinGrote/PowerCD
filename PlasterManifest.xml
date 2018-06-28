@@ -100,7 +100,7 @@ The Name of your module | Default'
     <file source='Build\**' destination='Build' />
 
     <!-- First Function -->
-    <templateFile source='Templates\Default\firstfunction.ps1' destination='Public\${PLASTER_PARAM_FirstFunctionName}.ps1' />
+    <templateFile source='Templates\Default\firstfunction.ps1.txt' destination='Public\${PLASTER_PARAM_FirstFunctionName}.ps1' />
 
     <!-- License Files -->
     <!-- TODO: Substitute Year and Fullname in MIT License using TemplateFile or modify? -->

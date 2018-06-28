@@ -1,24 +1,30 @@
-#requires -module BuildHelpers
-if (-not (import-module BuildHelpers -PassThru -verbose:$false -erroraction silentlycontinue)) {
-    install-module buildhelpers -scope currentuser -erroraction stop -force
-    import-module BuildHelpers -erroraction stop -verbose:$false
-}
-#TODO: Replace this with Get-BuildEnvironment variables, leave the environment alone!
-Set-BuildEnvironment -force -BuildOutput "Release"
-#$PSVersion = $PSVersionTable.PSVersion.Major
-$BuildOutputProject = Join-Path $env:BHBuildOutput $env:BHProjectName
-$ModuleManifestPath = Join-Path $BuildOutputProject '\*.psd1'
+param (
+    #Specify an alternate location for the Powershell Module. This is useful when testing a build in another directory
+    [string]$ModulePath = (Get-Location)
+)
 
-if (-not (Test-Path $ModuleManifestPath)) {throw "Module Manifest not found at $ModuleManifestPath. Did you run 'Invoke-Build Build' first?"}
+#If an alternate module root was specified, set that to our running directory.
+if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
+
+#if we are in the "Tests" directory and there is a PSD file below this one, change to the module directory so relative paths work correctly.
+if ((get-location) -match 'Tests$' -and (Get-Item (join-path ".." "*.psd1"))) {Push-Location ..}
+
+#Find the module manifest. Get-ChildItem's last item is the one closest to the root directory. #FIXME: Do this in a safer manner
+try {
+    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | Select -last 1
+    $SCRIPT:moduleDirectory = $moduleManifestFile.directory
+} catch {
+    throw "Did not detect any module manifests in $ModulePath. Did you run 'Invoke-Build Build' first?"
+}
 Describe 'Powershell Module' {
-    Context "$env:BHProjectName" {
-        $ModuleName = $env:BHProjectName
+    $ModuleName = $ModuleManifestFile.basename
+    Context ($ModuleName) {
         It 'Has a valid Module Manifest' {
-            if ($isCoreCLR -or $PSVersionTable.PSVersion -ge [Version]"5.1") {
-                $Script:Manifest = Test-ModuleManifest $ModuleManifestPath
+            if ($PSEdition -eq 'Core' -or $PSVersionTable.PSVersion -ge [Version]"5.1") {
+                $Script:Manifest = Test-ModuleManifest $ModuleManifestFile
             } else {
-                #Copy the Module Manifest to a temp file in order to test to fix a bug where
-                #Test-ModuleManifest caches the first result, thus not catching changes
+                #Copy the Module Manifest to a temp file for testing. This fixes a bug where
+                #Test-ModuleManifest caches the first result, thus not catching changes if subsequent tests are run
                 $TempModuleManifestPath = [System.IO.Path]::GetTempFileName() + '.psd1'
                 copy-item $ModuleManifestPath $TempModuleManifestPath
                 $Script:Manifest = Test-ModuleManifest $TempModuleManifestPath
@@ -27,7 +33,20 @@ Describe 'Powershell Module' {
         }
 
         It 'Has a valid root module' {
-            $Manifest.RootModule | Should Be "$ModuleName.psm1"
+            Test-Path $Manifest.RootModule -Type Leaf | Should Be $true
+        }
+
+
+        It 'Has a valid folder structure (ModuleName\Manifest or ModuleName\Version\Manifest)' {
+            $moduleDirectoryErrorMessage = "Module directory structure doesn't match either $ModuleName or $moduleName\$($Manifest.Version)"
+            $ModuleManifestDirectory = $ModuleManifestFile.directory
+            switch ($ModuleManifestDirectory.basename) {
+                $ModuleName {$true}
+                $Manifest.Version.toString() {
+                    if ($ModuleManifestDirectory.parent -match $ModuleName) {$true} else {throw $moduleDirectoryErrorMessage}
+                }
+                default {throw $moduleDirectoryErrorMessage}
+            }
         }
 
         It 'Has a valid Description' {
@@ -43,12 +62,12 @@ Describe 'Powershell Module' {
         }
 
         It 'Exports all public functions' {
-            $FunctionFiles = Get-ChildItem "$BuildOutputProject\Public" -Filter *.ps1
+            $FunctionFiles = Get-ChildItem Public -Filter *.ps1
             $FunctionNames = $FunctionFiles.basename | ForEach-Object {$_ -replace '-', "-$($Manifest.Prefix)"}
             $ExFunctions = $Manifest.ExportedFunctions.Values.Name
+            if ($ExFunctions -eq '*') {write-warning "Manifest has * for functions. You should individually specify your public functions prior to deployment for better discoverability"}
             if ($functionNames) {
-                foreach ($FunctionName in $FunctionNames)
-                {
+                foreach ($FunctionName in $FunctionNames) {
                     $ExFunctions -contains $FunctionName | Should Be $true
                 }
             }
@@ -58,22 +77,26 @@ Describe 'Powershell Module' {
             $Script:Manifest.exportedcommands.count | Should BeGreaterThan 0
         }
         It 'Can be imported as a module successfully' {
-            Remove-Module $ModuleName -ErrorAction SilentlyContinue
-            Import-Module $BuildOutputProject -PassThru -verbose:$false -OutVariable BuildOutputModule | Should BeOfType System.Management.Automation.PSModuleInfo
+            #Make sure an existing module isn't present
+            Remove-Module $moduleManifestFile.basename -ErrorAction SilentlyContinue
+            $SCRIPT:BuildOutputModule = Import-Module $moduleManifestFile -PassThru -verbose:$false -erroraction stop
             $BuildOutputModule.Name | Should Be $ModuleName
+            $BuildOutputModule | Should BeOfType System.Management.Automation.PSModuleInfo
         }
-        It 'Is visible in Get-Module' {
-            $module = Get-Module $ModuleName
-            $Module | Should BeOfType System.Management.Automation.PSModuleInfo
-            $Module.Name | Should Be $ModuleName
+        It 'Can be removed as a module' {
+            $BuildOutputModule | Remove-Module -erroraction stop | Should BeNullOrEmpty
         }
+
     }
 }
-
-Describe 'PSScriptAnalyzer' {
-    $results = Invoke-ScriptAnalyzer -Path $BuildOutputProject -Recurse -Setting PSGallery -Verbose:$false
-    It 'PSScriptAnalyzer returns zero errors for all files in the repository' {
-        write-verbose ($results | Format-Table -autosize | out-string)
+Describe 'Powershell Gallery Readiness (PSScriptAnalyzer)' {
+    $results = Invoke-ScriptAnalyzer -Path $ModuleManifestFile.directory -Recurse -Setting PSGallery -Severity Error
+    It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
+        if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
         $results.Count | Should Be 0
     }
 }
+
+
+#Return to where we started
+Pop-Location
