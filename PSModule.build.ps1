@@ -55,8 +55,8 @@ Enter-Build {
     if ($env:BHProjectName -match 'PowerCD') {
         $BuildFilesToExclude = $BuildFilesToExclude | where {$PowerCDIncludeFiles -notcontains $PSItem}
     }
-    #Define the Project Build Path
 
+    #Define the Project Build Path
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
     #If the branch name is master-test, run the build like we are in "master"
@@ -251,9 +251,15 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
     }
 
-    # Are we in the master or develop/development branch? Bump the version based on the powershell gallery if so, otherwise add a build tag
+    #GA release detection
+
+    if ($BranchName -match '^master') {
+        $Script:IsGARelease = $true
+    }
+
     if ($BranchName -match '^(master|dev(elop)?(ment)?)$') {
         write-build Green "Task $($task.name)` - In Master/Develop branch, adding Tag Version $ProjectBuildVersion to this build"
+
         $Script:ProjectVersion = $ProjectBuildVersion
         if (-not (git tag -l $ProjectBuildVersion)) {
             git tag "v$ProjectBuildVersion"
@@ -261,7 +267,6 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
             write-warning "Tag $ProjectBuildVersion already exists. This is normal if you are running multiple builds on the same commit, otherwise this should not happen."
         }
     } else {
-        [switch]$Script:IsPreRelease = $true
         write-build Green "Task $($task.name)` Not in Master/Develop branch, marking this as a feature prelease build"
         $Script:ProjectVersion = $Project
         #Set an email address for tag commit to work if it isn't already present
@@ -327,11 +332,10 @@ task Pester {
 
     Invoke-Pester @PesterParams | Out-Null
 
-    # In Appveyor?  Upload our test results!
+    # In Appveyor? Upload our test results!
     If ($ENV:APPVEYOR) {
         $UploadURL = "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)"
-        write-verbose "Detected we are running in AppVeyor"
-        write-verbose "Uploading Pester Results to Appveyor: $UploadURL"
+        write-verbose "Detected we are running in AppVeyor! Uploading Pester Results to $UploadURL"
         (New-Object 'System.Net.WebClient').UploadFile(
             "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
             $PesterResultFile )
@@ -397,7 +401,6 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
     if (-not $env:GitHubAPIKey) {
         #TODO: Add Windows Credential Store support and some kind of Linux secure storage or caching option
         write-build DarkYellow "Task $($task.name)` - `$env:GitHubAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
-
         $SkipGitHubRelease = $true
     }
     if (-not $env:GitHubUserName) {
@@ -412,6 +415,8 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         #Inspiration from https://www.herebedragons.io/powershell-create-github-release-with-artifact
 
         #Create the release
+        #Currently all releases are draft on publish and must be manually made public on the website or via the API
+        #TODO: Add logic to allow to control this behavior
         $releaseData = @{
             tag_name = [string]::Format("v{0}", $ProjectBuildVersion);
             target_commitish = "master";
@@ -420,6 +425,13 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
             draft = $true;
             prerelease = $true;
         }
+
+        #Only master builds are considered GA
+        if ($SCRIPT:IsGARelease) {
+            $releasedata.prerelease = $false
+        }
+
+
         $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
         $releaseParams = @{
             Uri = "https://api.github.com/repos/$env:gitHubUserName/$env:BHProjectName/releases"
