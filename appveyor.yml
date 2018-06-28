@@ -4,7 +4,7 @@ version: '{build}-{branch}'
 image:
   - Visual Studio 2017
 install:
-  - ps: Install-Module -Name InvokeBuild,BuildHelpers -Confirm:$false -ErrorAction Stop -Force
+  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer -Confirm:$false -ErrorAction Stop -Force
 
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
