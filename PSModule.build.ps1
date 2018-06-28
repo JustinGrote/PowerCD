@@ -105,23 +105,23 @@ Enter-Build {
         write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
         #Next command will detect this was removed and add this back
         UnRegister-PackageSource -Name nuget.org
-    }
 
-    #Add the nuget repository so we can download things like GitVersion
-    # TODO: Make this optional code when running interactively
-    <#
-    if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
-        write-verbose "Registering nuget.org as package source"
-        Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted @PassThruParams  | out-string | write-verbose
-    }
-    else {
-        $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted @PassThruParams
-        if ($PassThruParams.Verbose) {
-            write-verboseheader "Nuget.Org Package Source Info"
-            $nugetOrgPackageSource | format-table | out-string | write-verbose
+
+        #Add the nuget repository so we can download things like GitVersion
+        # TODO: Make this optional code when running interactively
+        if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
+            write-verbose "Registering nuget.org as package source"
+            Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted @PassThruParams  | out-string | write-verbose
+        }
+        else {
+            $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted @PassThruParams
+            if ($PassThruParams.Verbose) {
+                write-verboseheader "Nuget.Org Package Source Info"
+                $nugetOrgPackageSource | format-table | out-string | write-verbose
+            }
         }
     }
-    #>
+
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
