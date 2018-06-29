@@ -21,7 +21,7 @@ param (
     #NuGet API Key for Powershell Gallery Publishing. Defaults to environment variable of the same name
     [String]$NuGetAPIKey = $env:NuGetAPIKey,
     #GitHub User for Github Releases. Defaults to environment variable of the same name
-    [String]$GitHubUserName = $env:GitHubAPIKey,
+    [String]$GitHubUserName = $env:GitHubUserName,
     #GitHub API Key for Github Releases. Defaults to environment variable of the same name
     [String]$GitHubAPIKey = $env:GitHubAPIKey
 )
