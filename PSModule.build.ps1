@@ -47,7 +47,6 @@ Enter-Build {
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
-    $Timestamp = Get-date -format "yyyyMMdd-HHmmss"
 
     #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
     #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
@@ -242,7 +241,6 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         #Set an email address for the tag commit to work if it isn't already present
         if (-not (git config user.email)) {
             git config user.email "buildtag@$env:ComputerName"
-            $tempTagGitEmailSet = $true
         }
 
         #Tag the release. THis keeps Gitversion performant, as well as provides a master audit trail
