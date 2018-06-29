@@ -198,10 +198,7 @@ task Version {
 
     #Calculate the GitVersion
     write-verbose "Executing GitVersion to determine version info"
-    #FIXME: TESTING, put back in after
-    #$GitVersionOutput = Invoke-BuildExec { &$GitVersionEXE $BuildRoot }
     $GitVersionOutput = &$GitVersionEXE $BuildRoot
-    #FIXME: End Testing
 
     #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
     if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
