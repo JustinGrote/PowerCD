@@ -47,13 +47,12 @@ Enter-Build {
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
-    $Timestamp = Get-date -format "yyyyMMdd-HHmmss"
 
     #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
     #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
     $PowerCDIncludeFiles = @("Build","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder")
     if ($env:BHProjectName -match 'PowerCD') {
-        $BuildFilesToExclude = $BuildFilesToExclude | where {$PowerCDIncludeFiles -notcontains $PSItem}
+        $BuildFilesToExclude = $BuildFilesToExclude | Where-Object {$PowerCDIncludeFiles -notcontains $PSItem}
     }
     #Define the Project Build Path
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
@@ -152,9 +151,6 @@ task Clean {
 }
 
 task Version {
-    #This task determines what version number to assign this build
-    $GitVersionConfig = "$buildRoot/GitVersion.yml"
-
     #Fetch GitVersion if required
     $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction continue | Select-Object -last 1).fullname
     if (-not (Test-Path -PathType Leaf $GitVersionEXE)) {
@@ -200,7 +196,7 @@ task Version {
         $Script:ProjectVersion = $ProjectBuildVersion
     } else {
         $SCRIPT:ProjectPreReleaseVersion = $GitVersionInfo.nugetversion
-        $SCRIPT:ProjectPreReleaseTag = $ProjectPreReleaseVersion.split('-') | Select -last 1
+        $SCRIPT:ProjectPreReleaseTag = $ProjectPreReleaseVersion.split('-') | Select-Object -last 1
         $Script:ProjectVersion = $ProjectPreReleaseVersion
     }
 
@@ -245,7 +241,6 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         #Set an email address for the tag commit to work if it isn't already present
         if (-not (git config user.email)) {
             git config user.email "buildtag@$env:ComputerName"
-            $tempTagGitEmailSet = $true
         }
 
         #Tag the release. THis keeps Gitversion performant, as well as provides a master audit trail
@@ -315,7 +310,7 @@ task Pester {
     # Need to error out or it will proceed to the deployment. Danger!
     if ($TestResults.failedcount -isnot [int] -or $TestResults.FailedCount -gt 0) {
         Write-Error "Failed '$($TestResults.FailedCount)' tests, build failed"
-        $SkipPublish = $true
+        $SCRIPT:SkipPublish = $true
     }
     "`n"
 }
