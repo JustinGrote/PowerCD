@@ -358,7 +358,6 @@ task PreDeploymentChecks Test,{
 
 task PublishGitHubRelease -if (-not $SkipPublish) Package,{
     if ($SkipPublish) {$SkipGitHubRelease = $true}
-    #TODO: Add Prerelease Logic when message commit says "!prerelease" or is in a release branch
     if ($AppVeyor -and -not $GitHubAPIKey) {
         write-build DarkYellow "Task $($task.name)` - Couldn't find GitHubAPIKey in the Appveyor secure environment variables. Did you save your Github API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://github.com/settings/tokens"
         $SkipGitHubRelease = $true
@@ -376,12 +375,10 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         write-build Magenta "Task $($task.name): Skipping Publish to GitHub Releases"
         continue
     } else {
-        #TODO: Add Prerelease Logic when message commit says "!prerelease" or is in a release branch
         #Inspiration from https://www.herebedragons.io/powershell-create-github-release-with-artifact
 
         #Create the release
         #Currently all releases are draft on publish and must be manually made public on the website or via the API
-        #TODO: Make "master-always-publish" for Mainline development
         $releaseData = @{
             tag_name = [string]::Format("v{0}", $ProjectVersion);
             target_commitish = "master";
@@ -392,7 +389,7 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         }
 
         #Only master builds are considered GA
-        if ($SCRIPT:IsGARelease) {
+        if ($BranchName -eq 'master') {
             $releasedata.prerelease = $false
         }
 
