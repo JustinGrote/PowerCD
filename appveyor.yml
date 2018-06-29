@@ -13,11 +13,8 @@ skip_commits:
 
 #Kick off the CI/CD pipeline. We do test and build in the same script
 #To be portable to non-Appveyor builds
-#We run it at the test step so that we can upload test results back to the system.
 build_script:
-  - ps: Invoke-Build Build,Package
-test_script:
-  - ps: Invoke-Build Test
+  - ps: Invoke-Build
 
 deploy: false
 
