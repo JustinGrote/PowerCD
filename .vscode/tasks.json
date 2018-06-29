@@ -31,8 +31,13 @@
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy","Bypass",
-                "-Command","Invoke-Build"
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build"
+            ],
+            "problemMatcher": [
+                "$pester"
             ]
         },
         {
@@ -42,8 +47,13 @@
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy","Bypass",
-                "-Command","Invoke-Build Build,Test,Package"
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build"
+            ],
+            "problemMatcher": [
+                "$pester"
             ]
         },
         {
@@ -64,8 +74,10 @@
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy","Bypass",
-                "-Command","Invoke-Build Test"
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Test"
             ],
             "problemMatcher": "$pester"
         },
@@ -78,7 +90,8 @@
                 "-NonInteractive",
                 "-ExecutionPolicy",
                 "Bypass",
-                "-Command","Invoke-Build Test"
+                "-Command",
+                "Invoke-Build Test"
             ],
             "problemMatcher": "$pester"
         }
