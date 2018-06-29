@@ -156,8 +156,9 @@ task Version {
     $GitVersionConfig = "$buildRoot/GitVersion.yml"
 
     #Fetch GitVersion if required
-    $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction silentlycontinue | Select-Object -last 1).fullname
+    $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction continue | Select-Object -last 1).fullname
     if (-not (Test-Path -PathType Leaf $GitVersionEXE)) {
+        throw "Path to Gitversion ($GitVersionEXE) is not valid or points to a folder"
         <# This is temporarily disabled as we need to use the beta gitversion for Mainline Deployment
             #TODO: Re-enable once Gitversion v4 stable is available
             $GitVersionCMDPackageName = "gitversion.commandline"
@@ -170,8 +171,8 @@ task Version {
                 #Fetch GitVersion
                 $GitVersionCMDPackage = Install-Package $GitVersionCMDPackageName -scope currentuser -source 'nuget.org' -force @PassThruParams
             }
-        #>
         $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
+        #>
     }
 
     #Does this project have a module manifest? Use that as the Gitversion starting point (will use this by default unless project is tagged higher)
@@ -197,7 +198,10 @@ task Version {
 
     #Calculate the GitVersion
     write-verbose "Executing GitVersion to determine version info"
-    $GitVersionOutput = Invoke-BuildExec { &$GitVersionEXE $BuildRoot }
+    #FIXME: TESTING, put back in after
+    #$GitVersionOutput = Invoke-BuildExec { &$GitVersionEXE $BuildRoot }
+    $GitVersionOutput = &$GitVersionEXE $BuildRoot
+    #FIXME: End Testing
 
     #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
     if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
