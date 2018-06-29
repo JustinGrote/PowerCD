@@ -55,7 +55,6 @@ Enter-Build {
     if ($env:BHProjectName -match 'PowerCD') {
         $BuildFilesToExclude = $BuildFilesToExclude | where {$PowerCDIncludeFiles -notcontains $PSItem}
     }
-
     #Define the Project Build Path
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
@@ -159,16 +158,19 @@ task Version {
     #Fetch GitVersion if required
     $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction silentlycontinue | Select-Object -last 1).fullname
     if (-not (Test-Path -PathType Leaf $GitVersionEXE)) {
-        $GitVersionCMDPackageName = "gitversion.commandline"
-        $GitVersionCMDPackage = Get-Package $GitVersionCMDPackageName -erroraction SilentlyContinue
-        if (!($GitVersionCMDPackage)) {
-            write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
-            write-verboseheader "Nuget.Org Package Source Info for fetching GitVersion"
-            Get-PackageSource | Format-Table | out-string | write-verbose
+        <# This is temporarily disabled as we need to use the beta gitversion for Mainline Deployment
+            #TODO: Re-enable once Gitversion v4 stable is available
+            $GitVersionCMDPackageName = "gitversion.commandline"
+            $GitVersionCMDPackage = Get-Package $GitVersionCMDPackageName -erroraction SilentlyContinue
+            if (!($GitVersionCMDPackage)) {
+                write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
+                write-verboseheader "Nuget.Org Package Source Info for fetching GitVersion"
+                Get-PackageSource | Format-Table | out-string | write-verbose
 
-            #Fetch GitVersion
-            $GitVersionCMDPackage = Install-Package $GitVersionCMDPackageName -scope currentuser -source 'nuget.org' -force @PassThruParams
-        }
+                #Fetch GitVersion
+                $GitVersionCMDPackage = Install-Package $GitVersionCMDPackageName -scope currentuser -source 'nuget.org' -force @PassThruParams
+            }
+        #>
         $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
     }
 
@@ -223,7 +225,7 @@ task Version {
     $SCRIPT:BuildReleasePath = Join-Path $BuildProjectPath $ProjectBuildVersion
     if (-not (Test-Path -pathtype Container $BuildReleasePath)) {New-Item -type Directory $BuildReleasePath | out-null}
     $SCRIPT:BuildReleaseManifest = Join-Path $BuildReleasePath (split-path $env:BHPSModuleManifest -leaf)
-    write-build Green "Task $($task.name)` - Release Path: $BuildReleasePath"
+    write-build Green "Task $($task.name)` - Using Release Path: $BuildReleasePath"
 }
 
 #Copy all powershell module "artifacts" to Build Directory
@@ -236,7 +238,7 @@ task CopyFilesToBuildDir {
     copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
 }
 
-#Update the Metadata of the Module with the latest Version
+#Update the Metadata of the module with the latest version information.
 task UpdateMetadata Version,CopyFilesToBuildDir,{
     # Update-ModuleManifest butchers PrivateData, using update-metadata from BuildHelpers instead.
 
@@ -251,15 +253,16 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
     }
 
+    # Are we in the master or develop/development branch? Bump the version based on the powershell gallery if so, otherwise add a build tag
     #GA release detection
 
     if ($BranchName -match '^master') {
         $Script:IsGARelease = $true
     }
 
+
     if ($BranchName -match '^(master|dev(elop)?(ment)?)$') {
         write-build Green "Task $($task.name)` - In Master/Develop branch, adding Tag Version $ProjectBuildVersion to this build"
-
         $Script:ProjectVersion = $ProjectBuildVersion
         if (-not (git tag -l $ProjectBuildVersion)) {
             git tag "v$ProjectBuildVersion"
@@ -416,7 +419,7 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
 
         #Create the release
         #Currently all releases are draft on publish and must be manually made public on the website or via the API
-        #TODO: Add logic to allow to control this behavior
+        #TODO: Make "master-always-publish" for Mainline development
         $releaseData = @{
             tag_name = [string]::Format("v{0}", $ProjectBuildVersion);
             target_commitish = "master";
@@ -430,7 +433,6 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         if ($SCRIPT:IsGARelease) {
             $releasedata.prerelease = $false
         }
-
 
         $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
         $releaseParams = @{
@@ -496,5 +498,5 @@ task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Pester
 task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
 
-#Default Task - Build, Test with Pester, publish
-task . Clean,Build,Test,Publish
+#Default Task - Build and Test
+task . Clean,Build,Test
