@@ -514,4 +514,4 @@ task Test Pester
 task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
 
 #Default Task - Build and Test
-task . Clean,Build,Test
+task . Clean,Build,Test,Package
