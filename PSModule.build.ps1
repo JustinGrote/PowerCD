@@ -56,7 +56,6 @@ Enter-Build {
         $BuildFilesToExclude = $BuildFilesToExclude | where {$PowerCDIncludeFiles -notcontains $PSItem}
     }
     #Define the Project Build Path
-
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
     #If the branch name is master-test, run the build like we are in "master"
@@ -157,19 +156,23 @@ task Version {
     $GitVersionConfig = "$buildRoot/GitVersion.yml"
 
     #Fetch GitVersion if required
-    $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction silentlycontinue | Select-Object -last 1).fullname
+    $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction continue | Select-Object -last 1).fullname
     if (-not (Test-Path -PathType Leaf $GitVersionEXE)) {
-        $GitVersionCMDPackageName = "gitversion.commandline"
-        $GitVersionCMDPackage = Get-Package $GitVersionCMDPackageName -erroraction SilentlyContinue
-        if (!($GitVersionCMDPackage)) {
-            write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
-            write-verboseheader "Nuget.Org Package Source Info for fetching GitVersion"
-            Get-PackageSource | Format-Table | out-string | write-verbose
+        throw "Path to Gitversion ($GitVersionEXE) is not valid or points to a folder"
+        <# This is temporarily disabled as we need to use the beta gitversion for Mainline Deployment
+            #TODO: Re-enable once Gitversion v4 stable is available
+            $GitVersionCMDPackageName = "gitversion.commandline"
+            $GitVersionCMDPackage = Get-Package $GitVersionCMDPackageName -erroraction SilentlyContinue
+            if (!($GitVersionCMDPackage)) {
+                write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
+                write-verboseheader "Nuget.Org Package Source Info for fetching GitVersion"
+                Get-PackageSource | Format-Table | out-string | write-verbose
 
-            #Fetch GitVersion
-            $GitVersionCMDPackage = Install-Package $GitVersionCMDPackageName -scope currentuser -source 'nuget.org' -force @PassThruParams
-        }
+                #Fetch GitVersion
+                $GitVersionCMDPackage = Install-Package $GitVersionCMDPackageName -scope currentuser -source 'nuget.org' -force @PassThruParams
+            }
         $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
+        #>
     }
 
     #Does this project have a module manifest? Use that as the Gitversion starting point (will use this by default unless project is tagged higher)
@@ -195,7 +198,10 @@ task Version {
 
     #Calculate the GitVersion
     write-verbose "Executing GitVersion to determine version info"
-    $GitVersionOutput = Invoke-BuildExec { &$GitVersionEXE $BuildRoot }
+    #FIXME: TESTING, put back in after
+    #$GitVersionOutput = Invoke-BuildExec { &$GitVersionEXE $BuildRoot }
+    $GitVersionOutput = &$GitVersionEXE $BuildRoot
+    #FIXME: End Testing
 
     #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
     if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
@@ -210,20 +216,25 @@ task Version {
     $GitVersionInfo | format-list | out-string | write-verbose
 
     $SCRIPT:ProjectBuildVersion = [Version]$GitVersionInfo.MajorMinorPatch
+    $SCRIPT:ProjectSemVersion = $GitVersionInfo.fullsemver
 
-    $SCRIPT:ProjectSemVersion = $($GitVersionInfo.fullsemver)
+    #GA release detection
+    if ($BranchName -eq 'master') {
+        $Script:IsGARelease = $true
+        $Script:ProjectVersion = $ProjectBuildVersion
+    } else {
+        $SCRIPT:ProjectPreReleaseVersion = $GitVersionInfo.nugetversion
+        $SCRIPT:ProjectPreReleaseTag = $ProjectPreReleaseVersion.split('-') | Select -last 1
+        $Script:ProjectVersion = $ProjectPreReleaseVersion
+    }
 
-    #Powershell Gallery only accepts SemVer V1 Prerelease tags. This means no periods
-    $SCRIPT:ProjectPreReleaseTag = $GitVersionInfo.NuGetVersion.split('-') | Select -last 1
-
-    write-build Green "Task $($task.name)` - Using Project Version:            $ProjectBuildVersion"
-    write-build Green "Task $($task.name)` - Using Project Version (Extended): $($GitVersionInfo.fullsemver)"
+    write-build Green "Task $($task.name)` - Calculated Project Version: $ProjectVersion"
 
     #Reset the build dir to the versioned release directory. TODO: This should probably be its own task.
     $SCRIPT:BuildReleasePath = Join-Path $BuildProjectPath $ProjectBuildVersion
     if (-not (Test-Path -pathtype Container $BuildReleasePath)) {New-Item -type Directory $BuildReleasePath | out-null}
     $SCRIPT:BuildReleaseManifest = Join-Path $BuildReleasePath (split-path $env:BHPSModuleManifest -leaf)
-    write-build Green "Task $($task.name)` - Release Path: $BuildReleasePath"
+    write-build Green "Task $($task.name)` - Using Release Path: $BuildReleasePath"
 }
 
 #Copy all powershell module "artifacts" to Build Directory
@@ -236,7 +247,7 @@ task CopyFilesToBuildDir {
     copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
 }
 
-#Update the Metadata of the Module with the latest Version
+#Update the Metadata of the module with the latest version information.
 task UpdateMetadata Version,CopyFilesToBuildDir,{
     # Update-ModuleManifest butchers PrivateData, using update-metadata from BuildHelpers instead.
 
@@ -251,24 +262,42 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
     }
 
-    # Are we in the master or develop/development branch? Bump the version based on the powershell gallery if so, otherwise add a build tag
-    if ($BranchName -match '^(master|dev(elop)?(ment)?)$') {
-        write-build Green "Task $($task.name)` - In Master/Develop branch, adding Tag Version $ProjectBuildVersion to this build"
-        $Script:ProjectVersion = $ProjectBuildVersion
-        if (-not (git tag -l $ProjectBuildVersion)) {
-            git tag "$ProjectBuildVersion"
-        } else {
-            write-warning "Tag $ProjectBuildVersion already exists. This is normal if you are running multiple builds on the same commit, otherwise this should not happen."
-        }
-    } else {
-        [switch]$Script:IsPreRelease = $true
-        write-build Green "Task $($task.name)` Not in Master/Develop branch, marking this as a feature prelease build"
-        $Script:ProjectVersion = $Project
-        #Set an email address for tag commit to work if it isn't already present
+
+    #Tag the release if this is a GA build
+    if ($BranchName -eq 'master') {
+        write-build Green "Task $($task.name)` - In Master branch, adding release tag v$ProjectVersion to this build"
+
+        #Set an email address for the tag commit to work if it isn't already present
         if (-not (git config user.email)) {
             git config user.email "buildtag@$env:ComputerName"
             $tempTagGitEmailSet = $true
         }
+
+        #Tag the release. THis keeps Gitversion performant, as well as provides a master audit trail
+        if (-not (git tag -l "v$ProjectVersion")) {
+            git tag "v$ProjectVersion" -a -m "Automatic GitVersion Release Tag Generated by Invoke-Build"
+        } else {
+            write-warning "Tag $ProjectVersion already exists. This is normal if you are running multiple builds on the same commit, otherwise this should not happen."
+        }
+    } else {
+        $Script:ProjectVersion = $ProjectPreReleaseVersion
+
+        #Create an empty file in the root directory of the module for easy identification that its not a valid release.
+        "This is a prerelease build and not meant for deployment!" > (Join-Path $BuildReleasePath "PRERELEASE-$ProjectVersion")
+
+        #Set the prerelease version in the Manifest File
+        Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
+    }
+
+
+<#
+
+    if ($BranchName -match '^(master|dev(elop)?(ment)?|releases)$') {
+
+
+    } else {
+        write-build Green "Task $($task.name)` Not in Master/Develop/Release branch, marking this as a feature build"
+
         try {
             $gitVersionTag = "v$ProjectSemVersion"
             if (-not (git tag -l $gitVersionTag)) {
@@ -281,13 +310,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
                 git config --unset user.email
             }
         }
-
-        #Create an empty file in the root directory of the module for easy identification that its not a valid release.
-        "This is a prerelease build and not meant for deployment!" > (Join-Path $BuildReleasePath "PRERELEASE-$ProjectSemVersion")
-
-        #Set the prerelease version in the Manifest File
-        Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
-    }
+#>
 
     # Add Release Notes from current version
     # TODO: Generate Release Notes from GitHub
@@ -327,11 +350,10 @@ task Pester {
 
     Invoke-Pester @PesterParams | Out-Null
 
-    # In Appveyor?  Upload our test results!
+    # In Appveyor? Upload our test results!
     If ($ENV:APPVEYOR) {
         $UploadURL = "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)"
-        write-verbose "Detected we are running in AppVeyor"
-        write-verbose "Uploading Pester Results to Appveyor: $UploadURL"
+        write-verbose "Detected we are running in AppVeyor! Uploading Pester Results to $UploadURL"
         (New-Object 'System.Net.WebClient').UploadFile(
             "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
             $PesterResultFile )
@@ -346,8 +368,8 @@ task Pester {
     "`n"
 }
 
-task Package Version,{
-    $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectSemVersion.zip")
+task Package Version,PreDeploymentChecks,{
+    $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectVersion.zip")
     write-build Green "Task $($task.name)` - Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
@@ -379,10 +401,10 @@ task PreDeploymentChecks Test,{
         $ErrorActionPreference = $CurrentErrorActionPreference
     }
 
-    if (($BranchName -eq 'master') -or $ForcePublish) {
+    if (($BranchName -match '^(master$|releases?[-/])') -or $ForcePublish) {
         if (-not (Get-Item $BuildReleasePath/*.psd1 -erroraction silentlycontinue)) {throw "No Powershell Module Found in $BuildReleasePath. Skipping deployment. Did you remember to build it first with {Invoke-Build Build}?"}
     } else {
-        write-build Magenta "Task $($task.name)` - We are not in master branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
+        write-build Magenta "Task $($task.name)` - We are not in master or release branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
         $script:SkipPublish=$true
     }
 }
@@ -397,7 +419,6 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
     if (-not $env:GitHubAPIKey) {
         #TODO: Add Windows Credential Store support and some kind of Linux secure storage or caching option
         write-build DarkYellow "Task $($task.name)` - `$env:GitHubAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
-
         $SkipGitHubRelease = $true
     }
     if (-not $env:GitHubUserName) {
@@ -412,14 +433,22 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         #Inspiration from https://www.herebedragons.io/powershell-create-github-release-with-artifact
 
         #Create the release
+        #Currently all releases are draft on publish and must be manually made public on the website or via the API
+        #TODO: Make "master-always-publish" for Mainline development
         $releaseData = @{
-            tag_name = [string]::Format("v{0}", $ProjectBuildVersion);
+            tag_name = [string]::Format("v{0}", $ProjectVersion);
             target_commitish = "master";
-            name = [string]::Format("v{0}", $ProjectBuildVersion);
+            name = [string]::Format("v{0}", $ProjectVersion);
             body = $env:BHCommitMessage;
             draft = $true;
             prerelease = $true;
         }
+
+        #Only master builds are considered GA
+        if ($SCRIPT:IsGARelease) {
+            $releasedata.prerelease = $false
+        }
+
         $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
         $releaseParams = @{
             Uri = "https://api.github.com/repos/$env:gitHubUserName/$env:BHProjectName/releases"
@@ -484,5 +513,5 @@ task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Pester
 task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
 
-#Default Task - Build and test with Pester
+#Default Task - Build and Test
 task . Clean,Build,Test
