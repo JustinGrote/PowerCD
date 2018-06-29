@@ -360,7 +360,7 @@ task Package Version,{
     }
 }
 
-task PreDeploymentChecks {
+task PreDeploymentChecks Test,{
     #Do not proceed if the most recent Pester test is not passing.
     $CurrentErrorActionPreference = $ErrorActionPreference
     try {
@@ -373,7 +373,7 @@ task PreDeploymentChecks {
             $MostRecentPesterTestResult.failures -gt 0
         ) {throw "Fail!"}
     } catch {
-        throw "Unable to detect a clean passing Pester Test nunit xml file in the $BuildOutput directory. Did you run {Invoke-Build Build,Test} and ensure it passed all tests first?"
+        throw "Pester tests failed, or unable to detect a clean passing Pester Test nunit xml file in the $BuildOutput directory. Refusing to publish/deploy until all tests pass."
     }
     finally {
         $ErrorActionPreference = $CurrentErrorActionPreference
@@ -484,5 +484,5 @@ task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Pester
 task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
 
-#Default Task - Build, Test with Pester, publish
-task . Clean,Build,Test,Publish
+#Default Task - Build and test with Pester
+task . Clean,Build,Test
