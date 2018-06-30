@@ -6,6 +6,13 @@ image:
 install:
   - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer -Confirm:$false -ErrorAction Stop -Force
 
+#Encrypted Variables - https://ci.appveyor.com/tools/encrypt
+environment:
+  GitHubUserName: JustinGrote
+  GitHubAPIKey:
+    secure: MolSn4T0aNBnph/BVkKA8HQ1qvpJjIV3CcjRg3DYynijlOVL5RftqbXD5l0IUw6L
+
+
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
 skip_commits:
@@ -15,8 +22,6 @@ skip_commits:
 #To be portable to non-Appveyor builds
 build_script:
   - ps: Invoke-Build
-
-deploy: false
 
 deploy_script:
   - ps: Invoke-Build Publish
