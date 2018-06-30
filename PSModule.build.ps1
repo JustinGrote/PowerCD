@@ -23,7 +23,9 @@ param (
     #GitHub User for Github Releases. Defaults to environment variable of the same name
     [String]$GitHubUserName = $env:GitHubUserName,
     #GitHub API Key for Github Releases. Defaults to environment variable of the same name
-    [String]$GitHubAPIKey = $env:GitHubAPIKey
+    [String]$GitHubAPIKey = $env:GitHubAPIKey,
+    #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world.
+    [Switch]$GitHubPublishAsDraft
 )
 
 #Initialize Build Environment
@@ -392,7 +394,7 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
             target_commitish = "master";
             name = [string]::Format("v{0}", $ProjectVersion);
             body = $env:BHCommitMessage;
-            draft = $true;
+            draft = $false;
             prerelease = $true;
         }
 
@@ -400,6 +402,8 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,{
         if ($BranchName -eq 'master') {
             $releasedata.prerelease = $false
         }
+
+        if ($GitHubPublishDraft) {$releasedata.draft = $true}
 
         $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
         $releaseParams = @{
