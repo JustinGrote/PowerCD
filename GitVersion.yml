@@ -1,6 +1,11 @@
 #Use Mainline Mode (master increments on every commit)
 mode: Mainline
 
+branches:
+  release:
+    #The default Mainline mode doesn't allow for prerelease tags yet.
+    mode: ContinuousDeployment
+
 #Set the build numbers to be xx, example 0.1.0-myfeature01 or 0.2.1-beta01. This allows for longer feature branch names, and can be increased for more active projects
 legacy-semver-padding: 2
 build-metadata-padding: 2

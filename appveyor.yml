@@ -18,5 +18,8 @@ build_script:
 
 deploy: false
 
+deploy_script:
+  - ps: Invoke-Build Publish
+
 on_finish:
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
