@@ -19,6 +19,10 @@ environment:
 skip_commits:
   message: /updated README.*|Update README.*s/
 
+# Skip Tags with GitHub
+# Releases are tracked and tagged by the build script in Appveyor, having this enabled results in a double build
+skip_tags: true
+
 #Kick off the CI/CD pipeline. We do test and build in the same script
 #To be portable to non-Appveyor builds
 build_script:
