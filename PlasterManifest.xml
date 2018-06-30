@@ -37,6 +37,7 @@ The Name of your module | Default'
                type='user-fullname'
                prompt='Enter your full name or an alias/handle. This will be used for Git commit messages and author information | Default'
                store='text'
+               default='Anonymous'
     />
     <parameter name='FirstFunctionName'
                type='text'
