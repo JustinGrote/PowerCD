@@ -11,6 +11,8 @@ environment:
   GitHubUserName: JustinGrote
   GitHubAPIKey:
     secure: MolSn4T0aNBnph/BVkKA8HQ1qvpJjIV3CcjRg3DYynijlOVL5RftqbXD5l0IUw6L
+  NuGetAPIKey:
+    secure: HncD30pn+cWRepdP28pyB1l4BNg3x3MdvcNV8EysOhQ5kBFMHVyXiQM0whuUW78P
 
 
 # Skip on updates to the readme.
