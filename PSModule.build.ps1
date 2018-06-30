@@ -245,7 +245,10 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
     }
 
-    if (-not $IsGARelease) {
+    if (-not $IsGARelease)
+        #Blank out the prerelease tag to make this a GA build in Powershell Gallery
+        Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $null
+    } else {
         $Script:ProjectVersion = $ProjectPreReleaseVersion
 
         #Create an empty file in the root directory of the module for easy identification that its not a valid release.
