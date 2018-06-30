@@ -245,18 +245,18 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
     }
 
-    if (-not $IsGARelease) {
+    if ($IsGARelease) {
         #Blank out the prerelease tag to make this a GA build in Powershell Gallery
-        Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value ''
+        $ProjectPreReleaseTag = ''
     } else {
         $Script:ProjectVersion = $ProjectPreReleaseVersion
 
         #Create an empty file in the root directory of the module for easy identification that its not a valid release.
         "This is a prerelease build and not meant for deployment!" > (Join-Path $BuildReleasePath "PRERELEASE-$ProjectVersion")
-
-        #Set the prerelease version in the Manifest File
-        Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
     }
+
+    #Set the prerelease version in the Manifest File
+    Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
 
     if ($isTagRelease) {
         #Set an email address for the tag commit to work if it isn't already present
