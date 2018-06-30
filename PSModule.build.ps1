@@ -237,6 +237,12 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     # Set the Module Version to the calculated Project Build version. Cannot use update-modulemanifest for this because it will complain the version isn't correct (ironic)
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
+    #Update Plaster Manifest Version
+    $PlasterManifestPath = "$buildReleasePath\PlasterManifest.xml"
+    $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
+    $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
+    $PlasterManifest.save($PlasterManifestPath)
+
     # This is needed for proper discovery by get-command and Powershell Gallery
     $moduleFunctionsToExport = (Get-ChildItem "$BuildReleasePath\Public" -Filter *.ps1).basename
     if (-not $moduleFunctionsToExport) {
