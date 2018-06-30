@@ -109,6 +109,9 @@ The Name of your module | Default'
     <templateFile condition="$PLASTER_PARAM_License -eq 'Apache'" source='Templates\Default\license\Apache.txt' destination='LICENSE' />
     <templateFile condition="$PLASTER_PARAM_License -eq 'GPL'" source='Templates\Default\license\GPL.txt' destination='LICENSE' />
 
+    <!-- VSCode -->
+    <file condition="$PLASTER_PARAM_EDITOR -like 'VSCode'" source='.vscode\**' destination='.vscode' />
+
     <!-- Appveyor -->
     <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' destination='appveyor.yml' />
   </content>
