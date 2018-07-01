@@ -1,3 +1,4 @@
+#requires -version 5 -module Pester,Plaster
 #Integration Test: Deploy the PowerCD plaster template and verify the deployment
 param (
     #Specify an alternate location for the Powershell Module. This is useful when testing a build in another directory
