@@ -8,7 +8,7 @@
 param (
     #Skip publishing to various destinations (Appveyor,Github,PowershellGallery,etc.)
     [Switch]$SkipPublish,
-    #Force publish step even if we are not in master. If you are following GitFlow or GitHubFlow you should never need to do this.
+    #Force publish step even if we are not in master or release. If you are following GitFlow or GitHubFlow you should never need to do this.
     [Switch]$ForcePublish,
     #Show detailed environment variables. WARNING: Running this in a CI like appveyor may expose your secrets to the log! Be careful!
     [Switch]$ShowEnvironmentVariables,
@@ -27,6 +27,16 @@ param (
     #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world.
     [Switch]$GitHubPublishAsDraft
 )
+
+#region HelperFunctions
+$lines = '----------------------------------------------------------------'
+
+function
+
+
+#endregion HelperFunctions
+
+
 
 #Initialize Build Environment
 Enter-Build {
@@ -75,7 +85,6 @@ Enter-Build {
     }
 
 
-    $lines = '----------------------------------------------------------------'
     function Write-VerboseHeader ([String]$Message) {
         #Simple function to add lines around a header
         write-verbose ""
@@ -375,89 +384,143 @@ task PreDeploymentChecks Test,{
     }
 }
 
-task PublishGitHubRelease -if (-not $SkipPublish) Package,{
-    if ($SkipPublish) {$SkipGitHubRelease = $true}
-    if ($AppVeyor -and -not $GitHubAPIKey) {
-        write-build DarkYellow "Task $($task.name)` - Couldn't find GitHubAPIKey in the Appveyor secure environment variables. Did you save your Github API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://github.com/settings/tokens"
-        $SkipGitHubRelease = $true
-    }
-    if (-not $env:GitHubAPIKey) {
-        #TODO: Add Windows Credential Store support and some kind of Linux secure storage or caching option
-        write-build DarkYellow "Task $($task.name)` - `$env:GitHubAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
-        $SkipGitHubRelease = $true
-    }
-    if (-not $env:GitHubUserName) {
-        write-build DarkYellow "Task $($task.name)` - `$env:GitHubUserName was not found as an environment variable. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
-        $SkipGitHubRelease = $true
-    }
-    if ($SkipGitHubRelease) {
-        write-build Magenta "Task $($task.name): Skipping Publish to GitHub Releases"
-        continue
+task PublishGitHubRelease -if (-not $SkipPublish) Package,Test,{
+    #Determine if GitHub is in use
+    [uri]$gitOriginURI = & git remote get-url --push origin
+
+    if ($gitOriginURI.host -eq 'github.com') {
+        if (-not $GitHubUserName) {
+            $GitHubUserName = $gitOriginURI.Segments[1] -replace '/$',''
+        }
+        [uri]$GitHubPublishURI = $gitOriginURI -replace '^https://github.com/(\w+)/(\w+).git','https://api.github.com/repos/$1/$2/releases'
+        write-build Green "Using GitHub Releases URL: $GitHubPublishURI with user $GitHubUserName"
     } else {
-        #Inspiration from https://www.herebedragons.io/powershell-create-github-release-with-artifact
+        write-build DarkYellow "This project did not detect a GitHub repository as its git origin, skipping GitHub Release preparation"
+        $SkipGitHubRelease = $true
+    }
 
-        #Create the release
-        #Currently all releases are draft on publish and must be manually made public on the website or via the API
-        $releaseData = @{
-            tag_name = [string]::Format("v{0}", $ProjectVersion);
-            target_commitish = "master";
-            name = [string]::Format("v{0}", $ProjectVersion);
-            body = $env:BHCommitMessage;
-            draft = $false;
-            prerelease = $true;
-        }
+    if ($SkipPublish) {[switch]$SkipGitHubRelease = $true}
+    if ($AppVeyor -and -not $GitHubAPIKey) {
+        write-build DarkYellow "Task $($task.name) - Couldn't find GitHubAPIKey in the Appveyor secure environment variables. Did you save your Github API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://github.com/settings/tokens"
+        $SkipGitHubRelease = $true
+    }
 
-        #Only master builds are considered GA
-        if ($BranchName -eq 'master') {
-            $releasedata.prerelease = $false
-        }
-
-        if ($GitHubPublishDraft) {$releasedata.draft = $true}
-
-        $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
-        $releaseParams = @{
-            Uri = "https://api.github.com/repos/$env:gitHubUserName/$env:BHProjectName/releases"
-            Method = 'POST'
-            Headers = @{
-                Authorization = $auth
+    if (-not $GitHubAPIKey) {
+        if (get-command 'get-storedcredential') {
+            write-build Green "Detected Github API key in Windows Credential Manager, using that for GitHub Release"
+            $WinCredMgrGitAPIKey = get-storedcredential -target 'LegacyGeneric:target=git:https://github.com' -erroraction silentlycontinue
+            if ($WinCredMgrGitAPIKey) {
+                $GitHubAPIKey = $winCredMgrGitAPIKey.GetNetworkCredential().Password
             }
-            ContentType = 'application/json'
-            Body = (ConvertTo-Json $releaseData -Compress)
+        } else {
+            #TODO: Add Linux credential support, preferably thorugh making a module called PoshAuth or something
+            write-build DarkYellow "Task $($task.name) - GitHubAPIKey was not found as an environment variable or in the Windows Credential Manager. Please store it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
+            $SkipGitHubRelease = $true
         }
 
-        $result = Invoke-RestMethod @releaseParams -ErrorAction stop
+    }
+    if (-not $GitHubUserName) {
+        write-build DarkYellow "Task $($task.name) - GitHubUserName was not found as an environment variable or inferred from the repository. Please specify it or use {Invoke-Build publish -GitHubUser `"MyGitHubUser`" -GitHubAPIKey `"MyAPIKeyString`"}. Have you created a GitHub API key with minimum public_repo scope permissions yet? https://github.com/settings/tokens"
+        $SkipGitHubRelease = $true
+    }
 
-        $uploadUriBase = $result.upload_url -creplace '\{\?name,label\}'  # Strip the , "?name=$artifact" part
+    #Checkpoint
+    if ($SkipGitHubRelease) {
+        write-build Magenta "Task $($task.name) - Skipping Publish to GitHub Releases"
+        continue
+    }
+    #Inspiration from https://www.herebedragons.io/powershell-create-github-release-with-artifact
 
-        $uploadParams = @{
-            Method = 'POST';
-                Headers = @{
-                    Authorization = $auth;
+    #Create the release
+    #Currently all releases are draft on publish and must be manually made public on the website or via the API
+    $releaseData = @{
+        tag_name = [string]::Format("v{0}", $ProjectVersion);
+        target_commitish = "master";
+        name = [string]::Format("v{0}", $ProjectVersion);
+        body = $env:BHCommitMessage;
+        draft = $false;
+        prerelease = $true;
+    }
+
+    #Only master builds are considered GA
+    if ($BranchName -eq 'master') {
+        $releasedata.prerelease = $false
+    }
+
+    if ($GitHubPublishAsDraft) {$releasedata.draft = $true}
+
+    $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
+    $releaseParams = @{
+        Uri = $GitHubPublishURI
+        Method = 'POST'
+        Headers = @{
+            Authorization = $auth
+        }
+        ContentType = 'application/json'
+        Body = (ConvertTo-Json $releaseData -Compress)
+    }
+
+    try {
+        #Invoke-Restmethod on WindowsPowershell always throws a terminating error regardless of erroraction setting, hence the catch. PSCore fixes this.
+        $result = Invoke-RestMethod @releaseParams -ErrorVariable GitHubReleaseError
+    } catch [System.Net.WebException] {
+        #Git Hub Error Processing
+        $gitHubErrorInfo = $PSItem.tostring() | convertfrom-json
+        if ($gitHubErrorInfo) {
+            write-build Red "Error Received from $($releaseparams.uri.host): $($GitHubErrorInfo.Message)"
+            switch ($GitHubErrorInfo.message) {
+                "Validation Failed" {
+                    $gitHubErrorInfo.errors | foreach {
+                        write-build Red "Task $($task.name) - Resource: $($PSItem.resource) - Field: $($PSItem.field) - Issue: $($PSItem.code)"
+
+                        #Additional suggestion if release exists
+                        if ($PSItem.field -eq 'tag_name' -and $PSItem.resource -eq 'Release' -and $PSItem.code -eq 'already_exists') {
+                            write-build DarkYellow "Task $($task.name) - NOTE: This usually means you've already published once for this commit. This is common if you try to publish again on the same commit. For safety, we will not overwrite releases with same version number. Please make a new commit (empty is fine) to bump the version number, or delete this particular release on Github and retry (NOT RECOMMENDED). You can also mark it as a draft release with the -GitHubPublishAsDraft, multiple drafts per version are allowed"
+                        }
+                    }
                 }
-            ContentType = 'application/zip';
-        }
-        foreach ($artifactItem in $artifactPaths) {
-            $uploadparams.URI = $uploadUriBase + "?name=$(split-path $artifactItem -leaf)"
-            $uploadparams.Infile = $artifactItem
-            $result = Invoke-RestMethod @uploadParams -erroraction stop
-        }
+            }
+
+            if ($PSItem.documentation_url) {write-build Red "More info at $($PSItem.documentation_url)"}
+        } else {throw}
+
+    }
+
+    if ($GitHubReleaseError) {
+        #Dont bother uploading if the release failed
+        throw $GitHubErrorInfo
+    }
+
+    $uploadUriBase = $result.upload_url -creplace '\{\?name,label\}'  # Strip the , "?name=$artifact" part
+
+    $uploadParams = @{
+        Method = 'POST';
+            Headers = @{
+                Authorization = $auth;
+            }
+        ContentType = 'application/zip';
+    }
+    foreach ($artifactItem in $artifactPaths) {
+        $uploadparams.URI = $uploadUriBase + "?name=$(split-path $artifactItem -leaf)"
+        $uploadparams.Infile = $artifactItem
+        $result = Invoke-RestMethod @uploadParams -erroraction stop
     }
 }
 
-task PublishPSGallery -if (-not $SkipPublish) {
+task PublishPSGallery -if (-not $SkipPublish) Test,{
     if ($SkipPublish) {[switch]$SkipPSGallery = $true}
     if ($AppVeyor -and -not $NuGetAPIKey) {
-        write-build DarkYellow "Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
+        write-build DarkYellow "Task $($task.name) - Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
         $SkipPSGallery = $true
     }
     if (-not $NuGetAPIKey) {
         #TODO: Add Windows Credential Store support and some kind of Linux secure storage or caching option
-        write-build DarkYellow '$env:NuGetAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -NuGetAPIKey "MyAPIKeyString"}. Have you registered for a Powershell Gallery API key yet? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item'
+        write-build DarkYellow "Task $($task.name) - NuGetAPIKey was not found as an environment variable. Please specify it or use {Invoke-Build publish -NuGetAPIKey "MyAPIKeyString"}. Have you registered for a Powershell Gallery API key yet? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item"
         $SkipPSGallery = $true
     }
 
     if ($SkipPSGallery) {
-        Write-Build Magenta "Task $($task.name)` - Skipping Powershell Gallery Publish"
+        Write-Build Magenta "Task $($task.name) - Skipping Powershell Gallery Publish"
         continue
     } else {
         $publishParams = @{
