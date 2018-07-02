@@ -6,9 +6,9 @@ image:
 install:
   - ps: Get-Module PowershellGet,PackageManagement | Remove-Module -force -verbose
   - ps: Install-Module -Name PowershellGet,PackageManagement -force -confirm:$false -verbose
-  - ps: import-module PowershellGet -minimumversion 1.6
-  - ps: import-module PackageManagement -minimumversion 1.1.7.0
-  - ps: Import-PackageProvider (get-module powershellget | where version -gt 1.6 | % path) -Force
+  - ps: import-Module PowershellGet -MinimumVersion 1.6
+  - ps: import-Module PackageManagement -MinimumVersion 1.1.7.0
+  - ps: Import-PackageProvider (Get-Module PowershellGet | where Version -gt 1.6 | % path) -Force | Out-Null
   #Additional Helpers
   - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -ErrorAction Stop -Force
 
