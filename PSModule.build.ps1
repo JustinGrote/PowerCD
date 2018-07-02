@@ -512,8 +512,9 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
 
     #TODO: Break this out into a function
     #We test it here instead of Build requirements because this isn't a "hard" requirement, you can still build locally while not meeting this requirement.
-    if ((get-command find-package).version -lt [version]"1.1.7.2") {
-        write-build DarkYellow "Task $($task.name) - WARNING: You do not have the PackageManagement v1.1.7.2 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PackageManagement -MinimumVersion 1.1.7.2}, close your powershell session, and retry publishing"
+    $packageMgmtVersion = (get-command find-package).version
+    if ($packageMgmtVersion -lt [version]"1.1.7.2") {
+        write-build DarkYellow "Task $($task.name) - WARNING: You have PackageManagement version  which is less than the recommended v1.1.7.2 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PackageManagement -MinimumVersion 1.1.7.2}, close your powershell session, and retry publishing"
     }
     if ((get-command find-script).version -lt [version]"1.6.6") {
         write-build DarkYellow "Task $($task.name) - WARNING: You do not have the PowershellGet module v1.6.6 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PackageManagement -MinimumVersion 1.1.7.2}, close your powershell session, and retry publishing"
