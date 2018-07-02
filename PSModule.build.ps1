@@ -503,7 +503,7 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,Test,{
     }
 }
 
-task PublishPSGallery -if (-not $SkipPublish) Test,{
+task PublishPSGallery -if (-not $SkipPublish) Version,Test,{
     if ($SkipPublish) {[switch]$SkipPSGallery = $true}
     if ($AppVeyor -and -not $NuGetAPIKey) {
         write-build DarkYellow "Task $($task.name) - Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
@@ -534,7 +534,7 @@ task PublishPSGallery -if (-not $SkipPublish) Test,{
 ### SuperTasks
 # These are the only supported items to run directly from Invoke-Build
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
-task Test Pester
+task Test Version,Pester
 task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
 
 #Default Task - Build and Test
