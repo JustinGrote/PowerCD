@@ -531,12 +531,18 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
                 ErrorAction = 'Stop'
                 Confirm = $false
         }
+
         try {
+            $lines
+            if ($verbosepreference -ne 'silentlycontinue') {write-build Green "Publishing to Powershell Gallery with the following Parameters:"}
+            $lines
+            write-verbose ($PublishParams | ft -autosize | out-string)
+            write-verbose (get-content -raw $BuildReleasePath\*.psd1 -erroraction SilentlyContinue | out-string)
+
             Publish-Module @publishParams @PassThruParams
         }
         catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
-            write-verbose $PublishParams
             throw $PSItem
         }
     }
