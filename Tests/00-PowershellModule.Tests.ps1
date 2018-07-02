@@ -3,15 +3,22 @@ param (
     [string]$ModulePath = (Get-Location)
 )
 
+#if we are in the "Tests" directory and there is a PSD file below this one, change to the module directory so relative paths work correctly.
+$currentDir = Get-Location
+if (
+    (Test-Path $currentDir -PathType Container) -and
+    $currentDir -match 'Tests$' -and
+    (Get-Item (join-path ".." "*.psd1"))
+) {
+    $ModulePath = (split-path $modulepath)
+}
+
 #If an alternate module root was specified, set that to our running directory.
 if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 
-#if we are in the "Tests" directory and there is a PSD file below this one, change to the module directory so relative paths work correctly.
-if ((get-location) -match 'Tests$' -and (Get-Item (join-path ".." "*.psd1"))) {Push-Location ..}
-
 #Find the module manifest. Get-ChildItem's last item is the one closest to the root directory. #FIXME: Do this in a safer manner
 try {
-    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | Select -last 1
+    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | Select-Object -last 1
     $SCRIPT:moduleDirectory = $moduleManifestFile.directory
 } catch {
     throw "Did not detect any module manifests in $ModulePath. Did you run 'Invoke-Build Build' first?"

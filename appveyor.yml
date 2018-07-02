@@ -4,7 +4,13 @@ version: '{build}-{branch}'
 image:
   - Visual Studio 2017
 install:
-  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer -Confirm:$false -ErrorAction Stop -Force
+  - ps: Get-Module PowershellGet,PackageManagement | Remove-Module -force -verbose
+  - ps: Install-Module -Name PowershellGet,PackageManagement -force -confirm:$false -verbose
+  - ps: import-Module PowershellGet -MinimumVersion 1.6
+  - ps: import-Module PackageManagement -MinimumVersion 1.1.7.0
+  - ps: Import-PackageProvider (Get-Module PowershellGet | where Version -gt 1.6 | % path) -Force | Out-Null
+  #Additional Helpers
+  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -ErrorAction Stop -Force
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:
@@ -26,10 +32,15 @@ skip_tags: true
 #Kick off the CI/CD pipeline. We do test and build in the same script
 #To be portable to non-Appveyor builds
 build_script:
+  #If Debugging, take a look prior to the Build
+  - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
   - ps: Invoke-Build
 
 deploy_script:
+  #If Debugging, take a look prior to the publish
+  - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
   - ps: Invoke-Build Publish
 
 on_finish:
+  #Final Checkpoint before bailing out
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
