@@ -74,11 +74,15 @@ Enter-Build {
     }
     write-build Green "Build Initialization - Current Branch Name: $BranchName"
     $PassThruParams = @{}
-    if ( ($VerbosePreference -ne 'SilentlyContinue') -or ($CI -and ($BranchName -ne 'master')) ) {
-        write-build Green "Build Initialization - Verbose Build Logging Enabled"
+    if ($CI -and ($BranchName -ne 'master')) {
+        write-build Green "Build Initialization - Not in Master branch, Verbose Build Logging Enabled"
         $SCRIPT:VerbosePreference = "Continue"
+
+    }
+    if ($VerbosePreference = "Continue") {
         $PassThruParams.Verbose = $true
     }
+
 
 
     function Write-VerboseHeader ([String]$Message) {
@@ -94,6 +98,7 @@ Enter-Build {
         write-build Green 'Build Initialization - Detected a Noninteractive or CI environment, disabling prompt confirmations'
         $SCRIPT:CI = $true
         $ConfirmPreference = 'None'
+        #Disabling Progress speeds up the build because Write-Progress can be slow
         $ProgressPreference = "SilentlyContinue"
     }
 
@@ -528,7 +533,14 @@ task PublishPSGallery -if (-not $SkipPublish) Version,Test,{
                 ErrorAction = 'Stop'
                 Confirm = $false
         }
-        Publish-Module @publishParams @PassThruParams
+        try {
+            Publish-Module @publishParams @PassThruParams
+        }
+        catch {
+            write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
+            write-verbose $PublishParams
+            throw $PSItem
+        }
     }
 }
 
