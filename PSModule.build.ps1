@@ -83,8 +83,6 @@ Enter-Build {
         $PassThruParams.Verbose = $true
     }
 
-
-
     function Write-VerboseHeader ([String]$Message) {
         #Simple function to add lines around a header
         write-verbose ""
@@ -386,7 +384,7 @@ task PreDeploymentChecks Test,{
     }
 }
 
-task PublishGitHubRelease -if (-not $SkipPublish) Package,Test,{
+task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
     #Determine if GitHub is in use
     [uri]$gitOriginURI = & git remote get-url --push origin
 
@@ -509,7 +507,7 @@ task PublishGitHubRelease -if (-not $SkipPublish) Package,Test,{
     }
 }
 
-task PublishPSGallery -if (-not $SkipPublish) Version,Test,{
+task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     if ($SkipPublish) {[switch]$SkipPSGallery = $true}
     if ($AppVeyor -and -not $NuGetAPIKey) {
         write-build DarkYellow "Task $($task.name) - Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
