@@ -30,10 +30,6 @@ param (
 
 #region HelperFunctions
 $lines = '----------------------------------------------------------------'
-
-function
-
-
 #endregion HelperFunctions
 
 
