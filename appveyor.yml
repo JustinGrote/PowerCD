@@ -6,11 +6,11 @@ image:
 install:
   - ps: Get-Module PowershellGet,PackageManagement | Remove-Module -force -verbose
   - ps: Install-Module -Name PowershellGet,PackageManagement -force -confirm:$false -verbose
-  - ps: import-module PowershellGet -minimumversion 1.6 -PassThru
-  - ps: import-module PackageManagement -minimumversion 1.1.7.0 -PassThru
-  - ps: Import-PackageProvider (get-module powershellget | where version -gt 1.6 | % path) -Verbose -Force
+  - ps: import-module PowershellGet -minimumversion 1.6
+  - ps: import-module PackageManagement -minimumversion 1.1.7.0
+  - ps: Import-PackageProvider (get-module powershellget | where version -gt 1.6 | % path) -Force
   #Additional Helpers
-  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -ErrorAction Stop -Force -verbose
+  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -ErrorAction Stop -Force
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:
