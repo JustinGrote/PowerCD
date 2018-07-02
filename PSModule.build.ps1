@@ -187,8 +187,9 @@ task Version {
     try {
         $SCRIPT:GitVersionInfo = $GitVersionOutput | ConvertFrom-JSON -ErrorAction stop
     } catch {
-        throw "There was an error when running GitVersion.exe $buildRoot. The output of the command (if any) follows:"
-        $GitVersionOutput
+        write-build Red $GitVersionOutput
+        throw "There was an error when running GitVersion.exe $buildRoot. The output of the command (if any) is above..."
+
     }
 
     write-verboseheader "GitVersion Results"
