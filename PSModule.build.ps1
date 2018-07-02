@@ -509,6 +509,17 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
 
 task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     if ($SkipPublish) {[switch]$SkipPSGallery = $true}
+
+    #TODO: Break this out into a function
+    #We test it here instead of Build requirements because this isn't a "hard" requirement, you can still build locally while not meeting this requirement.
+    if ((get-command find-package).version -lt [version]"1.1.7.2") {
+        write-build DarkYellow "Task $($task.name) - WARNING: You do not have the PackageManagement v1.1.7.2 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PackageManagement -MinimumVersion 1.1.7.2}, close your powershell session, and retry publishing"
+    }
+    if ((get-command find-script).version -lt [version]"1.6.6") {
+        write-build DarkYellow "Task $($task.name) - WARNING: You do not have the PowershellGet module v1.6.6 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PackageManagement -MinimumVersion 1.1.7.2}, close your powershell session, and retry publishing"
+    }
+
+
     if ($AppVeyor -and -not $NuGetAPIKey) {
         write-build DarkYellow "Task $($task.name) - Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
         $SkipPSGallery = $true
@@ -524,25 +535,16 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
         continue
     } else {
         $publishParams = @{
-                Path = $BuildReleasePath
+                Path = $buildReleasePath
                 NuGetApiKey = $NuGetAPIKey
                 Repository = 'PSGallery'
-                Force = $true
-                ErrorAction = 'Stop'
-                Confirm = $false
         }
-
         try {
-            $lines
-            if ($verbosepreference -ne 'silentlycontinue') {write-build Green "Publishing to Powershell Gallery with the following Parameters:"}
-            $lines
-            write-verbose ($PublishParams | ft -autosize | out-string)
-            write-verbose (get-content -raw $BuildReleasePath\*.psd1 -erroraction SilentlyContinue | out-string)
-
             Publish-Module @publishParams @PassThruParams
         }
         catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
+            $PSItem | export-clixml $home\desktop\LastError.clixml
             throw $PSItem
         }
     }
@@ -552,7 +554,7 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
 # These are the only supported items to run directly from Invoke-Build
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Version,Pester
-task Publish Version,PreDeploymentChecks,Package,PublishGitHubRelease,PublishPSGallery
+task Publish Version,PreDeploymentChecks,Package,PublishPSGallery,PublishGitHubRelease
 
 #Default Task - Build and Test
 task . Clean,Build,Test,Package
