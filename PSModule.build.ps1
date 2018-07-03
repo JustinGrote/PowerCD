@@ -535,8 +535,9 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     #If this is a prerelease build, get the latest version of PowershellGet and PackageManagement if required
     if ($BranchName -ne 'master' -and ((get-command find-package).version -lt [version]"1.1.7.2" -or (get-command find-script).version -lt [version]"1.6.6")) {
         write-build DarkYellow "Task $($task.name) - This is a prerelease module that requires a newer version of PackageManagement and PowershellGet than what you have installed in order to publish. Fetching from Powershell Gallery..."
+
+        Install-Module -Name PowershellGet,PackageManagement -Scope CurrentUser -AllowClobber -force -confirm:$false
         Get-Module PowershellGet,PackageManagement | Remove-Module -force
-        Install-Module -Name PowershellGet,PackageManagement -Scope CurrentUser -force -confirm:$false
         import-Module PowershellGet -MinimumVersion 1.6 -force
         Import-Module PackageManagement -MinimumVersion 1.1.7.0 -force
         Import-PackageProvider (Get-Module PowershellGet | where Version -gt 1.6 | % Path) -Force | Out-Null
