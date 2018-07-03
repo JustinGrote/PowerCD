@@ -87,14 +87,10 @@ Describe 'PowerCD Plaster Template' {
         It "Invoke-Plaster to TestDrive is successful" {
             test-path (join-path $PlasterDeployPath "PowerCDPlasterTest.psd1") | Should Be $true
         }
-
         It -Pending "Has a valid module manifest"
         It -Pending "Shouldn't have an AppVeyor file due to custom option"
         It -Pending "Should have a GNU license due to custom option"
-
     }
-
-
 }
 
 #Return to the original invoking directory
