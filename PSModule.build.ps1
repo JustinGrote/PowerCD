@@ -381,6 +381,13 @@ task PreDeploymentChecks Test,{
         write-build Magenta "Task $($task.name)` - We are not in master or release branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
         $script:SkipPublish=$true
     }
+
+    #If this branch is on the same commit as master, don't build, since master already exists.
+    if ((git rev-parse origin/master) -and (git rev-parse $BranchName) -eq (git rev-parse origin/master)) {
+        write-build Magenta "Task $($task.name)` - This branch is on the same commit as the origin master. Skipping Publish as you should publish from master instead. This is normal if you just merged and reset release/vNext. Please commit a change and rebuild."
+        $script:SkipPublish=$true
+    }
+
 }
 
 task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
