@@ -3,7 +3,6 @@ mode: Mainline
 
 branches:
   release:
-    #The default Mainline mode doesn't allow for prerelease tags yet.
     track-merge-target: true
     tracks-release-branches: true
     prevent-increment-of-merged-branch-version: false
