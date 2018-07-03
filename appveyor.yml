@@ -4,8 +4,6 @@ version: '{build}-{branch}'
 image:
   - Visual Studio 2017
 install:
-
-  #Additional Helpers
   - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -Force
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
