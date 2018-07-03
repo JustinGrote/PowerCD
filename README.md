@@ -116,6 +116,11 @@ We use GitVersion to establish automatic versions and tags of the module so you 
 
 Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
 
+[PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=windows&label=Powershell+Gallery+Latest
+[PSGalleryLink]: https://www.powershellgallery.com/packages/PowerCD
+
+[PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
+[PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
 
 [AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=stable
 [AppVLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
@@ -135,8 +140,3 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 [GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
 
-[PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=windows&label=Powershell+Gallery+Latest
-[PSGalleryLink]: https://www.powershellgallery.com/packages/PowerCD
-
-[PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
-[PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
