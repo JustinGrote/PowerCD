@@ -1,5 +1,11 @@
 # PowerCD
 
+[![PSGallery][]][PSGalleryLink] [![PSGalleryDL][]][PSGalleryDLLink]
+
+[![AppV][]][AppVLink] [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
+
+[![AppVNext][]][AppVNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
+
 This project's goal is to deliver a continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
 
 This will provide a "Getting Started" process to building powershell modules, and will automate as much as possible all the dirty stuff such as building, testing, and deployment/publishing.
@@ -109,3 +115,28 @@ The function of this module is to publish the modules to places where they can t
 We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track. If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.
 
 Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
+
+
+[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=stable
+[AppVLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
+
+[AppVTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/master.svg?logo=appveyor&label=tests
+[AppVTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/build/tests
+
+[GHRelease]:https://img.shields.io/github/downloads/justingrote/PowerCD/latest/total.svg?logo=github&label=download
+[GHReleaseLink]: https://github.com/JustinGrote/PowerCD/releases/latest
+
+[AppVNext]: https://img.shields.io/appveyor/ci/justingrote/powercd/release-vNext.svg?logo=appveyor&label=vNext
+[AppVNextLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
+
+[AppVNextTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/release/vNext.svg?logo=appveyor&label=tests
+[AppVNextTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/history
+
+[GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
+[GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
+
+[PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=windows&label=Powershell+Gallery+Latest
+[PSGalleryLink]: https://www.powershellgallery.com/packages/PowerCD
+
+[PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
+[PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
