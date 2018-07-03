@@ -4,13 +4,13 @@ version: '{build}-{branch}'
 image:
   - Visual Studio 2017
 install:
-  - ps: Get-Module PowershellGet,PackageManagement | Remove-Module -force -verbose
-  - ps: Install-Module -Name PowershellGet,PackageManagement -force -confirm:$false -verbose
+  - ps: Get-Module PowershellGet,PackageManagement | Remove-Module -force
+  - ps: Install-Module -Name PowershellGet,PackageManagement -force -confirm:$false
   - ps: import-Module PowershellGet -MinimumVersion 1.6
   - ps: import-Module PackageManagement -MinimumVersion 1.1.7.0
   - ps: Import-PackageProvider (Get-Module PowershellGet | where Version -gt 1.6 | % path) -Force | Out-Null
   #Additional Helpers
-  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -ErrorAction Stop -Force
+  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -Force
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:

@@ -77,9 +77,8 @@ Enter-Build {
     if ($CI -and ($BranchName -ne 'master')) {
         write-build Green "Build Initialization - Not in Master branch, Verbose Build Logging Enabled"
         $SCRIPT:VerbosePreference = "Continue"
-
     }
-    if ($VerbosePreference = "Continue") {
+    if ($VerbosePreference -eq "Continue") {
         $PassThruParams.Verbose = $true
     }
 
