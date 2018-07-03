@@ -215,6 +215,7 @@ task Version {
     #Tag the release if this is a GA build
     if ($BranchName -match '^(master|releases?[/-])') {
         write-build Green "Task $($task.name)` - In Master/Release branch, adding release tag v$ProjectVersion to this build"
+
         $SCRIPT:isTagRelease = $true
         if ($BranchName -eq 'master') {
             write-build Green "Task $($task.name)` - In Master branch, marking for General Availability publish"
