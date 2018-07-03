@@ -126,7 +126,7 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 [PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
 [PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
 
-[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=stable
+[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=Stable
 [AppVLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
 
 [AppVTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/master.svg?logo=appveyor&label=tests
