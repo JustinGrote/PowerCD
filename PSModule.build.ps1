@@ -393,16 +393,17 @@ task PreDeploymentChecks Test,{
     if (($BranchName -match '^(master$|releases?[-/])') -or $ForcePublish) {
         if (-not (Get-Item $BuildReleasePath/*.psd1 -erroraction silentlycontinue)) {throw "No Powershell Module Found in $BuildReleasePath. Skipping deployment. Did you remember to build it first with {Invoke-Build Build}?"}
     } else {
-        write-build Magenta "Task $($task.name)` - We are not in master or release branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
+        write-build Magenta "Task $($task.name) - We are not in master or release branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
         $script:SkipPublish=$true
+        continue
     }
 
-    #If this branch is on the same commit as master, don't build, since master already exists.
+    #If this branch is on the same commit as master but isn't master, don't deploy, since master already exists.
     if ($branchname -ne 'master' -and (git rev-parse origin/master) -and (git rev-parse $BranchName) -eq (git rev-parse origin/master)) {
-        write-build Magenta "Task $($task.name)` - This branch is on the same commit as the origin master. Skipping Publish as you should publish from master instead. This is normal if you just merged and reset release/vNext. Please commit a change and rebuild."
+        write-build Magenta "Task $($task.name) - This branch is on the same commit as the origin master. Skipping Publish as you should publish from master instead. This is normal if you just merged and reset release/vNext. Please commit a change and rebuild."
         $script:SkipPublish=$true
+        continue
     }
-
 }
 
 task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
@@ -531,6 +532,16 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
 task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     if ($SkipPublish) {[switch]$SkipPSGallery = $true}
 
+    #If this is a prerelease build, get the latest version of PowershellGet and PackageManagement if required
+    if ($BranchName -ne 'master' -and ((get-command find-package).version -lt [version]"1.1.7.2" -or (get-command find-script).version -lt [version]"1.6.6")) {
+        write-build DarkYellow "Task $($task.name) - This is a prerelease module that requires a newer version of PackageManagement and PowershellGet than what you have installed in order to publish. Fetching from Powershell Gallery..."
+        Get-Module PowershellGet,PackageManagement | Remove-Module -force
+        Install-Module -Name PowershellGet,PackageManagement -Scope CurrentUser -force -confirm:$false
+        import-Module PowershellGet -MinimumVersion 1.6 -force
+        Import-Module PackageManagement -MinimumVersion 1.1.7.0 -force
+        Import-PackageProvider (Get-Module PowershellGet | where Version -gt 1.6 | % Path) -Force | Out-Null
+    }
+
     #TODO: Break this out into a function
     #We test it here instead of Build requirements because this isn't a "hard" requirement, you can still build locally while not meeting this requirement.
     $packageMgmtVersion = (get-command find-package).version
@@ -540,7 +551,6 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     if ((get-command find-script).version -lt [version]"1.6.6") {
         write-build DarkYellow "Task $($task.name) - WARNING: WARNING: You have PowershellGet version $packageMgmtVersion which is less than the recommended v1.6.6 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PowershellGet -MinimumVersion 1.6.6}, close your powershell session, and retry publishing"
     }
-
 
     if ($AppVeyor -and -not $NuGetAPIKey) {
         write-build DarkYellow "Task $($task.name) - Couldn't find NuGetAPIKey in the Appveyor secure environment variables. Did you save your NuGet/Powershell Gallery API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://www.appveyor.com/docs/build-configuration/"
