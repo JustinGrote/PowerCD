@@ -41,9 +41,10 @@
             ]
         },
         {
-            "label": "Build using PSCore",
+            "label": "Build with PSCore Preview",
             "group": "build",
-            "command": "pwsh",
+            "type": "process",
+            "command": "C:\\Program Files\\PowerShell\\6-preview\\pwsh.exe",
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
@@ -54,7 +55,10 @@
             ],
             "problemMatcher": [
                 "$pester"
-            ]
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}"
+            }
         },
         {
             "label": "Test",
@@ -82,9 +86,10 @@
             "problemMatcher": "$pester"
         },
         {
-            "label": "Test using PSCore",
+            "label": "Test with PSCore Preview",
             "group": "test",
-            "command": "pwsh",
+            "type": "process",
+            "command": "C:\\Program Files\\PowerShell\\6-preview\\pwsh.exe",
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
@@ -93,7 +98,10 @@
                 "-Command",
                 "Invoke-Build Test"
             ],
-            "problemMatcher": "$pester"
+            "problemMatcher": "$pester",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            }
         }
     ]
 }
