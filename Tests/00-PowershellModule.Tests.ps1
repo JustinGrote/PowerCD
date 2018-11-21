@@ -18,7 +18,7 @@ if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 
 #Find the module manifest. Get-ChildItem's last item is the one closest to the root directory. #FIXME: Do this in a safer manner
 try {
-    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | where name -notmatch '\.(depend|requirements)\.psd1$'| Select-Object -last 1
+    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | where name -notmatch '(depend|requirements)\.psd1$'| Select-Object -last 1
     $SCRIPT:moduleDirectory = $moduleManifestFile.directory
 } catch {
     throw "Did not detect any module manifests in $ModulePath. Did you run 'Invoke-Build Build' first?"

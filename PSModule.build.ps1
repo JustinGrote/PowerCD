@@ -12,12 +12,10 @@ param (
     [Switch]$ForcePublish,
     #Show detailed environment variables. WARNING: Running this in a CI like appveyor may expose your secrets to the log! Be careful!
     [Switch]$ShowEnvironmentVariables,
-    #Powershell modules required for the build process
-    [String[]]$BuildHelperModules = @("BuildHelpers","Pester","powershell-yaml","Microsoft.Powershell.Archive","PSScriptAnalyzer"),
     #Which build files/folders should be excluded from packaging
     [String[]]$BuildFilesToExclude = @("Build","Release","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder"),
     #Where to perform the building of the module. Defaults to "Release" under the project directory. You can specify either a path relative to the project directory, or a literal alternate path.
-    [String]$BuildOutputPath,
+    [String]$BuildOutputPath = "Release",
     #NuGet API Key for Powershell Gallery Publishing. Defaults to environment variable of the same name
     [String]$NuGetAPIKey = $env:NuGetAPIKey,
     #GitHub User for Github Releases. Defaults to environment variable of the same name
@@ -25,32 +23,19 @@ param (
     #GitHub API Key for Github Releases. Defaults to environment variable of the same name
     [String]$GitHubAPIKey = $env:GitHubAPIKey,
     #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world.
-    [Switch]$GitHubPublishAsDraft
+    [Switch]$GitHubPublishAsDraft,
+    #Don't detect or bootstrap dependencies. This is generally better done with -Whatif
+    [Switch]$NoBootStrap
 )
 
 #region HelperFunctions
 $lines = '----------------------------------------------------------------'
 #endregion HelperFunctions
 
-
-
 #Initialize Build Environment
 Enter-Build {
-    #TODO: Make bootstrap module loading more flexible and dynamic
-    <#
-    if (-not (Get-Command "Set-BuildEnvironment" -module BuildHelpers)) {
-        $HelpersPath = "$Buildroot\Build\Helpers"
-        import-module -force -name "$HelpersPath\BuildHelpers"
-    }
-    #>
-
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
-
-    #Set the buildOutputPath to "Release" by default if not otherwise specified
-    if (-not $BuildOutputPath) {
-        $BuildOutputPath = "Release"
-    }
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
@@ -62,8 +47,6 @@ Enter-Build {
     if ($env:BHProjectName -match 'PowerCD') {
         $BuildFilesToExclude = $BuildFilesToExclude | Where-Object {$PowerCDIncludeFiles -notcontains $PSItem}
     }
-    #Define the Project Build Path
-    Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
     #If the branch name is master-test, run the build like we are in "master"
     if ($env:BHBranchName -eq 'master-test') {
@@ -72,7 +55,10 @@ Enter-Build {
     } else {
         $SCRIPT:BranchName = $env:BHBranchName
     }
-    write-build Green "Build Initialization - Current Branch Name: $BranchName"
+
+    Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
+    Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
+
     $PassThruParams = @{}
     if ($CI -and ($BranchName -ne 'master')) {
         write-build Green "Build Initialization - Not in Master branch, Verbose Build Logging Enabled"
@@ -81,7 +67,6 @@ Enter-Build {
     if ($VerbosePreference -eq "Continue") {
         $PassThruParams.Verbose = $true
     }
-
     function Write-VerboseHeader ([String]$Message) {
         #Simple function to add lines around a header
         write-verbose ""
@@ -99,36 +84,46 @@ Enter-Build {
         $ProgressPreference = "SilentlyContinue"
     }
 
-    #Register Nuget
-    if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
-        write-verbose "Nuget Provider Not found. Fetching..."
-        Install-PackageProvider Nuget -forcebootstrap -scope currentuser @PassThruParams | out-string | write-verbose
-        write-verboseheader "Installed Nuget Provider Info"
-        Get-PackageProvider Nuget @PassThruParams | format-list | out-string | write-verbose
-    }
-
-    #Fix a bug with the Appveyor 2017 image having a broken nuget (points to v3 URL but installed packagemanagement doesn't query v3 correctly)
-    if ($ENV:APPVEYOR -and ($ENV:APPVEYOR_BUILD_WORKER_IMAGE -eq 'Visual Studio 2017')) {
-        write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
-        #Next command will detect this was removed and add this back
-        UnRegister-PackageSource -Name nuget.org
-
-
-        #Add the nuget repository so we can download things like GitVersion
-        # TODO: Make this optional code when running interactively
-        if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
-            write-verbose "Registering nuget.org as package source"
-            Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted @PassThruParams  | out-string | write-verbose
+    #Bootstrap
+    if (-not $NoBootStrap) {
+        #Register Nuget if required
+        if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
+            write-verbose "Nuget Provider Not found. Fetching..."
+            Install-PackageProvider Nuget -forcebootstrap -scope currentuser @PassThruParams | out-string | write-verbose
+            write-verboseheader "Installed Nuget Provider Info"
+            Get-PackageProvider Nuget @PassThruParams | format-list | out-string | write-verbose
         }
-        else {
-            $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted @PassThruParams
-            if ($PassThruParams.Verbose) {
-                write-verboseheader "Nuget.Org Package Source Info"
-                $nugetOrgPackageSource | format-table | out-string | write-verbose
+
+        #Fix a bug with the Appveyor 2017 image having a "broken" nuget (points to v3 URL but installed packagemanagement doesn't query v3 correctly)
+        if ($ENV:APPVEYOR -and ($ENV:APPVEYOR_BUILD_WORKER_IMAGE -eq 'Visual Studio 2017')) {
+            write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
+            #Next command will detect this was removed and add this back
+            UnRegister-PackageSource -Name nuget.org
+
+            #Add the nuget repository so we can download things like GitVersion
+            # TODO: Make this optional code when running interactively
+            if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
+                write-verbose "Registering nuget.org as package source"
+                Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted @PassThruParams  | out-string | write-verbose
+            }
+            else {
+                $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted @PassThruParams
+                if ($PassThruParams.Verbose) {
+                    write-verboseheader "Nuget.Org Package Source Info"
+                    $nugetOrgPackageSource | format-table | out-string | write-verbose
+                }
             }
         }
-    }
 
+        if (-not (Get-Module -Name PSDepend -ListAvailable)) {
+            Install-module -Scope CurrentUser -Name PSDepend -Repository PSGallery
+        }
+        Import-Module -Name PSDepend -Verbose:$false
+
+        #Install dependencies defined in Requirements.psd1
+        write-build Green 'Build Initialization - Running PSDepend to Install Dependencies'
+        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
+    }
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
@@ -161,7 +156,7 @@ task Clean {
 
 task Version {
     #Fetch GitVersion if required
-    $GitVersionEXE = (Get-Item "$BuildRoot\Build\Helpers\GitVersion\*\GitVersion.exe" -erroraction continue | Select-Object -last 1).fullname
+    $GitVersionEXE = ((Get-Command dotnet-gitversion) | select -first 1).source
     if (-not (Test-Path -PathType Leaf $GitVersionEXE)) {
         throw "Path to Gitversion ($GitVersionEXE) is not valid or points to a folder"
         <# This is temporarily disabled as we need to use the beta gitversion for Mainline Deployment. Will be re-enabled when latest v4 is available on nuget.

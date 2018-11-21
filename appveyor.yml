@@ -4,7 +4,8 @@ version: '{build}-{branch}'
 image:
   - Visual Studio 2017
 install:
-  - cinst -y pester
+  - choco install pester --limit-output --confirm
+  - dotnet tool install --global GitVersion.Tool --version 4.0.1-beta1-47
   - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -Force
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
