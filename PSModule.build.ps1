@@ -1,5 +1,4 @@
 #requires -version 5
-#requires -module BuildHelpers
 #Build Script for Powershell Modules
 #Uses Invoke-Build (https://github.com/nightroman/Invoke-Build)
 #Run by changing to the project root directory and run ./Invoke-Build.ps1
@@ -25,7 +24,7 @@ param (
     #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world.
     [Switch]$GitHubPublishAsDraft,
     #Don't detect or bootstrap dependencies. This is generally better done with -Whatif
-    [Switch]$NoBootStrap
+    [Switch]$SkipBootStrap
 )
 
 #region HelperFunctions
@@ -36,6 +35,44 @@ $lines = '----------------------------------------------------------------'
 Enter-Build {
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
+
+    #Bootstrap
+    if (-not $SkipBootStrap) {
+        #Register Nuget if required
+        if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
+            write-verbose "Nuget Provider Not found. Fetching..."
+            Install-PackageProvider Nuget -forcebootstrap -scope currentuser | out-string | write-verbose
+            write-verbose "Installed Nuget Provider Info"
+            Get-PackageProvider Nuget | format-list | out-string | write-verbose
+        }
+
+        #Fix a bug with the Appveyor 2017 image having a "broken" nuget (points to v3 URL but installed packagemanagement doesn't query v3 correctly)
+        if ($ENV:APPVEYOR -and ($ENV:APPVEYOR_BUILD_WORKER_IMAGE -eq 'Visual Studio 2017')) {
+            write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
+            #Next command will detect this was removed and add this back
+            UnRegister-PackageSource -Name nuget.org
+
+            #Add the nuget repository so we can download things like GitVersion
+            # TODO: Make this optional code when running interactively
+            if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
+                write-verbose "Registering nuget.org as package source"
+                Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted  | out-string | write-verbose
+            }
+            else {
+                $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted
+            }
+        }
+
+        if (-not (Get-Command -Name 'PSDepend\Invoke-PSDepend' -ErrorAction SilentlyContinue)) {
+            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop
+        }
+
+        #Install dependencies defined in Requirements.psd1
+        write-build Green 'Build Initialization - Running PSDepend to Install Dependencies'
+        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
+
+    }
+
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
@@ -84,46 +121,6 @@ Enter-Build {
         $ProgressPreference = "SilentlyContinue"
     }
 
-    #Bootstrap
-    if (-not $NoBootStrap) {
-        #Register Nuget if required
-        if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
-            write-verbose "Nuget Provider Not found. Fetching..."
-            Install-PackageProvider Nuget -forcebootstrap -scope currentuser @PassThruParams | out-string | write-verbose
-            write-verboseheader "Installed Nuget Provider Info"
-            Get-PackageProvider Nuget @PassThruParams | format-list | out-string | write-verbose
-        }
-
-        #Fix a bug with the Appveyor 2017 image having a "broken" nuget (points to v3 URL but installed packagemanagement doesn't query v3 correctly)
-        if ($ENV:APPVEYOR -and ($ENV:APPVEYOR_BUILD_WORKER_IMAGE -eq 'Visual Studio 2017')) {
-            write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
-            #Next command will detect this was removed and add this back
-            UnRegister-PackageSource -Name nuget.org
-
-            #Add the nuget repository so we can download things like GitVersion
-            # TODO: Make this optional code when running interactively
-            if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
-                write-verbose "Registering nuget.org as package source"
-                Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted @PassThruParams  | out-string | write-verbose
-            }
-            else {
-                $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted @PassThruParams
-                if ($PassThruParams.Verbose) {
-                    write-verboseheader "Nuget.Org Package Source Info"
-                    $nugetOrgPackageSource | format-table | out-string | write-verbose
-                }
-            }
-        }
-
-        if (-not (Get-Module -Name PSDepend -ListAvailable)) {
-            Install-module -Scope CurrentUser -Name PSDepend -Repository PSGallery
-        }
-        Import-Module -Name PSDepend -Verbose:$false
-
-        #Install dependencies defined in Requirements.psd1
-        write-build Green 'Build Initialization - Running PSDepend to Install Dependencies'
-        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
-    }
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
@@ -155,25 +152,34 @@ task Clean {
 }
 
 task Version {
-    #Fetch GitVersion if required
-    $GitVersionEXE = ((Get-Command dotnet-gitversion) | select -first 1).source
-    if (-not (Test-Path -PathType Leaf $GitVersionEXE)) {
-        throw "Path to Gitversion ($GitVersionEXE) is not valid or points to a folder"
-        <# This is temporarily disabled as we need to use the beta gitversion for Mainline Deployment. Will be re-enabled when latest v4 is available on nuget.
-            #TODO: Re-enable once Gitversion v4 stable is available
-            $GitVersionCMDPackageName = "gitversion.commandline"
-            $GitVersionCMDPackage = Get-Package $GitVersionCMDPackageName -erroraction SilentlyContinue
-            if (!($GitVersionCMDPackage)) {
-                write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
-                write-verboseheader "Nuget.Org Package Source Info for fetching GitVersion"
-                Get-PackageSource | Format-Table | out-string | write-verbose
-
-                #Fetch GitVersion
-                $GitVersionCMDPackage = Install-Package $GitVersionCMDPackageName -scope currentuser -source 'nuget.org' -force @PassThruParams
-            }
-        $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
-        #>
+    #Fetch GitVersion if required from NuGet
+    $GitVersionCMDPackageName = "gitversion.commandline"
+    $GitVersionCMDPackageMinVersion = '4.0.0'
+    $PackageParams = @{
+        Name = $GitVersionCMDPackageName
+        MinimumVersion = $GitVersionCMDPackageMinVersion
     }
+
+    <# Replaced by using INstall-Package below insetad
+        #Fetch Gitversion as a .net Global Tool
+        $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | where version -ge 2.1 | select -first 1).source
+        $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
+        if ($dotnetCMD -and -not $gitversionEXE) {
+            write-build Green 'Build Initialization - Installing dotnet-gitversion'
+            #Skip First Run Setup (takes too long for no benefit)
+            $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
+            & $dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47
+        }
+    #>
+
+    $GitVersionCMDPackage = Get-Package @PackageParams -erroraction SilentlyContinue
+    if (!($GitVersionCMDPackage)) {
+        write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
+
+        #Fetch GitVersion
+        $GitVersionCMDPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
+    }
+    $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.

@@ -3,10 +3,6 @@ version: '{build}-{branch}'
 
 image:
   - Visual Studio 2017
-install:
-  - choco install pester --limit-output --confirm
-  - dotnet tool install --global GitVersion.Tool --version 4.0.1-beta1-47
-  - ps: Install-Module -Name InvokeBuild,BuildHelpers,PSScriptAnalyzer,Plaster -Confirm:$false -Force
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:
@@ -30,12 +26,7 @@ skip_tags: true
 build_script:
   #If Debugging, take a look prior to the Build
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
-  - ps: Invoke-Build
-
-deploy_script:
-  #If Debugging, take a look prior to the publish
-  - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
-  - ps: Invoke-Build Publish
+  - ps: .\Invoke-Build.ps1 .,Publish
 
 on_finish:
   #Final Checkpoint before bailing out
