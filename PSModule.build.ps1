@@ -37,6 +37,22 @@ Enter-Build {
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
 
+    ###Detect certain environments
+
+    #Appveyor
+    if ($ENV:APPVEYOR) {$IsAppVeyor = $true}
+    #Azure DevOps
+    if ($ENV:SYSTEM_COLLECTIONID) {$IsAzureDevOps = $true}
+
+    #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
+    if ($ENV:CI -or $CI -or $IsAppVeyor -or $IsAzureDevOps -or ([Environment]::GetCommandLineArgs() -like '-noni*')) {
+        write-build Green 'Build Initialization - Detected a Noninteractive or CI environment, disabling prompt confirmations'
+        $SCRIPT:CI = $true
+        $ConfirmPreference = 'None'
+        #Disabling Progress speeds up the build because Write-Progress can be slow
+        $ProgressPreference = "SilentlyContinue"
+    }
+
     #Bootstrap
     if (-not $SkipBootStrap) {
         #Register Nuget if required
@@ -47,9 +63,9 @@ Enter-Build {
             Get-PackageProvider Nuget | format-list | out-string | write-verbose
         }
 
-        #Fix a bug with the Appveyor 2017 image having a "broken" nuget (points to v3 URL but installed packagemanagement doesn't query v3 correctly)
-        if ($ENV:APPVEYOR -and ($ENV:APPVEYOR_BUILD_WORKER_IMAGE -eq 'Visual Studio 2017')) {
-            write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
+        #If nuget is pointed to the v3 URI, downgrade it to v2
+        if ((get-packagesource nuget.org).location) -notmatch 'v2$') {
+            write-verbose "Detected nuget.org using v3 api, downgrading to v2 Nuget API for PowerShellGet compatability"
             #Next command will detect this was removed and add this back
             UnRegister-PackageSource -Name nuget.org
 
@@ -105,14 +121,7 @@ Enter-Build {
         write-verbose $lines
     }
 
-    #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
-    if ($ENV:CI -or $CI -or ([Environment]::GetCommandLineArgs() -like '-noni*')) {
-        write-build Green 'Build Initialization - Detected a Noninteractive or CI environment, disabling prompt confirmations'
-        $SCRIPT:CI = $true
-        $ConfirmPreference = 'None'
-        #Disabling Progress speeds up the build because Write-Progress can be slow
-        $ProgressPreference = "SilentlyContinue"
-    }
+
 
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
