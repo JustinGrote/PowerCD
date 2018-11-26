@@ -8,8 +8,7 @@ jobs:
     pool:
       vmImage: vs2017-win2016
     steps:
-    - powershell: |
-        Invoke-Build
+    - powershell: Invoke-Build.ps1
       displayName: 'Build and Test'
     - task: PublishTestResults@2
       inputs:
