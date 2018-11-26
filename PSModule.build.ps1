@@ -64,8 +64,9 @@ Enter-Build {
         }
 
         #If nuget is pointed to the v3 URI, downgrade it to v2
-        if ((get-packagesource nuget.org).location) -notmatch 'v2$') {
-            write-verbose "Detected nuget.org using v3 api, downgrading to v2 Nuget API for PowerShellGet compatability"
+        $IsNugetOrgV2Source = ((get-packagesource nuget.org).location) -match 'v2$'
+        if (-not $IsNugetOrgV2Source) {
+            write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
             #Next command will detect this was removed and add this back
             UnRegister-PackageSource -Name nuget.org
 
