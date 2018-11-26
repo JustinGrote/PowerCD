@@ -31,7 +31,7 @@ if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 Describe 'PowerCD Plaster Template' {
 
     context 'Plaster Manifest' {
-        $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterManifest.xml')
+        $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
         #TODO: Plaster Manifest detection logic
         It -Pending 'Has a Plaster manifest specified in the module manifest'
         It -Pending 'Has a Plaster manifest file where specified'
@@ -63,13 +63,14 @@ Describe 'PowerCD Plaster Template' {
 
         It "Invoke-Plaster to TestDrive is successful" {
             #Get the default parameters from the script
-            $PlasterManifest = get-item (join-path $ModulePath 'PlasterManifest.xml')
+            $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+            $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
             $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
             $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
             $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
 
-            invoke-plaster -TemplatePath $ModulePath -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
-            test-path (join-path $PlasterDeployPath "MyNewModule.psd1") | Should Be $true
+            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
+            test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
         }
         #TODO: Additional Plaster Pester Tests
         It -Pending "Has a valid module manifest"
@@ -79,13 +80,14 @@ Describe 'PowerCD Plaster Template' {
     context 'Custom Deployment' {
         #Get the default parameters from the script
         $PlasterManifestDefaults
-        $PlasterManifest = get-item (join-path $ModulePath 'PlasterManifest.xml')
+        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+        $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
         $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
         $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
         $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-        invoke-plaster -TemplatePath $ModulePath -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
+        invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
         It "Invoke-Plaster to TestDrive is successful" {
-            test-path (join-path $PlasterDeployPath "PowerCDPlasterTest.psd1") | Should Be $true
+            test-path (join-path $PlasterDeployPath "PowerCDPlasterTest\PowerCDPlasterTest.psd1") | Should Be $true
         }
         It -Pending "Has a valid module manifest"
         It -Pending "Shouldn't have an AppVeyor file due to custom option"

@@ -112,7 +112,7 @@ PrivateData = @{
                 Module = "Plaster"
                 MinimumVersion = "1.0.1"
                 Details = @{
-                    TemplatePaths = "."
+                    TemplatePaths = "PlasterTemplates\Default\PlasterManifest.xml"
                 }
             }
         )

@@ -12,7 +12,8 @@ param (
     #Show detailed environment variables. WARNING: Running this in a CI like appveyor may expose your secrets to the log! Be careful!
     [Switch]$ShowEnvironmentVariables,
     #Which build files/folders should be excluded from packaging
-    [String[]]$BuildFilesToExclude = @("Build","Release","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder"),
+    #TODO: Reimplement this with root module folder support
+    #[String[]]$BuildFilesToExclude = @("Build","Release","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder"),
     #Where to perform the building of the module. Defaults to "Release" under the project directory. You can specify either a path relative to the project directory, or a literal alternate path.
     [String]$BuildOutputPath = "Release",
     #NuGet API Key for Powershell Gallery Publishing. Defaults to environment variable of the same name
@@ -21,9 +22,9 @@ param (
     [String]$GitHubUserName = $env:GitHubUserName,
     #GitHub API Key for Github Releases. Defaults to environment variable of the same name
     [String]$GitHubAPIKey = $env:GitHubAPIKey,
-    #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world.
+    #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world
     [Switch]$GitHubPublishAsDraft,
-    #Don't detect or bootstrap dependencies. This is generally better done with -Whatif
+    #Don't detect or bootstrap dependencies
     [Switch]$SkipBootStrap
 )
 
@@ -70,20 +71,11 @@ Enter-Build {
         #Install dependencies defined in Requirements.psd1
         write-build Green 'Build Initialization - Running PSDepend to Install Dependencies'
         Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
-
     }
-
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
-
-    #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
-    #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
-    $PowerCDIncludeFiles = @("Build","Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder")
-    if ($env:BHProjectName -match 'PowerCD') {
-        $BuildFilesToExclude = $BuildFilesToExclude | Where-Object {$PowerCDIncludeFiles -notcontains $PSItem}
-    }
 
     #If the branch name is master-test, run the build like we are in "master"
     if ($env:BHBranchName -eq 'master-test') {
@@ -245,14 +237,46 @@ task Version {
     write-build Green "Task $($task.name)` - Using Release Path: $BuildReleasePath"
 }
 
-#Copy all powershell module "artifacts" to Build Directory
+#Copy all powershell module "artifacts" to Build Release Path
 task CopyFilesToBuildDir {
 
     #Make sure we are in the project location in case something changed
     Set-Location $buildRoot
 
+    #Detect the .psm1 file and copy all files to the root directory, excluding build files unless this is PowerCD
+    $PSModuleManifestDirectory = (split-path $env:BHPSModuleManifest -parent)
+    if ($PSModuleManifestDirectory -eq $buildRoot) {
+        <# TODO: Root-folder level module. Is a bit tricker
+        copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
+        #>
+        throw "Placing module files in the root project folder is current not supported by this script. Please put them in a subfolder with the name of your module"
+    } else {
+        copy-item -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath
+    }
+
+    if ($env:BHProjectName -match 'PowerCD') {
+        #TODO: Figure out how to exclude PowerCD folder without excluding all files
+        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination "$BuildReleasePath\PlasterTemplates\Default"
+        Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
+        Remove-Item -Recurse -Force "$BuildReleasePath\PlasterTemplates\Default\$($env:BHProjectName)"
+        Remove-Item -Force "$BuildReleasePath\PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1"
+    }
+
+    #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
+    #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
+    #TODO: Put this in its own build script to simplify this one
+
+
+
+    <#
+
+    #$PowerCDIncludeFiles = @("Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder")
+
+
     #The file or file paths to copy, excluding the powershell psm1 and psd1 module and manifest files which will be autodetected
-    copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
+    copy-item $env:BHProjectName\* -Recurse -Destination $BuildReleasePath
+    copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude,$env:BHProjectName -Destination $BuildReleasePath @PassThruParams
+    #>
 }
 
 #Update the Metadata of the module with the latest version information.
@@ -261,11 +285,13 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     # Set the Module Version to the calculated Project Build version. Cannot use update-modulemanifest for this because it will complain the version isn't correct (ironic)
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
-    #Update Plaster Manifest Version
-    $PlasterManifestPath = "$buildReleasePath\PlasterManifest.xml"
-    $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
-    $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
-    $PlasterManifest.save($PlasterManifestPath)
+    #Update Plaster Manifest Version if this is a PowerCD Build
+    if ($env:BHProjectName -match 'PowerCD') {
+        $PlasterManifestPath = "$buildReleasePath\PlasterTemplates\Default\PlasterManifest.xml"
+        $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
+        $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
+        $PlasterManifest.save($PlasterManifestPath)
+    }
 
     # This is needed for proper discovery by get-command and Powershell Gallery
     $moduleFunctionsToExport = (Get-ChildItem "$BuildReleasePath\Public" -Filter *.ps1).basename

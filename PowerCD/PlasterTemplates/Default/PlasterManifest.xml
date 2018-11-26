@@ -82,33 +82,33 @@ The Name of your module | Default'
   </parameters>
   <content>
     <!-- Basic Module Scaffolding -->
-    <newModuleManifest destination='${PLASTER_PARAM_ModuleName}.psd1'
+    <newModuleManifest destination='${PLASTER_PARAM_ModuleName}\${PLASTER_PARAM_ModuleName}.psd1'
                        moduleVersion='$PLASTER_PARAM_Version'
-                       rootModule='${PLASTER_PARAM_ModuleName}.psm1'
+                       rootModule='${PLASTER_PARAM_ModuleName}\${PLASTER_PARAM_ModuleName}.psm1'
                        author='$PLASTER_PARAM_FullName'
                        description='$PLASTER_PARAM_ModuleDesc'
                        encoding='UTF8-NoBOM'
     />
-    <file destination='Public\' source='' />
-    <file destination='Private\' source='' />
+    <file destination='${PLASTER_PARAM_ModuleName}\Public\' source='' />
+    <file destination='${PLASTER_PARAM_ModuleName}\Private\' source='' />
     <file destination='Build\' source='' />
     <file destination='Release\' source='' />
     <file destination='Tests\' source='' />
-    <file source='Tests\00-PowershellModule.Tests.ps1' destination='' />
+    <file source='Module.psm1' destination='${PLASTER_PARAM_ModuleName}\${PLASTER_PARAM_ModuleName}.psm1' />
+    <file source='Tests\*' destination='Tests' />
     <file source='PSModule.build.ps1' destination='' />
     <file source='.git*' destination='' />
     <file source='GitVersion.yml' destination='' />
-    <file source='Build\**' destination='Build' />
 
     <!-- First Function -->
-    <templateFile source='Templates\Default\firstfunction.ps1.txt' destination='Public\${PLASTER_PARAM_FirstFunctionName}.ps1' />
+    <templateFile source='firstfunction.ps1.txt' destination='${PLASTER_PARAM_ModuleName}\Public\${PLASTER_PARAM_FirstFunctionName}.ps1' />
 
     <!-- License Files -->
     <!-- TODO: Substitute Year and Fullname in MIT License using TemplateFile or modify? -->
     <!-- TODO: Figure out how to substitute Template with MIT -->
-    <templateFile condition="$PLASTER_PARAM_License -eq 'MIT'" source='Templates\Default\license\MIT.txt' destination='LICENSE' />
-    <templateFile condition="$PLASTER_PARAM_License -eq 'Apache'" source='Templates\Default\license\Apache.txt' destination='LICENSE' />
-    <templateFile condition="$PLASTER_PARAM_License -eq 'GPL'" source='Templates\Default\license\GPL.txt' destination='LICENSE' />
+    <templateFile condition="$PLASTER_PARAM_License -eq 'MIT'" source='license\MIT.txt' destination='LICENSE' />
+    <templateFile condition="$PLASTER_PARAM_License -eq 'Apache'" source='license\Apache.txt' destination='LICENSE' />
+    <templateFile condition="$PLASTER_PARAM_License -eq 'GPL'" source='license\GPL.txt' destination='LICENSE' />
 
     <!-- VSCode -->
     <file condition="$PLASTER_PARAM_EDITOR -like 'VSCode'" source='.vscode\**' destination='.vscode' />
