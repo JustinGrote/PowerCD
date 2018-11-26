@@ -65,7 +65,8 @@ Enter-Build {
         }
 
         if (-not (Get-Command -Name 'PSDepend\Invoke-PSDepend' -ErrorAction SilentlyContinue)) {
-            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop -Confirm:$false
+            #Force required by Azure Devops Pipelines, confirm false not good enough
+            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop -Force
         }
 
         #Install dependencies defined in Requirements.psd1
