@@ -4,18 +4,18 @@
 # https://aka.ms/yaml
 
 jobs:
-  - job: Build_PS_Win2016
+  - job: Build_PSModule_Win2016
     pool:
       vmImage: vs2017-win2016
     steps:
     - powershell: .\Invoke-Build.ps1
-      displayName: 'Build and Test'
+      displayName: 'Powershell Module Build and Test'
     - task: PublishTestResults@2
       inputs:
         testRunner: 'NUnit'
         testResultsFiles: '**/*TestResults*.xml'
         testRunTitle: 'PS_Win2016'
-      displayName: 'Publish Test Results'
+      displayName: 'Pester Test Results'
 
 #  - job: Build_PSCore_Ubuntu1604
 #

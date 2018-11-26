@@ -65,11 +65,11 @@ Enter-Build {
         }
 
         if (-not (Get-Command -Name 'PSDepend\Invoke-PSDepend' -ErrorAction SilentlyContinue)) {
-            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop
+            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop -Confirm:$false
         }
 
         #Install dependencies defined in Requirements.psd1
-        write-build Green 'Build Initialization - Running PSDepend to Install Dependencies'
+        Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
         Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
     }
 
