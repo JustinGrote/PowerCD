@@ -271,7 +271,7 @@ task CopyFilesToBuildDir {
     #Detect the .psm1 file and copy all files to the root directory, excluding build files unless this is PowerCD
     $PSModuleManifestDirectory = (split-path $env:BHPSModuleManifest -parent)
     if ($PSModuleManifestDirectory -eq $buildRoot) {
-        <# TODO: Root-folder level module. Is a bit tricker
+        <# TODO: Root-folder level module with buildFilesToExclude
         copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
         #>
         throw "Placing module files in the root project folder is current not supported by this script. Please put them in a subfolder with the name of your module"
@@ -284,11 +284,12 @@ task CopyFilesToBuildDir {
         #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
         #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
         #TODO: Put this in its own build script so that this code doesn't carry over to the template
-        $PowerCDFilesToCopy = Get-Childitem $buildRoot -Recurse |
+        $PowerCDFilesToCopy = Get-Childitem $buildRoot -Force -Recurse |
             where fullname -notlike "$PSModuleManifestDirectory*" |
             where fullname -notlike "$env:BHBuildOutput*" |
             where fullname -notlike (join-path $buildRoot 'LICENSE') |
             where fullname -notlike (join-path $buildRoot 'README.MD') |
+            where fullname -notlike (join-path $buildRoot '.git') |
             where fullname -notlike (join-path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
 
         #Copy-Item doesn't preserve paths with piped files even with -Container parameter, this is a workaround
