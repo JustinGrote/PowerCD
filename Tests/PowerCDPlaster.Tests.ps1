@@ -68,8 +68,10 @@ Describe 'PowerCD Plaster Template' {
             $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
             $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
             $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
+            write-verbose "Plaster Manifest Defaults"
+            $plastermanifestdefaults | ft | write-verbose
 
-            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
+            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath -Verbose @PlasterManifestDefaults
             test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
         }
         #TODO: Additional Plaster Pester Tests
