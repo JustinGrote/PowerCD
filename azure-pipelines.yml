@@ -31,7 +31,7 @@ jobs:
         artifactName: 'Powershell Module'
         targetpath: '$(Build.ArtifactStagingDirectory)'
 
-  - job: Build_PSCore_Ubuntu1604
+  - job: Build_PSModule_Ubuntu1604
     pool:
       vmImage: ubuntu-16.04
     steps:
