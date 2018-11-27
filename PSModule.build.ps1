@@ -200,7 +200,14 @@ task Version {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
         write-verbose "$GitVersionEXE $BuildRoot"
-        $GitVersionOutput = &$GitVersionEXE $BuildRoot
+
+        #Gitversion fails with an xdg-open error on Azure Pipelines Ubuntu Linux. TODO: Find out why this happens and make a better unified command
+        if ($isLinux) {
+            $GitVersionOutput = & bash $GitVersionEXE $BuildRoot
+        } else {
+            $GitVersionOutput = &$GitVersionEXE $BuildRoot
+        }
+
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
         if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
