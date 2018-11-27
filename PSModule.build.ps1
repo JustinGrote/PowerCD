@@ -276,7 +276,7 @@ task CopyFilesToBuildDir {
         #>
         throw "Placing module files in the root project folder is current not supported by this script. Please put them in a subfolder with the name of your module"
     } else {
-        Copy-Item -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath -Container
+        Copy-Item -Container -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath
     }
 
     if ($env:BHProjectName -match 'PowerCD') {
@@ -291,7 +291,12 @@ task CopyFilesToBuildDir {
             where fullname -notlike (join-path $buildRoot 'README.MD') |
             where fullname -notlike (join-path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
 
-        $PowerCDFilesToCopy | Copy-Item -Force -Container -Destination (Join-Path $BuildReleasePath "PlasterTemplates\Default")
+        #Copy-Item doesn't preserve paths with piped files even with -Container parameter, this is a workaround
+        $PowerCDFilesToCopy | Resolve-Path -Relative | foreach {
+            $RelativeDestination = [Path]::Combine($BuildReleasePath,'PlasterTemplates\Default',$PSItem)
+            Copy-Item $PSItem -Destination $RelativeDestination -Force -Verbose
+        }
+
         Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
     }
 }
