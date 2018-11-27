@@ -197,6 +197,13 @@ task Version {
         git tag -d $currentTag
     }
 
+    if ($isAppVeyor -and $isLinux) {
+        #Try getting the version
+        write-verbose "GitVersion Version Check"
+        & /home/appveyor/.local/share/PackageManagement/NuGet/Packages/GitVersion.CommandLine.4.0.0/tools/GitVersion.exe -version
+    }
+
+
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
@@ -224,10 +231,6 @@ task Version {
         }
     }
 
-    if ($isAppVeyor) {
-        #Try getting the version
-        & /home/appveyor/.local/share/PackageManagement/NuGet/Packages/GitVersion.CommandLine.4.0.0/tools/GitVersion.exe --version
-    }
 
     if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
