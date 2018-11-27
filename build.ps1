@@ -53,7 +53,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 
 function BootStrapInvokeBuild {
 	#Get a temporary directory
-	$tempfile = New-TemporaryFile
+	$tempfile = (New-TemporaryFile) -replace '\.tmp$','.zip'
 	$tempdir = Join-Path -Path ([Path]::GetTempPath()) -ChildPath ([Path]::GetFileNameWithoutExtension($tempfile))
 
 	#Fetch Invoke-Build and import the module
