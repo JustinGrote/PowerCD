@@ -51,7 +51,7 @@ jobs:
       inputs:
         testRunner: 'NUnit'
         testResultsFiles: '**/*TestResults*.xml'
-        testRunTitle: 'PS_Win2016'
+        testRunTitle: 'PS_UbuntuLinux'
 
     - task: CopyFiles@2
       displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
