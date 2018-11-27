@@ -73,7 +73,7 @@ Describe 'PowerCD Plaster Template' {
             get-command invoke-plaster | ft | out-string | write-verbose
             $plastermanifestdefaults | ft | out-string | write-verbose
 
-            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath -Verbose @PlasterManifestDefaults
+            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
             test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
         }
         #TODO: Additional Plaster Pester Tests

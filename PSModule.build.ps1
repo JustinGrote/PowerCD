@@ -295,7 +295,7 @@ task CopyFilesToBuildDir {
         #Copy-Item doesn't preserve paths with piped files even with -Container parameter, this is a workaround
         $PowerCDFilesToCopy | Resolve-Path -Relative | foreach {
             $RelativeDestination = [Path]::Combine($BuildReleasePath,'PlasterTemplates\Default',$PSItem)
-            Copy-Item $PSItem -Destination $RelativeDestination -Force -Verbose
+            Copy-Item $PSItem -Destination $RelativeDestination -Force
         }
 
         Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
