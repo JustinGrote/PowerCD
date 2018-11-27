@@ -11,7 +11,7 @@ jobs:
     - powershell: .\build.ps1
       displayName: 'Powershell Module Build and Test'
 
-    - task: PublishTestResults@5
+    - task: PublishTestResults@2
       displayName: 'Pester Test Results'
       inputs:
         testRunner: 'NUnit'
