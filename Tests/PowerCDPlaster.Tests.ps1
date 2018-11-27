@@ -90,7 +90,7 @@ Describe 'PowerCD Plaster Template' {
         $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
         invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
         It "Invoke-Plaster to TestDrive is successful" {
-            test-path (join-path $PlasterDeployPath "PowerCDPlasterTest\PowerCDPlasterTest.psd1") | Should Be $true
+            test-path (join-path $PlasterDeployPath 'PowerCDPlasterTest\PowerCDPlasterTest.psd1') | Should Be $true
         }
         It -Pending "Has a valid module manifest"
         It -Pending "Shouldn't have an AppVeyor file due to custom option"

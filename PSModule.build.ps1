@@ -628,7 +628,6 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
         }
         catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
-            $PSItem | export-clixml $home\desktop\LastError.clixml
             throw $PSItem
         }
     }
