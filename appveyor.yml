@@ -3,6 +3,7 @@ version: '{build}-{branch}'
 
 image:
   - Visual Studio 2017
+  - Ubuntu1804
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:
