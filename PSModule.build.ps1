@@ -64,11 +64,12 @@ Enter-Build {
         }
 
         #If nuget is pointed to the v3 URI or doesn't exist, downgrade it to v2
-        $IsNugetOrgV2Source = ((get-packagesource nuget.org -erroraction SilentlyContinue).location) -match 'v2$'
+        $NugetOrgSource = Get-Packagesource nuget.org -erroraction SilentlyContinue
+        $IsNugetOrgV2Source = $NugetOrgSource.location -match 'v2$'
         if (-not $IsNugetOrgV2Source) {
             write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
             #Next command will detect this was removed and add this back
-            UnRegister-PackageSource -Name nuget.org
+            UnRegister-PackageSource -Name nuget.org -ErrorAction SilentlyContinue
 
             #Add the nuget repository so we can download things like GitVersion
             # TODO: Make this optional code when running interactively
