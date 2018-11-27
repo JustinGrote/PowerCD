@@ -280,10 +280,10 @@ task CopyFilesToBuildDir {
 
     if ($env:BHProjectName -match 'PowerCD') {
         #TODO: Figure out how to exclude PowerCD folder without excluding all files
-        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination "$BuildReleasePath\PlasterTemplates\Default"
+        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination (Join-Path $BuildReleasePath "PlasterTemplates\Default"
         Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
-        Remove-Item -Recurse -Force "$BuildReleasePath\PlasterTemplates\Default\$($env:BHProjectName)"
-        Remove-Item -Force "$BuildReleasePath\PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1"
+        Remove-Item -Recurse -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\$($env:BHProjectName)")
+        Remove-Item -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1"
     }
 
     #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
@@ -311,14 +311,14 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
 
     #Update Plaster Manifest Version if this is a PowerCD Build
     if ($env:BHProjectName -match 'PowerCD') {
-        $PlasterManifestPath = "$buildReleasePath\PlasterTemplates\Default\PlasterManifest.xml"
+        $PlasterManifestPath = join-path $buildReleasePath "PlasterTemplates\Default\PlasterManifest.xml"
         $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
         $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
         $PlasterManifest.save($PlasterManifestPath)
     }
 
     # This is needed for proper discovery by get-command and Powershell Gallery
-    $moduleFunctionsToExport = (Get-ChildItem "$BuildReleasePath\Public" -Filter *.ps1).basename
+    $moduleFunctionsToExport = (Get-ChildItem (join-path "$BuildReleasePath" "Public") -Filter *.ps1).basename
     if (-not $moduleFunctionsToExport) {
         write-warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
     } else {
@@ -372,7 +372,7 @@ task Pester {
     write-verboseheader "Starting Pester Tests..."
     write-build Green "Task $($task.name)` -  Testing $moduleDirectory"
 
-    $PesterResultFile = "$env:BHBuildOutput\$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
+    $PesterResultFile = join-path $env:BHBuildOutput "$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
 
     $PesterParams = @{
         Script = @{Path = "Tests"; Parameters = @{ModulePath = (split-path $moduleManifestPath)}}
