@@ -1,4 +1,4 @@
-#requires -version 5 -module PackageManagement
+#requires -version 5
 using namespace System.IO
 <#
 .SYNOPSIS
@@ -29,7 +29,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | sort version -descending | select -first 1) | where version -gt $MinimumVersion
 	}
 
-	if (-not $invokeBuild) {
+	if (-not $invokeBuild -and (get-command Get-Package -erroraction silentlycontinue)) {
 		write-verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
 		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | sort version -descending | select -first 1
 	}
@@ -54,7 +54,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 function BootStrapInvokeBuild {
 	#Get a temporary directory
 	$tempfile = (New-TemporaryFile) -replace '\.tmp$','.zip'
-	$tempdir = Join-Path -Path ([Path]::GetTempPath()) -ChildPath ([Path]::GetFileNameWithoutExtension($tempfile))
+	$tempdir = $tempfile.DirectoryName
 
 	#Fetch Invoke-Build and import the module
 	$invokeBuildLatestURI = 'https://powershellgallery.com/api/v1/package/InvokeBuild'

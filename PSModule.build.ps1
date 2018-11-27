@@ -68,6 +68,7 @@ Enter-Build {
         $IsNugetOrgV2Source = $NugetOrgSource.location -match 'v2$'
         if (-not $IsNugetOrgV2Source) {
             write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
+
             #Next command will detect this was removed and add this back
             UnRegister-PackageSource -Name nuget.org -ErrorAction SilentlyContinue
 
