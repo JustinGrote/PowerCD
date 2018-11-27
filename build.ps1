@@ -53,8 +53,9 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 
 function BootStrapInvokeBuild {
 	#Get a temporary directory
-	$tempfile = (New-TemporaryFile) -replace '\.tmp$','.zip'
-	$tempdir = $tempfile.DirectoryName
+	$tempFileObj = (New-TemporaryFile)
+	$tempfile = $tempFileObj -replace '\.tmp$','.zip'
+	$tempdir = $tempfileObj.DirectoryName
 
 	#Fetch Invoke-Build and import the module
 	$invokeBuildLatestURI = 'https://powershellgallery.com/api/v1/package/InvokeBuild'
