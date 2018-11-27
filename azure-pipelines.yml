@@ -18,7 +18,7 @@ jobs:
         testResultsFiles: '**/*TestResults*.xml'
         testRunTitle: 'PS_Win2016'
 
-    - powershell: gci Release -include *.zip | Move-Item -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+    - powershell:  Move-Item Release/*.zip $env:BUILD_ARTIFACTSTAGINGDIRECTORY -verbose
       displayName: 'Copy Completed Module to Artifact Staging Directory'
 
     - task: PublishPipelineArtifact@0
