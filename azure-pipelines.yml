@@ -19,7 +19,7 @@ jobs:
     - task: PublishPipelineArtifact@0
       inputs:
         artifactName: 'PowershellModule'
-        targetpath: 'Release\*.zip'
+        targetpath: 'Release/'
 
 
 #  - job: Build_PSCore_Ubuntu1604
