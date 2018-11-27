@@ -5,7 +5,7 @@
   <metadata>
     <name>PowerCD</name>
     <id>34bfb116-806a-4cc0-a625-04988aa64999</id>
-    <version>0.1.0</version>
+    <version>0.0.1</version>
     <title>New Powershell Module for Continuous Delivery (PowerCD)</title>
     <description>Create a Powershell Module based on common practices, and configure it for Continuous Delivery</description>
     <author>Justin Grote</author>
