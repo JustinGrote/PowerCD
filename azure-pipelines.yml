@@ -24,6 +24,7 @@ jobs:
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)'
         contents: '**/Release/*.zip'
+        targetfolder: '$(Build.ArtifactStagingDirectory)'
 
     - task: PublishPipelineArtifact@0
       displayName: 'Capture Powershell Module as Artifact'
