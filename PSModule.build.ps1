@@ -91,7 +91,7 @@ Enter-Build {
 
         #Install dependencies defined in Requirements.psd1
         Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
-        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false -Verbose
+        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
     }
 
     #Configure some easy to use build environment variables
@@ -190,7 +190,7 @@ task Version {
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
-    $currentTag = git tag --points-at
+    $currentTag = git tag --points-at HEAD
 
     if ($currentTag) {
         write-build DarkYellow "Task $($task.name) - Git Tag $currentTag detected. Temporarily removing for GitVersion calculation."
