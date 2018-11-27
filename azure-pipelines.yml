@@ -11,11 +11,16 @@ jobs:
     - powershell: .\build.ps1
       displayName: 'Powershell Module Build and Test'
     - task: PublishTestResults@2
+      displayName: 'Pester Test Results'
       inputs:
         testRunner: 'NUnit'
         testResultsFiles: '**/*TestResults*.xml'
         testRunTitle: 'PS_Win2016'
-      displayName: 'Pester Test Results'
+    - task: PublishPipelineArtifact@0
+      inputs:
+        artifactName: 'PowershellModule'
+        targetpath: 'Release\*.zip'
+
 
 #  - job: Build_PSCore_Ubuntu1604
 #
