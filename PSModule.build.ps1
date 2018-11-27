@@ -1,4 +1,5 @@
 #requires -version 5
+using namespace System.IO
 #Build Script for Powershell Modules
 #Uses Invoke-Build (https://github.com/nightroman/Invoke-Build)
 #Run by changing to the project root directory and run ./Invoke-Build.ps1
