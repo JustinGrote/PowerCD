@@ -11,17 +11,21 @@ jobs:
     - powershell: .\build.ps1
       displayName: 'Powershell Module Build and Test'
 
-    - task: PublishTestResults@2
+    - task: PublishTestResults
       displayName: 'Pester Test Results'
       inputs:
         testRunner: 'NUnit'
         testResultsFiles: '**/*TestResults*.xml'
         testRunTitle: 'PS_Win2016'
 
-    - powershell:  Move-Item Release/*.zip $env:BUILD_ARTIFACTSTAGINGDIRECTORY -verbose
-      displayName: 'Copy Completed Module to Artifact Staging Directory'
+    - powershell: gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
 
-    - task: PublishPipelineArtifact@0
+    - task: CopyFiles
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)'
+        contents: '**/Release/*.zip'
+
+    - task: PublishPipelineArtifact
       displayName: 'Capture Powershell Module as Artifact'
       inputs:
         artifactName: 'Powershell Module'
