@@ -184,7 +184,8 @@ task Version {
         #Fetch GitVersion
         $GitVersionCMDPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
     }
-    $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
+    $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionCMDPackageName).source | split-path -Parent),'tools','GitVersion.exe')
+
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
@@ -198,6 +199,7 @@ task Version {
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
+        write-verbose "$GitVersionEXE $BuildRoot"
         $GitVersionOutput = &$GitVersionEXE $BuildRoot
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
