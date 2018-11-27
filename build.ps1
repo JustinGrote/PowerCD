@@ -60,7 +60,7 @@ function BootStrapInvokeBuild {
 	#Fetch Invoke-Build and import the module
 	$invokeBuildLatestURI = 'https://powershellgallery.com/api/v1/package/InvokeBuild'
 	(New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
-	Expand-Archive $tempfile $tempdir -ErrorAction stop
+	Expand-Archive $tempfile $tempdir -Force -ErrorAction stop
 
 	$IBModule = Join-Path $tempdir 'InvokeBuild.psd1'
 	Import-Module $IBModule -force
