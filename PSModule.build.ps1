@@ -280,10 +280,10 @@ task CopyFilesToBuildDir {
 
     if ($env:BHProjectName -match 'PowerCD') {
         #TODO: Figure out how to exclude PowerCD folder without excluding all files
-        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination (Join-Path $BuildReleasePath "PlasterTemplates\Default"
+        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination (Join-Path $BuildReleasePath "PlasterTemplates\Default")
         Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
         Remove-Item -Recurse -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\$($env:BHProjectName)")
-        Remove-Item -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1"
+        Remove-Item -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1")
     }
 
     #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
