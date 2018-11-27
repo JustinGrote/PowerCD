@@ -276,32 +276,24 @@ task CopyFilesToBuildDir {
         #>
         throw "Placing module files in the root project folder is current not supported by this script. Please put them in a subfolder with the name of your module"
     } else {
-        copy-item -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath
+        Copy-Item -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath -Container
     }
 
     if ($env:BHProjectName -match 'PowerCD') {
-        #TODO: Figure out how to exclude PowerCD folder without excluding all files
-        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination (Join-Path $BuildReleasePath "PlasterTemplates\Default")
+
+        #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
+        #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
+        #TODO: Put this in its own build script so that this code doesn't carry over to the template
+        $PowerCDFilesToCopy = Get-Childitem $buildRoot -Recurse |
+            where fullname -notlike "$PSModuleManifestDirectory*" |
+            where fullname -notlike "$env:BHBuildOutput*" |
+            where fullname -notlike (join-path $buildRoot 'LICENSE') |
+            where fullname -notlike (join-path $buildRoot 'README.MD') |
+            where fullname -notlike (join-path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
+
+        $PowerCDFilesToCopy | Copy-Item -Force -Container -Destination (Join-Path $BuildReleasePath "PlasterTemplates\Default")
         Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
-        Remove-Item -Recurse -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\$($env:BHProjectName)")
-        Remove-Item -Force (Join-Path $BuildReleasePath "PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1")
     }
-
-    #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
-    #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
-    #TODO: Put this in its own build script to simplify this one
-
-
-
-    <#
-
-    #$PowerCDIncludeFiles = @("Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder")
-
-
-    #The file or file paths to copy, excluding the powershell psm1 and psd1 module and manifest files which will be autodetected
-    copy-item $env:BHProjectName\* -Recurse -Destination $BuildReleasePath
-    copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude,$env:BHProjectName -Destination $BuildReleasePath @PassThruParams
-    #>
 }
 
 #Update the Metadata of the module with the latest version information.
