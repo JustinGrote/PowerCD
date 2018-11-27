@@ -25,11 +25,11 @@ jobs:
 #        sourceFolder: '$(Build.SourcesDirectory)'
 #        contents: '**/Release/*.zip'
 
-    - task: PublishPipelineArtifact@0
-      displayName: 'Capture Powershell Module as Artifact'
-      inputs:
-        artifactName: 'Powershell Module'
-        targetpath: '$(Build.ArtifactStagingDirectory)'
+#    - task: PublishPipelineArtifact@0
+#      displayName: 'Capture Powershell Module as Artifact'
+#      inputs:
+#        artifactName: 'Powershell Module'
+#        targetpath: '$(Build.ArtifactStagingDirectory)'
 
 
 #  - job: Build_PSCore_Ubuntu1604
