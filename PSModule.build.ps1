@@ -201,7 +201,7 @@ task Version {
         write-verbose "Executing GitVersion to determine version info"
         write-verbose "$GitVersionEXE $BuildRoot"
 
-        #TODO: Find a more platform-independent way of doing this (Mono.Posix library maybe?)
+        #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
         if ($isLinux) {
             chmod +x $GitVersionEXE
         }

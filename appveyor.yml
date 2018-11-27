@@ -26,7 +26,7 @@ skip_tags: true
 build_script:
   #If Debugging, take a look prior to the Build
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
-  - ps: .\build.ps1 .,Publish
+  - ps: .\build.ps1 ".,Publish"
 
 on_finish:
   #Final Checkpoint before bailing out
