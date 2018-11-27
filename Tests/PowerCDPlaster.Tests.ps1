@@ -62,6 +62,10 @@ Describe 'PowerCD Plaster Template' {
     context 'Default Deployment' {
 
         It "Invoke-Plaster to TestDrive is successful" {
+
+            if (-not $isWindows) {
+                Set-TestInconclusive -Message "Plaster doesn't work on Non-Windows systems currently."
+            }
             #Get the default parameters from the script
             $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
             $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
@@ -81,6 +85,10 @@ Describe 'PowerCD Plaster Template' {
     }
 
     context 'Custom Deployment' {
+        if (-not $isWindows) {
+            Set-TestInconclusive -Message "Plaster doesn't work on Non-Windows systems currently."
+        }
+
         #Get the default parameters from the script
         $PlasterManifestDefaults
         $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')

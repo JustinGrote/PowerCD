@@ -403,7 +403,11 @@ task Pester {
     # Failed tests?
     # Need to error out or it will proceed to the deployment. Danger!
     if ($TestResults.failedcount -isnot [int] -or $TestResults.FailedCount -gt 0) {
-        Write-Error "Failed '$($TestResults.FailedCount)' tests, build failed"
+        $testFailedMessage = "Failed '$($TestResults.FailedCount)' tests, build failed"
+        Write-Error $testFailedMessage
+        if ($isAzureDevOps) {
+            Write-Host "##vso[task.logissue type=error;]$testFailedMessage"
+        }
         $SCRIPT:SkipPublish = $true
     }
     "`n"
