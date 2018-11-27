@@ -63,8 +63,8 @@ Enter-Build {
             Get-PackageProvider Nuget | format-list | out-string | write-verbose
         }
 
-        #If nuget is pointed to the v3 URI, downgrade it to v2
-        $IsNugetOrgV2Source = ((get-packagesource nuget.org).location) -match 'v2$'
+        #If nuget is pointed to the v3 URI or doesn't exist, downgrade it to v2
+        $IsNugetOrgV2Source = ((get-packagesource nuget.org -erroraction SilentlyContinue).location) -match 'v2$'
         if (-not $IsNugetOrgV2Source) {
             write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
             #Next command will detect this was removed and add this back
