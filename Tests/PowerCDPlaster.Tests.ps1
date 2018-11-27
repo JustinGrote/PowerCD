@@ -31,7 +31,7 @@ if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 Describe 'PowerCD Plaster Template' {
 
     context 'Plaster Manifest' {
-        $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+        $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         #TODO: Plaster Manifest detection logic
         It -Pending 'Has a Plaster manifest specified in the module manifest'
         It -Pending 'Has a Plaster manifest file where specified'
@@ -64,7 +64,7 @@ Describe 'PowerCD Plaster Template' {
         It "Invoke-Plaster to TestDrive is successful" {
 
             #Get the default parameters from the script
-            $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+            $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
             $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
             $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
             $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
@@ -82,10 +82,9 @@ Describe 'PowerCD Plaster Template' {
     }
 
     context 'Custom Deployment' {
-
         #Get the default parameters from the script
         $PlasterManifestDefaults
-        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
         $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
         $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath

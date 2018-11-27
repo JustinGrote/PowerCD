@@ -312,7 +312,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
 
     #Update Plaster Manifest Version if this is a PowerCD Build
     if ($env:BHProjectName -match 'PowerCD') {
-        $PlasterManifestPath = join-path $buildReleasePath "PlasterTemplates\Default\PlasterManifest.xml"
+        $PlasterManifestPath = join-path $buildReleasePath "PlasterTemplates\Default\plasterManifest.xml"
         $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
         $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
         $PlasterManifest.save($PlasterManifestPath)
