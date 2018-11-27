@@ -90,7 +90,7 @@ Enter-Build {
 
         #Install dependencies defined in Requirements.psd1
         Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
-        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
+        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false -Verbose
     }
 
     #Configure some easy to use build environment variables
