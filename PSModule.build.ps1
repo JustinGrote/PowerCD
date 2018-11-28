@@ -169,15 +169,15 @@ task Version {
     if ($IsAppVeyor -and $IsLinux) {
         #Appveyor Ubuntu can't run the EXE for some dumb reason as of 2018/11/27, fetch it as a global tool instead
         #Fetch Gitversion as a .net Global Tool
-        $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | where version -ge 2.1 | select -first 1).source
+        $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | select -first 1).source
         $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
         if ($dotnetCMD -and -not $gitversionEXE) {
             write-build Green 'Build Initialization - Installing dotnet-gitversion'
             #Skip First Run Setup (takes too long for no benefit)
             $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
-            & $dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47
-            $GitVersionEXE = 'dotnet-gitversion'
+            Invoke-Expression "$dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47"
         }
+        $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction stop | select -first 1).source
     } else {
         #Fetch Gitversion as a NuGet Package
         $GitVersionPackage = Get-Package @PackageParams -erroraction SilentlyContinue
@@ -200,16 +200,16 @@ task Version {
     }
 
 
-    #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
 
         if ($isLinux -and -not $isAppveyor) {
+            #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
             chmod +x $GitVersionEXE
         }
 
-        $GitVersionOutput = &$GitVersionEXE
+        $GitVersionOutput = Invoke-Expression $GitVersionEXE
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
         if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
