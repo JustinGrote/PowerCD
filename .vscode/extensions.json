@@ -9,6 +9,8 @@
 		"vector-of-bool.gitflow",
 		"eamodio.gitlens",
 		"yzhang.markdown-all-in-one",
+		"redhat.vscode-yaml",
+		"ms-azure-devops.azure-pipelines"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
