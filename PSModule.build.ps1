@@ -159,14 +159,17 @@ task Clean {
 
 task Version {
     #Fetch GitVersion if required from NuGet
-    $GitVersionCMDPackageName = "gitversion.commandline"
-    $GitVersionCMDPackageMinVersion = '4.0.0'
+    $GitVersionPackageName = 'gitversion.commandline'
+    $GitVersionPackageMinVersion = '4.0.0'
     $PackageParams = @{
-        Name = $GitVersionCMDPackageName
-        MinimumVersion = $GitVersionCMDPackageMinVersion
+        Name = $GitVersionPackageName
+        MinimumVersion = $GitVersionPackageMinVersion
     }
 
-    <# Replaced by using INstall-Package below insetad
+
+
+    if ($IsAppVeyor -and $IsLinux) {
+        #Appveyor Ubuntu can't run the EXE for some dumb reason as of 2018/11/27, fetch it as a global tool instead
         #Fetch Gitversion as a .net Global Tool
         $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | where version -ge 2.1 | select -first 1).source
         $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
@@ -175,18 +178,19 @@ task Version {
             #Skip First Run Setup (takes too long for no benefit)
             $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
             & $dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47
+            $GitVersionEXE = 'dotnet-gitversion'
         }
-    #>
+    } else {
+        #Fetch Gitversion as a NuGet Package
+        $GitVersionCMDPackage = Get-Package @PackageParams -erroraction SilentlyContinue
+        if (!($GitVersionCMDPackage)) {
+            write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
 
-    $GitVersionCMDPackage = Get-Package @PackageParams -erroraction SilentlyContinue
-    if (!($GitVersionCMDPackage)) {
-        write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
-
-        #Fetch GitVersion
-        $GitVersionCMDPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
+            #Fetch GitVersion
+            $GitVersionCMDPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
+        }
+        $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionCMDPackageName).source | split-path -Parent),'tools','GitVersion.exe')
     }
-    $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionCMDPackageName).source | split-path -Parent),'tools','GitVersion.exe')
-
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
@@ -199,25 +203,15 @@ task Version {
 
 
     #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
-    if ($isLinux) {
-        chmod +x $GitVersionEXE
-    }
-
-    if ($isAppVeyor -and $isLinux) {
-        #Try getting the version
-        write-verbose "GitVersion Version Check"
-        $GitVersionCheckResult = Invoke-Expression "/home/appveyor/.local/share/PackageManagement/NuGet/Packages/GitVersion.CommandLine.4.0.0/tools/GitVersion.exe -version"
-        $GitVersionCheckResult
-        write-verbose $GitVersionCheckResult
-    }
-
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
-        write-verbose "$GitVersionEXE $BuildRoot"
 
-        $GitVersionOutput = &$GitVersionEXE $BuildRoot
+        if ($isLinux -and -not $isAppveyor) {
+            chmod +x $GitVersionEXE
+        }
 
+        $GitVersionOutput = &$GitVersionEXE
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
         if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
