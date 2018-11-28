@@ -78,6 +78,12 @@ The Name of your module | Default'
                store='text'
                prompt='Do you wish to add Appveyor support? | Default'
     />
+    <parameter name='AzureDevOpsPipelines'
+            type='text'
+            default='Y'
+            store='text'
+            prompt='Do you wish to add Azure DevOps Pipelines support? | Default'
+    />
 
   </parameters>
   <content>
@@ -114,6 +120,9 @@ The Name of your module | Default'
     <file condition="$PLASTER_PARAM_EDITOR -like 'VSCode'" source='.vscode\**' destination='.vscode' />
 
     <!-- Appveyor -->
-    <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' destination='appveyor.yml' />
+    <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' />
+
+    <!-- Azure DevOps Pipelines -->
+    <file condition="$PLASTER_PARAM_AzureDevOpsPipelines -like 'Y*'" source="azure-pipelines.yml" />
   </content>
 </plasterManifest>
