@@ -69,4 +69,5 @@ function BootStrapInvokeBuild {
 #region Main
 $IBModulePath = if (-not $FindInvokeBuild) {BootStrapInvokeBuild}
 Invoke-Expression "Invoke-Build $($args -join ' ')"
+exit $LastExitCode
 #endRegion Main
