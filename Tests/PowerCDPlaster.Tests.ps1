@@ -13,6 +13,7 @@ param (
         License='GNU'
         Editor='None'
         Appveyor='N'
+        AzureDevOpsPipelines='N'
     }
 )
 
@@ -73,9 +74,6 @@ Describe 'PowerCD Plaster Template' {
             invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
             test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
         }
-        #TODO: Additional Plaster Pester Tests
-        It -Pending "Has a valid module manifest"
-        It -Pending "Has an AppVeyor file"
     }
 
     context 'Custom Deployment' {
@@ -90,9 +88,6 @@ Describe 'PowerCD Plaster Template' {
         It "Invoke-Plaster to TestDrive is successful" {
             test-path (join-path $PlasterDeployPath 'PowerCDPlasterTest\PowerCDPlasterTest.psd1') | Should Be $true
         }
-        It -Pending "Has a valid module manifest"
-        It -Pending "Shouldn't have an AppVeyor file due to custom option"
-        It -Pending "Should have a GNU license due to custom option"
     }
 }
 

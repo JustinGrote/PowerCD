@@ -120,9 +120,9 @@ The Name of your module | Default'
     <file condition="$PLASTER_PARAM_EDITOR -like 'VSCode'" source='.vscode\**' destination='.vscode' />
 
     <!-- Appveyor -->
-    <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' />
+    <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' destination='appveyor.yml' />
 
     <!-- Azure DevOps Pipelines -->
-    <file condition="$PLASTER_PARAM_AzureDevOpsPipelines -like 'Y*'" source="azure-pipelines.yml" />
+    <file condition="$PLASTER_PARAM_AzureDevOpsPipelines -like 'Y*'" source='azure-pipelines.yml' destination='azure-pipelines.yml' />
   </content>
 </plasterManifest>
