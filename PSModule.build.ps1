@@ -206,7 +206,9 @@ task Version {
     if ($isAppVeyor -and $isLinux) {
         #Try getting the version
         write-verbose "GitVersion Version Check"
-        & /home/appveyor/.local/share/PackageManagement/NuGet/Packages/GitVersion.CommandLine.4.0.0/tools/GitVersion.exe -version
+        $GitVersionCheckResult = Invoke-Expression "/home/appveyor/.local/share/PackageManagement/NuGet/Packages/GitVersion.CommandLine.4.0.0/tools/GitVersion.exe -version"
+        $GitVersionCheckResult
+        write-verbose $GitVersionCheckResult
     }
 
     try {
