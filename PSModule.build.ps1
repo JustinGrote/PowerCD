@@ -292,6 +292,7 @@ task CopyFilesToBuildDir {
             where fullname -notlike (join-path $buildRoot 'LICENSE') |
             where fullname -notlike (join-path $buildRoot 'README.MD') |
             where fullname -notlike (join-path $buildRoot '.git') |
+            where fullname -notlike ([Path]::Combine($buildRoot,'.git','*')) |
             where fullname -notlike (join-path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
 
         #Copy-Item doesn't preserve paths with piped files even with -Container parameter, this is a workaround
@@ -558,10 +559,8 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
                     }
                 }
             }
-
             if ($PSItem.documentation_url) {write-build Red "More info at $($PSItem.documentation_url)"}
         } else {throw}
-
     }
 
     if ($GitHubReleaseError) {
