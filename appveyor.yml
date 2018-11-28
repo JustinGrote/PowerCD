@@ -27,6 +27,8 @@ skip_tags: true
 
 #Kick off the CI/CD pipeline. We do test and build in the same script
 #To be portable to non-Appveyor builds
+init:
+  - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
 build_script:
   - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
