@@ -197,22 +197,22 @@ task Version {
         git tag -d $currentTag
     }
 
+
+    #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
+    if ($isLinux) {
+        chmod +x $GitVersionEXE
+    }
+
     if ($isAppVeyor -and $isLinux) {
         #Try getting the version
         write-verbose "GitVersion Version Check"
         & /home/appveyor/.local/share/PackageManagement/NuGet/Packages/GitVersion.CommandLine.4.0.0/tools/GitVersion.exe -version
     }
 
-
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
         write-verbose "$GitVersionEXE $BuildRoot"
-
-        #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
-        if ($isLinux) {
-            chmod +x $GitVersionEXE
-        }
 
         $GitVersionOutput = &$GitVersionEXE $BuildRoot
 
@@ -222,7 +222,7 @@ task Version {
         $SCRIPT:GitVersionInfo = $GitVersionOutput | ConvertFrom-JSON -ErrorAction stop
     } catch {
         write-build Red $GitVersionOutput
-        write-error "There was an error when running GitVersion.exe $buildRoot. The output of the command (if any) is above..."
+        write-error "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is above..."
     } finally {
         #Restore the tag if it was present
         if ($currentTag) {
