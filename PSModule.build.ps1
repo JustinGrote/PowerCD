@@ -166,8 +166,6 @@ task Version {
         MinimumVersion = $GitVersionPackageMinVersion
     }
 
-
-
     if ($IsAppVeyor -and $IsLinux) {
         #Appveyor Ubuntu can't run the EXE for some dumb reason as of 2018/11/27, fetch it as a global tool instead
         #Fetch Gitversion as a .net Global Tool
@@ -182,14 +180,14 @@ task Version {
         }
     } else {
         #Fetch Gitversion as a NuGet Package
-        $GitVersionCMDPackage = Get-Package @PackageParams -erroraction SilentlyContinue
-        if (!($GitVersionCMDPackage)) {
-            write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
+        $GitVersionPackage = Get-Package @PackageParams -erroraction SilentlyContinue
+        if (!($GitVersionPackage)) {
+            write-verbose "Package $GitVersionPackageName Not Found Locally, Installing..."
 
             #Fetch GitVersion
-            $GitVersionCMDPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
+            $GitVersionPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
         }
-        $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionCMDPackageName).source | split-path -Parent),'tools','GitVersion.exe')
+        $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionPackageName).source | split-path -Parent),'tools','GitVersion.exe')
     }
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
