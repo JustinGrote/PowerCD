@@ -123,5 +123,12 @@ The Name of your module | Default'
 
     <!-- Azure DevOps Pipelines -->
     <file condition="$PLASTER_PARAM_AzureDevOpsPipelines -like 'Y*'" source='azure-pipelines.yml' destination='azure-pipelines.yml' />
+
+    <message>
+      `n`nYour new Module project $PLASTER_PARAM_ModuleName is ready.
+      You must perform the following additional tasks manually for now:
+      - Initialize Git repository (git init)
+      - Register and connect to Github/Azure DevOps/Appveyor
+    </message>
   </content>
 </plasterManifest>
