@@ -30,7 +30,7 @@ if (
 #If an alternate module root was specified, set that to our running directory.
 if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 Describe 'PowerCD Plaster Template' {
-
+    $PowershellEXEPath = if ($isCoreCLR) {(Get-command pwsh).source} else {(get-command powershell).source}
     context 'Plaster Manifest' {
         $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         #TODO: Plaster Manifest detection logic
@@ -61,32 +61,60 @@ Describe 'PowerCD Plaster Template' {
     }
 
     context 'Default Deployment' {
-
-        It "Invoke-Plaster to TestDrive is successful" {
-
-            #Get the default parameters from the script
-            $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
-            $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
-            $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-            $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
-            $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-
-            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
-            test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
-        }
-    }
-
-    context 'Custom Deployment' {
         #Get the default parameters from the script
-        $PlasterManifestDefaults
         $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
         $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
         $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
         $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-        invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
+
         It "Invoke-Plaster to TestDrive is successful" {
+            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
+            test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
+        }
+
+        It "Invoke-Build on the template succeeds" {
+            Push-Location $PlasterDeployPath
+            try {
+                git init
+                git add .
+                git commit -m 'Plaster Initial Test Commit'
+                #Run Invoke-Build in a separate powershell process to avoid any scope issues
+                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {Invoke-Build -SkipBootStrap Build,Test} *>&1
+                $LASTEXITCODE | Should Be 0
+            } catch {
+                throw "Invoke-Build on $PlasterDeployPath failed: $PSItem at $($PSItem.ScriptStackTrace)"
+            }
+            Pop-Location
+        }
+    }
+
+    context 'Custom Deployment' {
+        #Get the default parameters from the script
+        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
+        $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
+        $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
+        $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
+        $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
+
+        It "Invoke-Plaster to TestDrive is successful" {
+            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
             test-path (join-path $PlasterDeployPath 'PowerCDPlasterTest\PowerCDPlasterTest.psd1') | Should Be $true
+        }
+
+        It "Invoke-Build on the template succeeds" {
+            Push-Location $PlasterDeployPath
+            try {
+                git init
+                git add .
+                git commit -m 'Plaster Initial Test Commit'
+                #Run Invoke-Build in a separate powershell process to avoid any scope issues
+                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {Invoke-Build -SkipBootStrap Build,Test} *>&1
+                $LASTEXITCODE | Should Be 0
+            } catch {
+                throw "Invoke-Build on $PlasterDeployPath failed: $PSItem at $($PSItem.ScriptStackTrace)"
+            }
+            Pop-Location
         }
     }
 }

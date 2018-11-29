@@ -28,7 +28,9 @@ param (
     #Don't detect or bootstrap dependencies
     [Switch]$SkipBootStrap,
     #Force dependency check, useful if a script upgrade has required it. Skip overrides force if both are specified
-    [Switch]$ForceBootStrap
+    [Switch]$ForceBootStrap,
+    #What module name to use for a Metabuild. This will probably only work for 'PowerCD'
+    [String]$MetaBuild = 'PowerCD'
 )
 
 #region HelperFunctions
@@ -110,6 +112,9 @@ Enter-Build {
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
+
+    #Detect if this is a Metabuild of the PowerCD Tools
+    if ($env:BHProjectName -eq $MetaBuild) {$IsMetaBuild = $true} else {$IsMetaBuild = $false}
 
     #If the branch name is master-test, run the build like we are in "master"
     if ($env:BHBranchName -eq 'master-test') {
@@ -292,9 +297,7 @@ task CopyFilesToBuildDir {
     } else {
         Copy-Item -Container -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath
     }
-
-    if ($env:BHProjectName -match 'PowerCD') {
-
+    if ($isMetaBuild) {
         #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
         #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
         #TODO: Put this in its own build script so that this code doesn't carry over to the template
@@ -327,7 +330,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
     #Update Plaster Manifest Version if this is a PowerCD Build
-    if ($env:BHProjectName -match 'PowerCD') {
+    if ($isMetaBuild) {
         $PlasterManifestPath = join-path $buildReleasePath "PlasterTemplates\Default\plasterManifest.xml"
         $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
         $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
