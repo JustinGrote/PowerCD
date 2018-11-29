@@ -76,7 +76,9 @@ Describe 'PowerCD Plaster Template' {
         It "Invoke-Build on the template succeeds" {
             Push-Location $PlasterDeployPath
             try {
-                git init
+                git init -q
+                git config --local user.email "plasterTestBuild@notrealemail.local"
+                git config --local user.name "PlasterTestBuild-DONOTUSE"
                 git add .
                 git commit -m 'Plaster Initial Test Commit'
                 #Run Invoke-Build in a separate powershell process to avoid any scope issues
@@ -106,7 +108,9 @@ Describe 'PowerCD Plaster Template' {
         It "Invoke-Build on the template succeeds" {
             Push-Location $PlasterDeployPath
             try {
-                git init
+                git init -q
+                git config --local user.email "plasterTestBuild@notrealemail.local"
+                git config --local user.name "PlasterTestBuild-DONOTUSE"
                 git add .
                 git commit -m 'Plaster Initial Test Commit'
                 #Run Invoke-Build in a separate powershell process to avoid any scope issues
