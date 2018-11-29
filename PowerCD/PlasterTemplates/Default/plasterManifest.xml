@@ -84,7 +84,6 @@ The Name of your module | Default'
             store='text'
             prompt='Do you wish to add Azure DevOps Pipelines support? | Default'
     />
-
   </parameters>
   <content>
     <!-- Basic Module Scaffolding -->

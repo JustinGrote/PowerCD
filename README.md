@@ -4,9 +4,9 @@
 
 [![PSGallery][]][PSGalleryLink] [![PSGalleryDL][]][PSGalleryDLLink]
 
-[![AppV][]][AppVLink] [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
+[![AppV][]][AppVLink] [![ADO][]][ADOLink]  [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
 
-[![AppVNext][]][AppVNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
+[![AppVNext][]][AppVNextLink] [![ADOvNext][]][ADOvNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
 
 ---
 
@@ -144,3 +144,8 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 [GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
 
+[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Stable
+[ADOLink]: https://dev.azure.com/justingrote/Default/_build
+
+[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=release-vnext&label=vNext
+[ADOVNextLink]: https://dev.azure.com/justingrote/Default/_build
