@@ -10,7 +10,7 @@
 
 ---
 
-This project's goal is to deliver a continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
+This project's goal is to deliver an opinionated continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
 
 This will provide a "Getting Started" process to building powershell modules, and will automate as much as possible all the dirty stuff such as building, testing, and deployment/publishing.
 
@@ -20,23 +20,25 @@ This will provide a "Getting Started" process to building powershell modules, an
 
 I wanted to create a standard methodology to build powershell modules, as the options when I was getting started making modules were bewildering and complicated, and there was no comprehensive guide or solution.
 
-## Release Goals
+## Initial Release Goals
 
-### Initial Release Goals
-
-Provide an Invoke-Build process that supports two scenarios:
+### Provide a development environment that supports three scenarios
 
 1. Open Source with Visual Studio Code, GitHub, PSGallery, Appveyor
-2. Local Build with no Internet Access
+2. Private Development with Azure Devops and Azure Devops Pipelines
+3. Local Build with no Internet Access
 - Make the build process have all external internet-connected dependencies optional, so you can just build locally/privately if you want with nothing more than a local git repository
 
-- Make the process build once, run anywhere for minimum following platofmrs
+
+### Make the process build once, run anywhere for minimum following platforms
 1. Windows with Powershell v5+
 2. Windows with Powershell Core v6.0.1+
 3. Linux with Powershell Core v6.0.1+
 4. *Maybe* MacOS with Powershell Core v6.0.1+
 
-- Provide a Plaster template for generating the initial module continuous deployment framework
+### Make the build process work in userspace, not requiring admin privileges for dependencies if at all possible
+
+### Provide a Plaster template for generating the initial module continuous deployment framework
 
 This project uses inspiration and some code from [ZLoeber's ModuleBuild](https://github.com/zloeber/ModuleBuild)
 
@@ -62,18 +64,24 @@ Based on RamblingCookieMonster's template plus what is seen in the community. (P
 - Code Coverage Host - [CodeCov](https://codecov.io)
 - Documentation - [PlatyPS](https://github.com/PowerShell/platyPS)
 - Documentation Host - [ReadTheDocs](https://docs.readthedocs.io)
-- Coding Process - [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) where develop and master are always deployable
-- Repository - [Git](https://git-scm.com/) (Local, [Github](https://github.com/), or [Visual Studio Team Services](https://visualstudio.microsoft.com/team-services/))
+- Coding Process - [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) with key modifications:
+    - Master is always deployable
+    - There is no develop branch, development happens in feature branches GitHubFlow-style
+    - Next release is always named release/vNext, and is always deployable as a prerelease build
+    - Feature Branches pull request to release/vNext
+    - release/vNext pull requests to master for production release
+- Repository - [Git](https://git-scm.com/) (Local, [Github](https://github.com/), or [Azure Devops](https://dev.azure.com/))
 - Deploy Targets
-  - Local (Release Folder .zip)
+  - Local (Release Folder .zip and .nupkg)
+  - Local (Install-Module via Temporary Repository)
   - [GitHub Releases](https://help.github.com/articles/about-releases/)
   - [Powershell Gallery](https://www.powershellgallery.com/)
-  - [VSTS Package Feed](https://docs.microsoft.com/en-us/vsts/package/overview?view=vsts)
+  - [Azure Devops Packages](https://docs.microsoft.com/en-us/vsts/package/overview?view=vsts)
   - Any repository supported by Publish-Module.
 
-### FAQs / Whatabouts
+## FAQs / Whatabouts
 
-*Why do you only support PS5.1 and PS6 as build environments?*
+**Why do you only support PS5.1+ and PS Core as build environments?**
 
 PS5.1 is the "last" version of Windows Powershell, as such it makes a good Long Term Support (LTS) target. The inclusion of the Powershell Gallery and its proven stability (VMware/AWS/Azure all use it as their primary delivery mechanism) allows requirements and dependencies to be managed. Also specific to modules, multi-version support became standard so the logic and testing is based around that.
 
@@ -86,6 +94,10 @@ Appveyor added Linux support in May 2018 and it works, so we use that for PowerC
 **What about OSX builds and testing?**
 
 Will add Travis support to do this later, right now focus is just on WindowsPowershell and Powershell Core builds on Windows and Linux (ubuntu as test target). If the linux build passes, it's probably going to be OK on OSX.
+
+**Why /Release for build output instead of /BuildOutput or /Output**
+
+Because it has a vscode-icons default icon and the others do not. Build and Out have default vscode icons, but people may already be using those to keep files in existing projects.
 
 **Why not a /src directory?**
 
