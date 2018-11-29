@@ -427,7 +427,7 @@ task Pester {
     "`n"
 }
 
-task Package Version,PreDeploymentChecks,{
+task PackageZip {
     $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectVersion.zip")
     write-build Green "Task $($task.name)` - Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
@@ -440,6 +440,8 @@ task Package Version,PreDeploymentChecks,{
         Push-AppveyorArtifact $ZipArchivePath
     }
 }
+
+
 
 task PreDeploymentChecks Test,{
     #Do not proceed if the most recent Pester test is not passing.
@@ -650,11 +652,36 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     }
 }
 
+task PackageNuGet -if {-not $SkipPublish} Test,{
+    #Creates a temporary repository and registers it, uses publish-module which results in a nuget package
+    try {
+        $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
+        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
+        publish-module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
+    }
+    catch {write-error $PSItem}
+    finally {
+        unregister-psrepository $tempRepositoryName
+    }
+}
+
+task InstallPSModule PackageNuGet,{
+    try {
+        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput -InstallationPolicy Trusted
+        Install-Module -Name $env:BHProjectName -Repository $tempRepositoryName -Scope CurrentUser -Force
+    } catch {write-error $PSItem}
+    finally {
+        unregister-psrepository $tempRepositoryName
+    }
+}
+
 ### SuperTasks
 # These are the only supported items to run directly from Invoke-Build
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Version,Pester
+task Package Version,PreDeploymentChecks,PackageZip,PackageNuGet
 task Publish Version,PreDeploymentChecks,Package,PublishPSGallery,PublishGitHubRelease
+task Install Test,InstallPSModule
 
 #Default Task - Build and Test
 task . Clean,Build,Test,Package
