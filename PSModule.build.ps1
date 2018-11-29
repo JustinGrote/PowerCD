@@ -100,7 +100,7 @@ Enter-Build {
 
         #Install dependencies defined in Requirements.psd1
         Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
-        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
+        Invoke-PSDepend -Install -Import -Confirm:$false
 
         #If we get this far, assume all dependencies worked and drop a flag to not do this again.
         "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
