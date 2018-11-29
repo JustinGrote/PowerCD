@@ -117,7 +117,6 @@ The Name of your module | Default'
 
     <!-- VSCode -->
     <file condition="$PLASTER_PARAM_EDITOR -like 'VSCode'" source='.vscode\**' destination='.vscode' />
-d
     <!-- Appveyor -->
     <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' destination='appveyor.yml' />
 
