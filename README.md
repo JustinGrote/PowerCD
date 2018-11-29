@@ -40,6 +40,10 @@ I wanted to create a standard methodology to build powershell modules, as the op
 
 ### Provide a Plaster template for generating the initial module continuous deployment framework
 
+### PowerCD builds PowerCD - The same build process for PowerCD (with some minor meta adjustments) is used for the downstream modules
+
+### Heavy Testing - PowerCD (after building itself) deploys two plaster templates (default and custom settings), and then in turn builds and tests them
+
 This project uses inspiration and some code from [ZLoeber's ModuleBuild](https://github.com/zloeber/ModuleBuild)
 
 ## Design Decisions
