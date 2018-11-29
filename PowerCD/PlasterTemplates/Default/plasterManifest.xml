@@ -104,7 +104,7 @@ The Name of your module | Default'
     <file source='PSModule.build.ps1' destination='' />
     <file source='.git*' destination='' />
     <file source='GitVersion.yml' destination='' />
-    <templateFile source='Requirements.psd1' destination='Requirements.psd1' />
+    <templateFile source='PSModule.requirements.psd1' destination='PSModule.requirements.psd1' />
 
     <!-- First Function -->
     <templateFile source='firstfunction.ps1.txt' destination='${PLASTER_PARAM_ModuleName}\Public\${PLASTER_PARAM_FirstFunctionName}.ps1' />
