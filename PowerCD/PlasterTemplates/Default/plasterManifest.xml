@@ -31,7 +31,7 @@ The Name of your module | Default'
     <parameter name='Version'
                type='text'
                prompt='Enter the starting version of the module | Default'
-               default='0.1.0'
+               default='0.0.1'
     />
     <parameter name='FullName'
                type='user-fullname'
