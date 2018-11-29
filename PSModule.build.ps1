@@ -100,7 +100,7 @@ Enter-Build {
 
         #Install dependencies defined in Requirements.psd1
         Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
-        Invoke-PSDepend -Install -Import -Path PSModule.prequirements.psd1 -Confirm:$false
+        Invoke-PSDepend -Install -Import -Path PSModule.requirements.psd1 -Confirm:$false
 
         #If we get this far, assume all dependencies worked and drop a flag to not do this again.
         "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
@@ -319,7 +319,10 @@ task CopyFilesToBuildDir {
 
 #Update the Metadata of the module with the latest version information.
 task UpdateMetadata Version,CopyFilesToBuildDir,{
-    # Update-ModuleManifest butchers PrivateData, using update-metadata from BuildHelpers instead.
+    #TODO: Split manifest and plaster versioning into discrete tasks
+    [Version]$UpdateModuleManifestVersion = (get-command update-modulemanifest -erroractionsilentlycontinue).version
+    if ($UpdateModuleManifestVersion -lt '1.6') {throw "PowershellGet module must be version 1.6 or higher to support prerelease versioning"}
+
     # Set the Module Version to the calculated Project Build version. Cannot use update-modulemanifest for this because it will complain the version isn't correct (ironic)
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
@@ -336,7 +339,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     if (-not $moduleFunctionsToExport) {
         write-warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
     } else {
-        Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
+        Update-ModuleManifest -Path $BuildReleaseManifest -FunctionsToExport $moduleFunctionsToExport
     }
 
     if ($IsGARelease) {
@@ -350,7 +353,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     }
 
     #Set the prerelease version in the Manifest File
-    Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
+    Update-ModuleManifest -Path $BuildReleaseManifest -PreRelease $ProjectPreReleaseTag
 
     if ($isTagRelease) {
         #Set an email address for the tag commit to work if it isn't already present
