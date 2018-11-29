@@ -57,7 +57,9 @@ jobs:
       displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)/Release'
-        contents: '*.zip'
+        contents: |
+          *.zip
+          *.nupkg
         targetfolder: '$(Build.ArtifactStagingDirectory)'
 
     - task: PublishPipelineArtifact@0

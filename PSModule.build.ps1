@@ -657,7 +657,7 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
     }
 }
 
-task PackageNuGet -if {-not $SkipPublish} Test,{
+task PackageNuGet Test,{
     #Creates a temporary repository and registers it, uses publish-module which results in a nuget package
     try {
         $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
