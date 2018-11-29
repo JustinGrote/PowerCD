@@ -26,7 +26,9 @@ param (
     #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world
     [Switch]$GitHubPublishAsDraft,
     #Don't detect or bootstrap dependencies
-    [Switch]$SkipBootStrap
+    [Switch]$SkipBootStrap,
+    #Force dependency check, useful if a script upgrade has required it. Skip overrides force if both are specified
+    [Switch]$ForceBootStrap
 )
 
 #region HelperFunctions
@@ -54,7 +56,14 @@ Enter-Build {
         $ProgressPreference = "SilentlyContinue"
     }
 
-    #Bootstrap
+#region Bootstrap
+    $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
+    $bootstrapCompleteFilePath = join-path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
+    if ((Test-Path $bootstrapCompleteFilePath) -and (-not $forcebootstrap)) {
+        write-build Green "Build Initialization - 'Bootstrap Complete' file detected at $bootstrapCompleteFilePath, skipping bootstrap and dependencies"
+        $SkipBootStrap = $true
+    }
+
     if (-not $SkipBootStrap) {
         #Register Nuget if required
         if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
@@ -92,7 +101,11 @@ Enter-Build {
         #Install dependencies defined in Requirements.psd1
         Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
         Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
+
+        #If we get this far, assume all dependencies worked and drop a flag to not do this again.
+        "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
     }
+#endregion Bootstrap
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
