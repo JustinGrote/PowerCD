@@ -162,8 +162,7 @@ task Clean {
     #Reset the BuildOutput Directory
     if (test-path $buildProjectPath) {
         Write-Verbose "Removing and resetting Build Output Path: $buildProjectPath"
-        remove-item $buildProjectPath -Recurse @PassThruParams
-        remove-item $buildOutputPath\PowerCD-TestResults*.xml
+        remove-item (join-path $buildOutputPath '*') -Recurse
     }
     New-Item -Type Directory $BuildProjectPath @PassThruParams | out-null
     #Unmount any modules named the same as our module
