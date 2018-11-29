@@ -82,7 +82,7 @@ Describe 'PowerCD Plaster Template' {
                 git add .
                 git commit -m 'Plaster Initial Test Commit'
                 #Run Invoke-Build in a separate powershell process to avoid any scope issues
-                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {.\build.ps1 -Task Build,Test -SkipBootStrap} *>&1
+                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {.\build.ps1 -Task "Build,Test" -SkipBootStrap} *>&1
 
                 $LASTEXITCODE | Should Be 0
             } catch {
@@ -114,7 +114,7 @@ Describe 'PowerCD Plaster Template' {
                 git add .
                 git commit -m 'Plaster Initial Test Commit'
                 #Run Invoke-Build in a separate powershell process to avoid any scope issues
-                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {.\build.ps1 -Task Build,Test -SkipBootStrap} *>&1
+                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {.\build.ps1 -Task "Build,Test" -SkipBootStrap} *>&1
                 $LASTEXITCODE | Should Be 0
             } catch {
                 throw "Invoke-Build on $PlasterDeployPath failed: $PSItem at $($PSItem.ScriptStackTrace)"
