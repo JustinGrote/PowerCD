@@ -124,6 +124,11 @@ Enter-Build {
         $SCRIPT:BranchName = $env:BHBranchName
     }
 
+    #If this is an Appveyor PR, note a special branch name
+    if ($isAppveyor -and $ENV:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {
+        $SCRIPT:BranchName = "PR$($env:APPVEYOR_PULL_REQUEST_NUMBER)/$($env:BHBranchName)//$($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH)"
+    }
+
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
