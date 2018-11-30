@@ -72,7 +72,7 @@ Describe 'PowerCD Plaster Template' {
             test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
         }
 
-        It "Invoke-Build on the template succeeds" {
+        It -Pending "Invoke-Build on the template succeeds" {
             Push-Location $PlasterDeployPath
             try {
                 git init -q
@@ -102,8 +102,7 @@ Describe 'PowerCD Plaster Template' {
             invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
             test-path (join-path $PlasterDeployPath 'PowerCDPlasterTest\PowerCDPlasterTest.psd1') | Should Be $true
         }
-
-        It "Invoke-Build on the template succeeds" {
+        It -Pending "Invoke-Build on the template succeeds" {
             Push-Location $PlasterDeployPath
             try {
                 git init -q
