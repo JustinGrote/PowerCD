@@ -43,7 +43,6 @@ Describe 'Powershell Module' {
             Test-Path $Manifest.RootModule -Type Leaf | Should Be $true
         }
 
-
         It 'Has a valid folder structure (ModuleName\Manifest or ModuleName\Version\Manifest)' {
             $moduleDirectoryErrorMessage = "Module directory structure doesn't match either $ModuleName or $moduleName\$($Manifest.Version)"
             $ModuleManifestDirectory = $ModuleManifestFile.directory

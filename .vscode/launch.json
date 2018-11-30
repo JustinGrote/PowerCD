@@ -62,6 +62,24 @@
             "script": "Invoke-Pester",
             "args": [],
             "cwd": "${workspaceRoot}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "Run Invoke-Build",
+            "script": "Invoke-Build",
+            "args": [],
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "Run Invoke-Build with Arguments",
+            "script": "Invoke-Build",
+            "args": [
+                "${command:SpecifyScriptArgs}"
+            ],
+            "cwd": "${workspaceRoot}"
         }
     ]
 }
