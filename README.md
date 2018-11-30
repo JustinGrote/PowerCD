@@ -58,12 +58,20 @@ I've also tried tried to ensure that projects will "build" on any Windows or Lin
 
 Based on RamblingCookieMonster's template plus what is seen in the community. (Public/Private/Lib)
 
+### Versioning
+We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track.
+
+If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.
+
+Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
+
 ### Prescriptive Services and Products
 
 - Versioning Tool - [GitVersion](https://gitversion.readthedocs.io/en/latest/)
 - Versioning Scheme - [Semantic Versioning](https://semver.org/)
 - Build Tool - [Invoke-Build](https://github.com/nightroman/Invoke-Build). Only used for packaging/versioning, this plaster is primarily for script modules.
 - Build Host - [Appveyor](https://www.appveyor.com/) ([Windows](https://www.appveyor.com/docs/) and [Linux](https://www.appveyor.com/docs/getting-started-with-appveyor-for-linux/))
+- Commit Messages - [AngularJS Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#commit)
 - Code Testing Tool - [Pester](https://github.com/pester/Pester) and [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer)
 - Code Coverage Host - [CodeCov](https://codecov.io)
 - Documentation - [PlatyPS](https://github.com/PowerShell/platyPS)
@@ -131,10 +139,6 @@ If you're concerned about Microsoft buying GitHub, well, Powershell Core is on G
 
 The function of this module is to publish the modules to places where they can then be consumed, it's not to deploy the software directly into production, hence it is only Continuous Delivery, not Continuous Deployment. If you bolt on a piece in the build code that pushes this directly to production, then it is Continuous Deployment.
 
-**Why is the version tagging so weird?**
-We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track. If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.
-
-Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
 
 [PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=windows&label=Powershell+Gallery+Latest
 [PSGalleryLink]: https://www.powershellgallery.com/packages/PowerCD

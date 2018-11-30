@@ -65,8 +65,7 @@ Describe 'PowerCD Plaster Template' {
         $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
         $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-        $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
-        $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
+        $PlasterDeployPath = New-Item -Type Directory "$PlasterDeployPath-plasterbuild"
 
         It "Invoke-Plaster to TestDrive is successful" {
             invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
@@ -98,7 +97,6 @@ Describe 'PowerCD Plaster Template' {
         $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
         $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
         $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
-        $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
 
         It "Invoke-Plaster to TestDrive is successful" {
             invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
