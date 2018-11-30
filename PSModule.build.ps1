@@ -116,11 +116,7 @@ Enter-Build {
     #Detect if this is a Metabuild of the PowerCD Tools
     if ($env:BHProjectName -eq $MetaBuild) {$IsMetaBuild = $true} else {$IsMetaBuild = $false}
 
-    #If this is an Appveyor PR, note a special branch name
-    if ($isAppveyor -and $ENV:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {
-        $SCRIPT:BranchName = "PR$($env:APPVEYOR_PULL_REQUEST_NUMBER)/$($env:BHBranchName)//$($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH)"
-        Write-Build Green "Build Initialization - Appveyor Pull Request Detected. Using Branch Name $($SCRIPT:BranchName)"
-    }
+
 
     #If the branch name is master-test, run the build like we are in "master"
     if ($env:BHBranchName -eq 'master-test') {
@@ -130,6 +126,11 @@ Enter-Build {
         $SCRIPT:BranchName = $env:BHBranchName
     }
 
+    #If this is an Appveyor PR, note a special branch name
+    if ($isAppveyor -and $ENV:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {
+        $SCRIPT:BranchName = "PR$($env:APPVEYOR_PULL_REQUEST_NUMBER)/$($env:BHBranchName)//$($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH)"
+        Write-Build Green "Build Initialization - Appveyor Pull Request Detected. Using Branch Name $($SCRIPT:BranchName)"
+    }
 
 
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
