@@ -13,6 +13,7 @@ param (
         License='GNU'
         Editor='None'
         Appveyor='N'
+        AzureDevOpsPipelines='N'
     }
 )
 
@@ -29,9 +30,9 @@ if (
 #If an alternate module root was specified, set that to our running directory.
 if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 Describe 'PowerCD Plaster Template' {
-
+    $PowershellEXEPath = if ($isCoreCLR) {(Get-command pwsh).source} else {(get-command powershell).source}
     context 'Plaster Manifest' {
-        $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+        $SCRIPT:PlasterManifestPath = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         #TODO: Plaster Manifest detection logic
         It -Pending 'Has a Plaster manifest specified in the module manifest'
         It -Pending 'Has a Plaster manifest file where specified'
@@ -60,38 +61,63 @@ Describe 'PowerCD Plaster Template' {
     }
 
     context 'Default Deployment' {
+        #Get the default parameters from the script
+        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
+        $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
+        $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
+        $PlasterDeployPath = New-Item -Type Directory "$PlasterDeployPath-plasterbuild"
 
         It "Invoke-Plaster to TestDrive is successful" {
-            #Get the default parameters from the script
-            $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
-            $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
-            $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-            $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
-            $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-
             invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterManifestDefaults 6>$null
             test-path (join-path $PlasterDeployPath "MyNewModule\MyNewModule.psd1") | Should Be $true
         }
-        #TODO: Additional Plaster Pester Tests
-        It -Pending "Has a valid module manifest"
-        It -Pending "Has an AppVeyor file"
+
+        It -Pending "Invoke-Build on the template succeeds" {
+            Push-Location $PlasterDeployPath
+            try {
+                git init -q
+                git config --local user.email "plasterTestBuild@notrealemail.local"
+                git config --local user.name "PlasterTestBuild-DONOTUSE"
+                git add .
+                git commit -m 'Plaster Initial Test Commit'
+                #Run Invoke-Build in a separate powershell process to avoid any scope issues
+                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {.\build.ps1 -Task "Build,Test" -SkipBootStrap} *>&1
+
+                $LASTEXITCODE | Should Be 0
+            } catch {
+                throw "Invoke-Build on $PlasterDeployPath failed: $PSItem at $($PSItem.ScriptStackTrace)"
+            }
+            Pop-Location
+        }
     }
 
     context 'Custom Deployment' {
         #Get the default parameters from the script
-        $PlasterManifestDefaults
-        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\PlasterManifest.xml')
+        $PlasterManifest = get-item (join-path $ModulePath 'PlasterTemplates\Default\plasterManifest.xml')
         $PlasterManifestDirectory = Split-Path -Path $PlasterManifest -Parent
         $PlasterDeployPath = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
         $PlasterDeployPath = New-Item -Type Directory $PlasterDeployPath
-        $PlasterOutputFile = join-path 'TestDrive:' ([io.path]::GetRandomFileName())
-        invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
+
         It "Invoke-Plaster to TestDrive is successful" {
-            test-path (join-path $PlasterDeployPath "PowerCDPlasterTest\PowerCDPlasterTest.psd1") | Should Be $true
+            invoke-plaster -TemplatePath $PlasterManifestDirectory -DestinationPath $PlasterDeployPath @PlasterParams 6>$null
+            test-path (join-path $PlasterDeployPath 'PowerCDPlasterTest\PowerCDPlasterTest.psd1') | Should Be $true
         }
-        It -Pending "Has a valid module manifest"
-        It -Pending "Shouldn't have an AppVeyor file due to custom option"
-        It -Pending "Should have a GNU license due to custom option"
+        It -Pending "Invoke-Build on the template succeeds" {
+            Push-Location $PlasterDeployPath
+            try {
+                git init -q
+                git config --local user.email "plasterTestBuild@notrealemail.local"
+                git config --local user.name "PlasterTestBuild-DONOTUSE"
+                git add .
+                git commit -m 'Plaster Initial Test Commit'
+                #Run Invoke-Build in a separate powershell process to avoid any scope issues
+                $InvokeBuildOutput = & $PowershellEXEPath -noprofile -noninteractive -command {.\build.ps1 -Task "Build,Test" -SkipBootStrap} *>&1
+                $LASTEXITCODE | Should Be 0
+            } catch {
+                throw "Invoke-Build on $PlasterDeployPath failed: $PSItem at $($PSItem.ScriptStackTrace)"
+            }
+            Pop-Location
+        }
     }
 }
 

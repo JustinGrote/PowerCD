@@ -5,7 +5,7 @@
   <metadata>
     <name>PowerCD</name>
     <id>34bfb116-806a-4cc0-a625-04988aa64999</id>
-    <version>0.1.0</version>
+    <version>0.0.1</version>
     <title>New Powershell Module for Continuous Delivery (PowerCD)</title>
     <description>Create a Powershell Module based on common practices, and configure it for Continuous Delivery</description>
     <author>Justin Grote</author>
@@ -31,7 +31,7 @@ The Name of your module | Default'
     <parameter name='Version'
                type='text'
                prompt='Enter the starting version of the module | Default'
-               default='0.1.0'
+               default='0.0.1'
     />
     <parameter name='FullName'
                type='user-fullname'
@@ -78,13 +78,18 @@ The Name of your module | Default'
                store='text'
                prompt='Do you wish to add Appveyor support? | Default'
     />
-
+    <parameter name='AzureDevOpsPipelines'
+            type='text'
+            default='Y'
+            store='text'
+            prompt='Do you wish to add Azure DevOps Pipelines support? | Default'
+    />
   </parameters>
   <content>
     <!-- Basic Module Scaffolding -->
     <newModuleManifest destination='${PLASTER_PARAM_ModuleName}\${PLASTER_PARAM_ModuleName}.psd1'
                        moduleVersion='$PLASTER_PARAM_Version'
-                       rootModule='${PLASTER_PARAM_ModuleName}\${PLASTER_PARAM_ModuleName}.psm1'
+                       rootModule='${PLASTER_PARAM_ModuleName}.psm1'
                        author='$PLASTER_PARAM_FullName'
                        description='$PLASTER_PARAM_ModuleDesc'
                        encoding='UTF8-NoBOM'
@@ -99,6 +104,8 @@ The Name of your module | Default'
     <file source='PSModule.build.ps1' destination='' />
     <file source='.git*' destination='' />
     <file source='GitVersion.yml' destination='' />
+    <file source='build.ps1' destination='build.ps1' />
+    <file source='PSModule.requirements.psd1' destination='PSModule.requirements.psd1' />
 
     <!-- First Function -->
     <templateFile source='firstfunction.ps1.txt' destination='${PLASTER_PARAM_ModuleName}\Public\${PLASTER_PARAM_FirstFunctionName}.ps1' />
@@ -112,8 +119,18 @@ The Name of your module | Default'
 
     <!-- VSCode -->
     <file condition="$PLASTER_PARAM_EDITOR -like 'VSCode'" source='.vscode\**' destination='.vscode' />
-
     <!-- Appveyor -->
     <file condition="$PLASTER_PARAM_Appveyor -like 'Y*'" source='appveyor.yml' destination='appveyor.yml' />
+
+    <!-- Azure DevOps Pipelines -->
+    <file condition="$PLASTER_PARAM_AzureDevOpsPipelines -like 'Y*'" source='azure-pipelines.yml' destination='azure-pipelines.yml' />
+
+    <message>
+      `n`nYour new Module project $PLASTER_PARAM_ModuleName is ready.
+      You must perform the following additional tasks manually for now:
+      - Initialize Git repository (git init)
+      - Initialize GitFlow (git flow init)
+      - Register and connect to Github/Azure DevOps/Appveyor
+    </message>
   </content>
 </plasterManifest>

@@ -1,4 +1,5 @@
 #requires -version 5
+using namespace System.IO
 #Build Script for Powershell Modules
 #Uses Invoke-Build (https://github.com/nightroman/Invoke-Build)
 #Run by changing to the project root directory and run ./Invoke-Build.ps1
@@ -25,7 +26,11 @@ param (
     #Setting this option will only publish to Github as "draft" (hidden) releases for both GA and prerelease, that you then must approve to show to the world
     [Switch]$GitHubPublishAsDraft,
     #Don't detect or bootstrap dependencies
-    [Switch]$SkipBootStrap
+    [Switch]$SkipBootStrap,
+    #Force dependency check, useful if a script upgrade has required it. Skip overrides force if both are specified
+    [Switch]$ForceBootStrap,
+    #What module name to use for a Metabuild. This will probably only work for 'PowerCD'
+    [String]$MetaBuild = 'PowerCD'
 )
 
 #region HelperFunctions
@@ -37,7 +42,30 @@ Enter-Build {
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
 
-    #Bootstrap
+    ###Detect certain environments
+
+    #Appveyor
+    if ($ENV:APPVEYOR) {$IsAppVeyor = $true}
+    #Azure DevOps
+    if ($ENV:SYSTEM_COLLECTIONID) {$IsAzureDevOps = $true}
+
+    #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
+    if ($ENV:CI -or $CI -or $IsAppVeyor -or $IsAzureDevOps -or ([Environment]::GetCommandLineArgs() -like '-noni*')) {
+        write-build Green 'Build Initialization - Detected a Noninteractive or CI environment, disabling prompt confirmations'
+        $SCRIPT:CI = $true
+        $ConfirmPreference = 'None'
+        #Disabling Progress speeds up the build because Write-Progress can be slow
+        $ProgressPreference = "SilentlyContinue"
+    }
+
+#region Bootstrap
+    $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
+    $bootstrapCompleteFilePath = join-path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
+    if ((Test-Path $bootstrapCompleteFilePath) -and (-not $forcebootstrap)) {
+        write-build Green "Build Initialization - 'Bootstrap Complete' file detected at $bootstrapCompleteFilePath, skipping bootstrap and dependencies"
+        $SkipBootStrap = $true
+    }
+
     if (-not $SkipBootStrap) {
         #Register Nuget if required
         if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
@@ -47,11 +75,14 @@ Enter-Build {
             Get-PackageProvider Nuget | format-list | out-string | write-verbose
         }
 
-        #Fix a bug with the Appveyor 2017 image having a "broken" nuget (points to v3 URL but installed packagemanagement doesn't query v3 correctly)
-        if ($ENV:APPVEYOR -and ($ENV:APPVEYOR_BUILD_WORKER_IMAGE -eq 'Visual Studio 2017')) {
-            write-verbose "Detected Appveyor VS2017 Image, using v2 Nuget API"
+        #If nuget is pointed to the v3 URI or doesn't exist, downgrade it to v2
+        $NugetOrgSource = Get-Packagesource nuget.org -erroraction SilentlyContinue
+        $IsNugetOrgV2Source = $NugetOrgSource.location -match 'v2$'
+        if (-not $IsNugetOrgV2Source) {
+            write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
+
             #Next command will detect this was removed and add this back
-            UnRegister-PackageSource -Name nuget.org
+            UnRegister-PackageSource -Name nuget.org -ErrorAction SilentlyContinue
 
             #Add the nuget repository so we can download things like GitVersion
             # TODO: Make this optional code when running interactively
@@ -65,17 +96,27 @@ Enter-Build {
         }
 
         if (-not (Get-Command -Name 'PSDepend\Invoke-PSDepend' -ErrorAction SilentlyContinue)) {
-            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop
+            #Force required by Azure Devops Pipelines, confirm false not good enough
+            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop -Force
         }
 
         #Install dependencies defined in Requirements.psd1
-        write-build Green 'Build Initialization - Running PSDepend to Install Dependencies'
-        Invoke-PSDepend -Install -Path Requirements.psd1 -Import -Confirm:$false
+        Write-Build Green 'Build Initialization - Running PSDepend to Install Dependencies'
+        Invoke-PSDepend -Install -Import -Path PSModule.requirements.psd1 -Confirm:$false
+
+        #If we get this far, assume all dependencies worked and drop a flag to not do this again.
+        "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
     }
+#endregion Bootstrap
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
+
+    #Detect if this is a Metabuild of the PowerCD Tools
+    if ($env:BHProjectName -eq $MetaBuild) {$IsMetaBuild = $true} else {$IsMetaBuild = $false}
+
+
 
     #If the branch name is master-test, run the build like we are in "master"
     if ($env:BHBranchName -eq 'master-test') {
@@ -84,6 +125,13 @@ Enter-Build {
     } else {
         $SCRIPT:BranchName = $env:BHBranchName
     }
+
+    #If this is an Appveyor PR, note a special branch name
+    if ($isAppveyor -and $ENV:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {
+        $SCRIPT:BranchName = "PR$($env:APPVEYOR_PULL_REQUEST_NUMBER)/$($env:BHBranchName)//$($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH)"
+        Write-Build Green "Build Initialization - Appveyor Pull Request Detected. Using Branch Name $($SCRIPT:BranchName)"
+    }
+
 
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
@@ -104,14 +152,7 @@ Enter-Build {
         write-verbose $lines
     }
 
-    #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
-    if ($ENV:CI -or $CI -or ([Environment]::GetCommandLineArgs() -like '-noni*')) {
-        write-build Green 'Build Initialization - Detected a Noninteractive or CI environment, disabling prompt confirmations'
-        $SCRIPT:CI = $true
-        $ConfirmPreference = 'None'
-        #Disabling Progress speeds up the build because Write-Progress can be slow
-        $ProgressPreference = "SilentlyContinue"
-    }
+
 
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
@@ -135,8 +176,7 @@ task Clean {
     #Reset the BuildOutput Directory
     if (test-path $buildProjectPath) {
         Write-Verbose "Removing and resetting Build Output Path: $buildProjectPath"
-        remove-item $buildProjectPath -Recurse @PassThruParams
-        remove-item $buildOutputPath\PowerCD-TestResults*.xml
+        remove-item (join-path $buildOutputPath '*') -Recurse
     }
     New-Item -Type Directory $BuildProjectPath @PassThruParams | out-null
     #Unmount any modules named the same as our module
@@ -145,54 +185,64 @@ task Clean {
 
 task Version {
     #Fetch GitVersion if required from NuGet
-    $GitVersionCMDPackageName = "gitversion.commandline"
-    $GitVersionCMDPackageMinVersion = '4.0.0'
+    $GitVersionPackageName = 'gitversion.commandline'
+    $GitVersionPackageMinVersion = '4.0.0'
     $PackageParams = @{
-        Name = $GitVersionCMDPackageName
-        MinimumVersion = $GitVersionCMDPackageMinVersion
+        Name = $GitVersionPackageName
+        MinimumVersion = $GitVersionPackageMinVersion
     }
 
-    <# Replaced by using INstall-Package below insetad
+    if ($IsAppVeyor -and $IsLinux) {
+        #Appveyor Ubuntu can't run the EXE for some dumb reason as of 2018/11/27, fetch it as a global tool instead
         #Fetch Gitversion as a .net Global Tool
-        $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | where version -ge 2.1 | select -first 1).source
+        $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | select -first 1).source
         $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
         if ($dotnetCMD -and -not $gitversionEXE) {
             write-build Green 'Build Initialization - Installing dotnet-gitversion'
             #Skip First Run Setup (takes too long for no benefit)
             $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
-            & $dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47
+            Invoke-Expression "$dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47"
         }
-    #>
+        $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction stop | select -first 1).source
+    } else {
+        #Fetch Gitversion as a NuGet Package
+        $GitVersionPackage = Get-Package @PackageParams -erroraction SilentlyContinue
+        if (!($GitVersionPackage)) {
+            write-verbose "Package $GitVersionPackageName Not Found Locally, Installing..."
 
-    $GitVersionCMDPackage = Get-Package @PackageParams -erroraction SilentlyContinue
-    if (!($GitVersionCMDPackage)) {
-        write-verbose "Package $GitVersionCMDPackageName Not Found Locally, Installing..."
-
-        #Fetch GitVersion
-        $GitVersionCMDPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
+            #Fetch GitVersion
+            $GitVersionPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
+        }
+        $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionPackageName).source | split-path -Parent),'tools','GitVersion.exe')
     }
-    $GitVersionEXE = ((Get-Package $GitVersionCMDPackageName).source | split-path -Parent) + "\tools\GitVersion.exe"
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
-    $currentTag = git tag --points-at
+    $currentTag = git tag --points-at HEAD
 
     if ($currentTag) {
         write-build DarkYellow "Task $($task.name) - Git Tag $currentTag detected. Temporarily removing for GitVersion calculation."
         git tag -d $currentTag
     }
 
+
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
-        $GitVersionOutput = &$GitVersionEXE $BuildRoot
+
+        if ($isLinux -and -not $isAppveyor) {
+            #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
+            chmod +x $GitVersionEXE
+        }
+
+        $GitVersionOutput = Invoke-Expression $GitVersionEXE
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
         if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
         $SCRIPT:GitVersionInfo = $GitVersionOutput | ConvertFrom-JSON -ErrorAction stop
     } catch {
         write-build Red $GitVersionOutput
-        throw "There was an error when running GitVersion.exe $buildRoot. The output of the command (if any) is above..."
+        write-error "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is above..."
     } finally {
         #Restore the tag if it was present
         if ($currentTag) {
@@ -200,6 +250,9 @@ task Version {
             git tag $currentTag -a -m "Automatic GitVersion Release Tag Generated by Invoke-Build"
         }
     }
+
+
+    if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
     write-verboseheader "GitVersion Results"
     $GitVersionInfo | format-list | out-string | write-verbose
@@ -246,59 +299,59 @@ task CopyFilesToBuildDir {
     #Detect the .psm1 file and copy all files to the root directory, excluding build files unless this is PowerCD
     $PSModuleManifestDirectory = (split-path $env:BHPSModuleManifest -parent)
     if ($PSModuleManifestDirectory -eq $buildRoot) {
-        <# TODO: Root-folder level module. Is a bit tricker
+        <# TODO: Root-folder level module with buildFilesToExclude
         copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
         #>
         throw "Placing module files in the root project folder is current not supported by this script. Please put them in a subfolder with the name of your module"
     } else {
-        copy-item -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath
+        Copy-Item -Container -Recurse -Path $PSModuleManifestDirectory\* -Destination $BuildReleasePath
     }
+    if ($isMetaBuild) {
+        #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
+        #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
+        #TODO: Put this in its own build script so that this code doesn't carry over to the template
+        $PowerCDFilesToCopy = Get-Childitem $buildRoot -Force -Recurse |
+            where fullname -notlike "$PSModuleManifestDirectory*" |
+            where fullname -notlike "$env:BHBuildOutput*" |
+            where fullname -notlike (join-path $buildRoot 'LICENSE') |
+            where fullname -notlike (join-path $buildRoot 'README.MD') |
+            where fullname -notlike (join-path $buildRoot '.git') |
+            where fullname -notlike ([Path]::Combine($buildRoot,'.git','*')) |
+            where fullname -notlike (join-path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
 
-    if ($env:BHProjectName -match 'PowerCD') {
-        #TODO: Figure out how to exclude PowerCD folder without excluding all files
-        Copy-Item $buildRoot\* -Recurse -Exclude $BuildOutputPath,(join-path $BuildRoot '.git'),LICENSE -Destination "$BuildReleasePath\PlasterTemplates\Default"
+        #Copy-Item doesn't preserve paths with piped files even with -Container parameter, this is a workaround
+        $PowerCDFilesToCopy | Resolve-Path -Relative | foreach {
+            $RelativeDestination = [Path]::Combine($BuildReleasePath,'PlasterTemplates\Default',$PSItem)
+            Copy-Item $PSItem -Destination $RelativeDestination -Force
+        }
+
         Copy-Item $buildRoot\PowerCD\PowerCD.psm1 $BuildReleasePath\PlasterTemplates\Default\Module.psm1
-        Remove-Item -Recurse -Force "$BuildReleasePath\PlasterTemplates\Default\$($env:BHProjectName)"
-        Remove-Item -Force "$BuildReleasePath\PlasterTemplates\Default\Tests\$($env:BHProjectName)*.tests.ps1"
     }
-
-    #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
-    #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
-    #TODO: Put this in its own build script to simplify this one
-
-
-
-    <#
-
-    #$PowerCDIncludeFiles = @("Tests",".git*","appveyor.yml","gitversion.yml","*.build.ps1",".vscode",".placeholder")
-
-
-    #The file or file paths to copy, excluding the powershell psm1 and psd1 module and manifest files which will be autodetected
-    copy-item $env:BHProjectName\* -Recurse -Destination $BuildReleasePath
-    copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude,$env:BHProjectName -Destination $BuildReleasePath @PassThruParams
-    #>
 }
 
 #Update the Metadata of the module with the latest version information.
 task UpdateMetadata Version,CopyFilesToBuildDir,{
-    # Update-ModuleManifest butchers PrivateData, using update-metadata from BuildHelpers instead.
+    #TODO: Split manifest and plaster versioning into discrete tasks
+    [Version]$UpdateModuleManifestVersion = (get-command update-modulemanifest -erroractionsilentlycontinue).version
+    if ($UpdateModuleManifestVersion -lt '1.6') {throw "PowershellGet module must be version 1.6 or higher to support prerelease versioning"}
+
     # Set the Module Version to the calculated Project Build version. Cannot use update-modulemanifest for this because it will complain the version isn't correct (ironic)
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
     #Update Plaster Manifest Version if this is a PowerCD Build
-    if ($env:BHProjectName -match 'PowerCD') {
-        $PlasterManifestPath = "$buildReleasePath\PlasterTemplates\Default\PlasterManifest.xml"
+    if ($isMetaBuild) {
+        $PlasterManifestPath = join-path $buildReleasePath "PlasterTemplates\Default\plasterManifest.xml"
         $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
         $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
         $PlasterManifest.save($PlasterManifestPath)
     }
 
     # This is needed for proper discovery by get-command and Powershell Gallery
-    $moduleFunctionsToExport = (Get-ChildItem "$BuildReleasePath\Public" -Filter *.ps1).basename
+    $moduleFunctionsToExport = (Get-ChildItem (join-path "$BuildReleasePath" "Public") -Filter *.ps1).basename
     if (-not $moduleFunctionsToExport) {
         write-warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
     } else {
-        Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
+        Update-ModuleManifest -Path $BuildReleaseManifest -FunctionsToExport $moduleFunctionsToExport
     }
 
     if ($IsGARelease) {
@@ -312,7 +365,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     }
 
     #Set the prerelease version in the Manifest File
-    Update-Metadata -Path $BuildReleaseManifest -PropertyName PreRelease -value $ProjectPreReleaseTag
+    Update-ModuleManifest -Path $BuildReleaseManifest -PreRelease $ProjectPreReleaseTag
 
     if ($isTagRelease) {
         #Set an email address for the tag commit to work if it isn't already present
@@ -348,7 +401,7 @@ task Pester {
     write-verboseheader "Starting Pester Tests..."
     write-build Green "Task $($task.name)` -  Testing $moduleDirectory"
 
-    $PesterResultFile = "$env:BHBuildOutput\$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
+    $PesterResultFile = join-path $env:BHBuildOutput "$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
 
     $PesterParams = @{
         Script = @{Path = "Tests"; Parameters = @{ModulePath = (split-path $moduleManifestPath)}}
@@ -378,13 +431,17 @@ task Pester {
     # Failed tests?
     # Need to error out or it will proceed to the deployment. Danger!
     if ($TestResults.failedcount -isnot [int] -or $TestResults.FailedCount -gt 0) {
-        Write-Error "Failed '$($TestResults.FailedCount)' tests, build failed"
+        $testFailedMessage = "Failed '$($TestResults.FailedCount)' tests, build failed"
+        Write-Error $testFailedMessage
+        if ($isAzureDevOps) {
+            Write-Host "##vso[task.logissue type=error;]$testFailedMessage"
+        }
         $SCRIPT:SkipPublish = $true
     }
     "`n"
 }
 
-task Package Version,PreDeploymentChecks,{
+task PackageZip {
     $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectVersion.zip")
     write-build Green "Task $($task.name)` - Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
@@ -397,6 +454,8 @@ task Package Version,PreDeploymentChecks,{
         Push-AppveyorArtifact $ZipArchivePath
     }
 }
+
+
 
 task PreDeploymentChecks Test,{
     #Do not proceed if the most recent Pester test is not passing.
@@ -529,10 +588,8 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
                     }
                 }
             }
-
             if ($PSItem.documentation_url) {write-build Red "More info at $($PSItem.documentation_url)"}
         } else {throw}
-
     }
 
     if ($GitHubReleaseError) {
@@ -604,9 +661,31 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
         }
         catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
-            $PSItem | export-clixml $home\desktop\LastError.clixml
             throw $PSItem
         }
+    }
+}
+
+task PackageNuGet Test,{
+    #Creates a temporary repository and registers it, uses publish-module which results in a nuget package
+    try {
+        $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
+        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
+        publish-module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
+    }
+    catch {write-error $PSItem}
+    finally {
+        unregister-psrepository $tempRepositoryName
+    }
+}
+
+task InstallPSModule PackageNuGet,{
+    try {
+        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput -InstallationPolicy Trusted
+        Install-Module -Name $env:BHProjectName -Repository $tempRepositoryName -Scope CurrentUser -Force
+    } catch {write-error $PSItem}
+    finally {
+        unregister-psrepository $tempRepositoryName
     }
 }
 
@@ -614,7 +693,9 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
 # These are the only supported items to run directly from Invoke-Build
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Version,Pester
+task Package Version,PreDeploymentChecks,PackageZip,PackageNuGet
 task Publish Version,PreDeploymentChecks,Package,PublishPSGallery,PublishGitHubRelease
+task Install Test,InstallPSModule
 
 #Default Task - Build and Test
 task . Clean,Build,Test,Package
