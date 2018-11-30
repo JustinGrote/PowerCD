@@ -146,7 +146,7 @@ The function of this module is to publish the modules to places where they can t
 [PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
 [PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
 
-[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=Stable
+[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=Current
 [AppVLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
 
 [AppVTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/master.svg?logo=appveyor&label=tests
@@ -164,7 +164,7 @@ The function of this module is to publish the modules to places where they can t
 [GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
 
-[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Stable
+[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Current
 [ADOLink]: https://dev.azure.com/justingrote/Default/_build
 
 [ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=release-vnext&label=vNext
