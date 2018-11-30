@@ -57,7 +57,7 @@ Enter-Build {
         #Disabling Progress speeds up the build because Write-Progress can be slow
         $ProgressPreference = "SilentlyContinue"
     }
-
+<#
 #region Bootstrap
     $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
     $bootstrapCompleteFilePath = join-path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
@@ -107,10 +107,12 @@ Enter-Build {
         #If we get this far, assume all dependencies worked and drop a flag to not do this again.
         "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
     }
+#>
 #endregion Bootstrap
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
+
     $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
 
     #Detect if this is a Metabuild of the PowerCD Tools

@@ -76,9 +76,7 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 - Code Coverage Host - [CodeCov](https://codecov.io)
 - Documentation - [PlatyPS](https://github.com/PowerShell/platyPS)
 - Documentation Host - [ReadTheDocs](https://docs.readthedocs.io)
-- Coding Process - [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) with key modifications:
-    - Master is always deployable
-    - There is no develop branch, development happens in feature branches GitHubFlow-style
+- Coding Process - [Git Ship](https://markshust.com/2018/04/07/introducing-git-ship-simplified-git-flow-workflow)
     - Next release is always named release/vNext, and is always deployable as a prerelease build
     - Feature Branches pull request to release/vNext
     - release/vNext pull requests to master for production release
