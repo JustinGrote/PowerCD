@@ -451,8 +451,6 @@ task PackageZip {
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
 }
 
-
-
 task PreDeploymentChecks Test,{
     #Do not proceed if the most recent Pester test is not passing.
     $CurrentErrorActionPreference = $ErrorActionPreference
@@ -653,11 +651,21 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
                 Repository = 'PSGallery'
         }
         try {
-            Publish-Module @publishParams @PassThruParams
+            Publish-Module @publishParams @PassThruParams -ErrorAction Stop
+        }
+        catch [InvalidOperationException] {
+            #Downgrade a conflict to a warning, as this is common with multiple build matrices.
+            #TODO: Validate build matrices succeded before attempting and only do on one worker
+            if ($psItem.exception.message -match 'cannot be published as the current version .* is already available in the repository') {
+                write-warning $PSItem.exception.message
+            } else {
+                write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
+                throw $PSItem.Exception
+            }
         }
         catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
-            throw $PSItem
+            throw $PSItem.Exception
         }
     }
 }
