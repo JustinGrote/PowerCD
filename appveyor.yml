@@ -33,3 +33,9 @@ build_script:
 
 on_finish:
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
+
+#Save the following files for faster subsequent builds
+cache:
+  - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
+  - '%USERPROFILE%\Documents\PowerShell\Modules -> PSModule.requirements.ps1'
+  - '%LOCALAPPDATA%\PackageManagement\NuGet'

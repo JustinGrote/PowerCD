@@ -10,6 +10,7 @@ param (
     [Switch]$SkipPublish,
     #Force publish step even if we are not in master or release. If you are following GitFlow or GitHubFlow you should never need to do this.
     [Switch]$ForcePublish,
+    #Additional criteria on when to publish.
     #Show detailed environment variables. WARNING: Running this in a CI like appveyor may expose your secrets to the log! Be careful!
     [Switch]$ShowEnvironmentVariables,
     #Which build files/folders should be excluded from packaging
@@ -57,7 +58,7 @@ Enter-Build {
         #Disabling Progress speeds up the build because Write-Progress can be slow
         $ProgressPreference = "SilentlyContinue"
     }
-<#
+
 #region Bootstrap
     $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
     $bootstrapCompleteFilePath = join-path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
@@ -107,7 +108,7 @@ Enter-Build {
         #If we get this far, assume all dependencies worked and drop a flag to not do this again.
         "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
     }
-#>
+
 #endregion Bootstrap
 
     #Configure some easy to use build environment variables
@@ -200,7 +201,7 @@ task Version {
         $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | select -first 1).source
         $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
         if ($dotnetCMD -and -not $gitversionEXE) {
-            write-build Green 'Build Initialization - Installing dotnet-gitversion'
+            write-build Green "Task $task - Installing dotnet-gitversion"
             #Skip First Run Setup (takes too long for no benefit)
             $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
             Invoke-Expression "$dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47"
