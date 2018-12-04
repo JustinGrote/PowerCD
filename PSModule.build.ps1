@@ -674,12 +674,16 @@ task PackageNuGet Test,{
     #Creates a temporary repository and registers it, uses publish-module which results in a nuget package
     try {
         $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
-        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
-        publish-module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
+        Register-PSRepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
+        If (Find-Module $env:BHProjectName -Repository $tempRepositoryName -RequiredVersion "$ProjectBuildVersion-$ProjectPreReleaseTag" -AllowPrerelease) {
+            Write-Build Green "Nuget Package for $($env:BHProjectName) already generated. Skipping..."
+        } else {
+            Publish-Module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
+        }
     }
-    catch {write-error $PSItem}
+    catch {Write-Error $PSItem}
     finally {
-        unregister-psrepository $tempRepositoryName
+        Unregister-PSRepository $tempRepositoryName
     }
 }
 
@@ -698,8 +702,8 @@ task InstallPSModule PackageNuGet,{
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Version,Pester
 task Package Version,PreDeploymentChecks,PackageZip,PackageNuGet
-task Publish Version,PreDeploymentChecks,Package,PublishPSGallery,PublishGitHubRelease
-task Install Test,InstallPSModule
+task Publish Version,PreDeploymentChecks,PublishPSGallery,PublishGitHubRelease
+task Install Version,PreDeploymentChecks,InstallPSModule
 
 #Default Task - Build and Test
 task . Clean,Build,Test,Package
