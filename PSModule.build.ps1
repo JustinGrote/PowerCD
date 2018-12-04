@@ -675,7 +675,7 @@ task PackageNuGet Test,{
     try {
         $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
         Register-PSRepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
-        If (Find-Module $env:BHProjectName -Repository $tempRepositoryName -RequiredVersion "$ProjectBuildVersion-$ProjectPreReleaseTag" -AllowPrerelease) {
+        If (Find-Module $env:BHProjectName -Repository $tempRepositoryName -RequiredVersion "$ProjectBuildVersion-$ProjectPreReleaseTag" -AllowPrerelease -ErrorAction SilentlyContinue) {
             Write-Build Green "Nuget Package for $($env:BHProjectName) already generated. Skipping..."
         } else {
             Publish-Module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
