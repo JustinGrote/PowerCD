@@ -450,12 +450,14 @@ task PackageZip {
     #Package the Powershell Module
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
 
+<# Temporarily disabled to do in Appveyor YAML
     $SCRIPT:ArtifactPaths += $ZipArchivePath
     #If we are in Appveyor, push completed zip to Appveyor Artifact
     if ($env:APPVEYOR) {
         write-build Green "Task $($task.name)` - Detected Appveyor, pushing Powershell Module archive to Artifacts"
         Push-AppveyorArtifact $ZipArchivePath
     }
+#>
 }
 
 
