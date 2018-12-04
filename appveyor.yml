@@ -39,7 +39,7 @@ artifacts:
   - path: Release\*.zip
     name: Powershell Module Zip Package
 
-  - path: Release\*.nuget
+  - path: Release\*.nupkg
     name: Powershell Module NuGet Package
 
 #Save the following files for faster subsequent builds
