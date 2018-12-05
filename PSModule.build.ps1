@@ -145,6 +145,9 @@ Enter-Build {
     if ($CI -and ($BranchName -ne 'master')) {
         write-build Green "Build Initialization - Not in Master branch, Verbose Build Logging Enabled"
         $SCRIPT:VerbosePreference = "Continue"
+    } else {
+        $SCRIPT:VerbosePreference = "SilentlyContinue"
+        $PassThruParams.Verbose = $false
     }
     if ($VerbosePreference -eq "Continue") {
         $PassThruParams.Verbose = $true
@@ -258,21 +261,22 @@ task Version {
 
 
     if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
-
-    write-verboseheader "GitVersion Results"
-    $GitVersionInfo | format-list | out-string | write-verbose
+    if ($PassThruParams.Verbose) {
+        write-verboseheader "GitVersion Results"
+        $GitVersionInfo | format-list | out-string | write-verbose
+    }
 
     $SCRIPT:ProjectBuildVersion = [Version]$GitVersionInfo.MajorMinorPatch
-    $SCRIPT:ProjectSemVersion = $GitVersionInfo.fullsemver
 
     #GA release detection
     if ($BranchName -eq 'master') {
         $Script:IsGARelease = $true
         $Script:ProjectVersion = $ProjectBuildVersion
     } else {
-        $SCRIPT:ProjectPreReleaseVersion = $GitVersionInfo.nugetversion
-        $SCRIPT:ProjectPreReleaseTag = $ProjectPreReleaseVersion.split('-') | Select-Object -last 1
-        $Script:ProjectVersion = $ProjectPreReleaseVersion
+        #The regex strips all hypens but the first one. This shouldn't be necessary per NuGet spec but Update-ModuleManifest fails on it.
+        $SCRIPT:ProjectPreReleaseVersion = $GitVersionInfo.nugetversion -replace '(?<=-.*)[-]'
+        $SCRIPT:ProjectVersion = $ProjectPreReleaseVersion
+        $SCRIPT:ProjectPreReleaseTag = $SCRIPT:ProjectPreReleaseVersion.split('-')[1]
     }
 
     write-build Green "Task $($task.name)` - Calculated Project Version: $ProjectVersion"
@@ -363,9 +367,6 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         #Blank out the prerelease tag to make this a GA build in Powershell Gallery
         $ProjectPreReleaseTag = ''
     } else {
-        $Script:ProjectVersion = $ProjectPreReleaseVersion
-
-        #Create an empty file in the root directory of the module for easy identification that its not a valid release.
         "This is a prerelease build and not meant for deployment!" > (Join-Path $BuildReleasePath "PRERELEASE-$ProjectVersion")
     }
 
