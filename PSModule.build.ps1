@@ -233,6 +233,10 @@ task Version {
         git tag -d $currentTag
     }
 
+    #Strip prerelease tags, GitVersion can't handle them with Mainline deployment with version 4.0
+    #TODO: Restore these for local repositories, otherwise they just come down with git pulls
+    git tag --list v*-* | % {git tag -d $PSItem}
+
 
     try {
         #Calculate the GitVersion
