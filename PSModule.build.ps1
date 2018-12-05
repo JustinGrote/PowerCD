@@ -77,7 +77,7 @@ Enter-Build {
         }
 
         #If nuget is pointed to the v3 URI or doesn't exist, downgrade it to v2
-        $NugetOrgSource = Get-Packagesource nuget.org -erroraction SilentlyContinue
+        $NugetOrgSource = Get-PackageSource nuget.org -erroraction SilentlyContinue
         $IsNugetOrgV2Source = $NugetOrgSource.location -match 'v2$'
         if (-not $IsNugetOrgV2Source) {
             write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
@@ -129,11 +129,13 @@ Enter-Build {
         $SCRIPT:BranchName = $env:BHBranchName
     }
 
+    <# TODO: Remove this code since the deploy activity was separated out
     #If this is an Appveyor PR, note a special branch name
     if ($isAppveyor -and $ENV:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {
         $SCRIPT:BranchName = "PR$($env:APPVEYOR_PULL_REQUEST_NUMBER)/$($env:BHBranchName)//$($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH)"
         Write-Build Green "Build Initialization - Appveyor Pull Request Detected. Using Branch Name $($SCRIPT:BranchName)"
     }
+    #>
 
 
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
@@ -675,7 +677,7 @@ task PackageNuGet Test,{
     try {
         $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
         Register-PSRepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
-        If (Find-Module $env:BHProjectName -Repository $tempRepositoryName -RequiredVersion "$ProjectBuildVersion-$ProjectPreReleaseTag" -AllowPrerelease -ErrorAction SilentlyContinue) {
+        If (Get-Item -ErrorAction SilentlyContinue (join-path $env:BHBuildOutput "$($env:BHProjectName)*.nupkg")) {
             Write-Build Green "Nuget Package for $($env:BHProjectName) already generated. Skipping..."
         } else {
             Publish-Module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
