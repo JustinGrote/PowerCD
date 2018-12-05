@@ -663,7 +663,7 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
         catch [InvalidOperationException] {
             #Downgrade a conflict to a warning, as this is common with multiple build matrices.
             #TODO: Validate build matrices succeded before attempting and only do on one worker
-            if ($psItem.exception.message -match 'cannot be published as the current version .* is already available in the repository') {
+            if ($psItem.exception.message -match 'cannot be published as the current version .* is already available in the repository|already exists and cannot be modified') {
                 write-warning $PSItem.exception.message
             } else {
                 write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
