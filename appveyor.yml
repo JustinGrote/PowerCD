@@ -29,7 +29,24 @@ init:
   - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
 build_script:
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
-  - ps: .\build.ps1 ".,Publish"
+  - ps: .\build.ps1
+
+deploy_script:
+  - ps: .\build.ps1 Publish
 
 on_finish:
   - ps: if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug') {$blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))}
+
+#Capture the artifacts
+artifacts:
+  - path: Release\*.zip
+    name: Powershell Module Zip Package
+
+  - path: Release\*.nupkg
+    name: Powershell Module NuGet Package
+
+#Save the following files for faster subsequent builds
+cache:
+  - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
+  - '%USERPROFILE%\Documents\PowerShell\Modules -> PSModule.requirements.ps1'
+  - '%LOCALAPPDATA%\PackageManagement\NuGet'

@@ -10,6 +10,7 @@ param (
     [Switch]$SkipPublish,
     #Force publish step even if we are not in master or release. If you are following GitFlow or GitHubFlow you should never need to do this.
     [Switch]$ForcePublish,
+    #Additional criteria on when to publish.
     #Show detailed environment variables. WARNING: Running this in a CI like appveyor may expose your secrets to the log! Be careful!
     [Switch]$ShowEnvironmentVariables,
     #Which build files/folders should be excluded from packaging
@@ -57,7 +58,7 @@ Enter-Build {
         #Disabling Progress speeds up the build because Write-Progress can be slow
         $ProgressPreference = "SilentlyContinue"
     }
-<#
+
 #region Bootstrap
     $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
     $bootstrapCompleteFilePath = join-path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
@@ -76,7 +77,7 @@ Enter-Build {
         }
 
         #If nuget is pointed to the v3 URI or doesn't exist, downgrade it to v2
-        $NugetOrgSource = Get-Packagesource nuget.org -erroraction SilentlyContinue
+        $NugetOrgSource = Get-PackageSource nuget.org -erroraction SilentlyContinue
         $IsNugetOrgV2Source = $NugetOrgSource.location -match 'v2$'
         if (-not $IsNugetOrgV2Source) {
             write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
@@ -107,7 +108,7 @@ Enter-Build {
         #If we get this far, assume all dependencies worked and drop a flag to not do this again.
         "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
     }
-#>
+
 #endregion Bootstrap
 
     #Configure some easy to use build environment variables
@@ -128,11 +129,13 @@ Enter-Build {
         $SCRIPT:BranchName = $env:BHBranchName
     }
 
+    <# TODO: Remove this code since the deploy activity was separated out
     #If this is an Appveyor PR, note a special branch name
     if ($isAppveyor -and $ENV:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {
         $SCRIPT:BranchName = "PR$($env:APPVEYOR_PULL_REQUEST_NUMBER)/$($env:BHBranchName)//$($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH)"
         Write-Build Green "Build Initialization - Appveyor Pull Request Detected. Using Branch Name $($SCRIPT:BranchName)"
     }
+    #>
 
 
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
@@ -142,6 +145,9 @@ Enter-Build {
     if ($CI -and ($BranchName -ne 'master')) {
         write-build Green "Build Initialization - Not in Master branch, Verbose Build Logging Enabled"
         $SCRIPT:VerbosePreference = "Continue"
+    } else {
+        $SCRIPT:VerbosePreference = "SilentlyContinue"
+        $PassThruParams.Verbose = $false
     }
     if ($VerbosePreference -eq "Continue") {
         $PassThruParams.Verbose = $true
@@ -200,7 +206,7 @@ task Version {
         $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | select -first 1).source
         $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
         if ($dotnetCMD -and -not $gitversionEXE) {
-            write-build Green 'Build Initialization - Installing dotnet-gitversion'
+            write-build Green "Task $task - Installing dotnet-gitversion"
             #Skip First Run Setup (takes too long for no benefit)
             $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
             Invoke-Expression "$dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47"
@@ -255,21 +261,22 @@ task Version {
 
 
     if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
-
-    write-verboseheader "GitVersion Results"
-    $GitVersionInfo | format-list | out-string | write-verbose
+    if ($PassThruParams.Verbose) {
+        write-verboseheader "GitVersion Results"
+        $GitVersionInfo | format-list | out-string | write-verbose
+    }
 
     $SCRIPT:ProjectBuildVersion = [Version]$GitVersionInfo.MajorMinorPatch
-    $SCRIPT:ProjectSemVersion = $GitVersionInfo.fullsemver
 
     #GA release detection
     if ($BranchName -eq 'master') {
         $Script:IsGARelease = $true
         $Script:ProjectVersion = $ProjectBuildVersion
     } else {
-        $SCRIPT:ProjectPreReleaseVersion = $GitVersionInfo.nugetversion
-        $SCRIPT:ProjectPreReleaseTag = $ProjectPreReleaseVersion.split('-') | Select-Object -last 1
-        $Script:ProjectVersion = $ProjectPreReleaseVersion
+        #The regex strips all hypens but the first one. This shouldn't be necessary per NuGet spec but Update-ModuleManifest fails on it.
+        $SCRIPT:ProjectPreReleaseVersion = $GitVersionInfo.nugetversion -replace '(?<=-.*)[-]'
+        $SCRIPT:ProjectVersion = $ProjectPreReleaseVersion
+        $SCRIPT:ProjectPreReleaseTag = $SCRIPT:ProjectPreReleaseVersion.split('-')[1]
     }
 
     write-build Green "Task $($task.name)` - Calculated Project Version: $ProjectVersion"
@@ -360,9 +367,6 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         #Blank out the prerelease tag to make this a GA build in Powershell Gallery
         $ProjectPreReleaseTag = ''
     } else {
-        $Script:ProjectVersion = $ProjectPreReleaseVersion
-
-        #Create an empty file in the root directory of the module for easy identification that its not a valid release.
         "This is a prerelease build and not meant for deployment!" > (Join-Path $BuildReleasePath "PRERELEASE-$ProjectVersion")
     }
 
@@ -448,16 +452,7 @@ task PackageZip {
     write-build Green "Task $($task.name)` - Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
-
-    $SCRIPT:ArtifactPaths += $ZipArchivePath
-    #If we are in Appveyor, push completed zip to Appveyor Artifact
-    if ($env:APPVEYOR) {
-        write-build Green "Task $($task.name)` - Detected Appveyor, pushing Powershell Module archive to Artifacts"
-        Push-AppveyorArtifact $ZipArchivePath
-    }
 }
-
-
 
 task PreDeploymentChecks Test,{
     #Do not proceed if the most recent Pester test is not passing.
@@ -659,11 +654,21 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
                 Repository = 'PSGallery'
         }
         try {
-            Publish-Module @publishParams @PassThruParams
+            Publish-Module @publishParams @PassThruParams -ErrorAction Stop
+        }
+        catch [InvalidOperationException] {
+            #Downgrade a conflict to a warning, as this is common with multiple build matrices.
+            #TODO: Validate build matrices succeded before attempting and only do on one worker
+            if ($psItem.exception.message -match 'cannot be published as the current version .* is already available in the repository') {
+                write-warning $PSItem.exception.message
+            } else {
+                write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
+                throw $PSItem.Exception
+            }
         }
         catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
-            throw $PSItem
+            throw $PSItem.Exception
         }
     }
 }
@@ -672,12 +677,16 @@ task PackageNuGet Test,{
     #Creates a temporary repository and registers it, uses publish-module which results in a nuget package
     try {
         $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
-        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
-        publish-module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
+        Register-PSRepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
+        If (Get-Item -ErrorAction SilentlyContinue (join-path $env:BHBuildOutput "$($env:BHProjectName)*.nupkg")) {
+            Write-Build Green "Nuget Package for $($env:BHProjectName) already generated. Skipping..."
+        } else {
+            Publish-Module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
+        }
     }
-    catch {write-error $PSItem}
+    catch {Write-Error $PSItem}
     finally {
-        unregister-psrepository $tempRepositoryName
+        Unregister-PSRepository $tempRepositoryName
     }
 }
 
@@ -696,8 +705,8 @@ task InstallPSModule PackageNuGet,{
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
 task Test Version,Pester
 task Package Version,PreDeploymentChecks,PackageZip,PackageNuGet
-task Publish Version,PreDeploymentChecks,Package,PublishPSGallery,PublishGitHubRelease
-task Install Test,InstallPSModule
+task Publish Version,PreDeploymentChecks,PublishPSGallery,PublishGitHubRelease
+task Install Version,PreDeploymentChecks,InstallPSModule
 
 #Default Task - Build and Test
 task . Clean,Build,Test,Package
