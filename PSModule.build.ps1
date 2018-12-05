@@ -247,7 +247,7 @@ task Version {
             chmod +x $GitVersionEXE
         }
 
-        $GitVersionOutput = Invoke-Expression $GitVersionEXE
+        $GitVersionOutput = Invoke-Expression "$GitVersionEXE /nofetch"
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
         if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
