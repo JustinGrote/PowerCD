@@ -165,5 +165,5 @@ The function of this module is to publish the modules to places where they can t
 [ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Current
 [ADOLink]: https://dev.azure.com/justingrote/Default/_build
 
-[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=release-vnext&label=vNext
+[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=release/vNext&label=vNext
 [ADOVNextLink]: https://dev.azure.com/justingrote/Default/_build
