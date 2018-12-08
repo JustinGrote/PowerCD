@@ -4,13 +4,13 @@
 
 [![PSGallery][]][PSGalleryLink] [![PSGalleryDL][]][PSGalleryDLLink]
 
-[![AppV][]][AppVLink] [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
+[![AppV][]][AppVLink] [![ADO][]][ADOLink]  [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
 
-[![AppVNext][]][AppVNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
+[![AppVNext][]][AppVNextLink] [![ADOvNext][]][ADOvNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
 
 ---
 
-This project's goal is to deliver a continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
+This project's goal is to deliver an opinionated continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
 
 This will provide a "Getting Started" process to building powershell modules, and will automate as much as possible all the dirty stuff such as building, testing, and deployment/publishing.
 
@@ -20,23 +20,29 @@ This will provide a "Getting Started" process to building powershell modules, an
 
 I wanted to create a standard methodology to build powershell modules, as the options when I was getting started making modules were bewildering and complicated, and there was no comprehensive guide or solution.
 
-## Release Goals
+## Initial Release Goals
 
-### Initial Release Goals
-
-Provide an Invoke-Build process that supports two scenarios:
+### Provide a development environment that supports three scenarios
 
 1. Open Source with Visual Studio Code, GitHub, PSGallery, Appveyor
-2. Local Build with no Internet Access
+2. Private Development with Azure Devops and Azure Devops Pipelines
+3. Local Build with no Internet Access
 - Make the build process have all external internet-connected dependencies optional, so you can just build locally/privately if you want with nothing more than a local git repository
 
-- Make the process build once, run anywhere for minimum following platofmrs
+
+### Make the process build once, run anywhere for minimum following platforms
 1. Windows with Powershell v5+
 2. Windows with Powershell Core v6.0.1+
 3. Linux with Powershell Core v6.0.1+
 4. *Maybe* MacOS with Powershell Core v6.0.1+
 
-- Provide a Plaster template for generating the initial module continuous deployment framework
+### Make the build process work in userspace, not requiring admin privileges for dependencies if at all possible
+
+### Provide a Plaster template for generating the initial module continuous deployment framework
+
+### PowerCD builds PowerCD - The same build process for PowerCD (with some minor meta adjustments) is used for the downstream modules
+
+### Heavy Testing - PowerCD (after building itself) deploys two plaster templates (default and custom settings), and then in turn builds and tests them
 
 This project uses inspiration and some code from [ZLoeber's ModuleBuild](https://github.com/zloeber/ModuleBuild)
 
@@ -52,28 +58,40 @@ I've also tried tried to ensure that projects will "build" on any Windows or Lin
 
 Based on RamblingCookieMonster's template plus what is seen in the community. (Public/Private/Lib)
 
+### Versioning
+We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track.
+
+If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.
+
+Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
+
 ### Prescriptive Services and Products
 
 - Versioning Tool - [GitVersion](https://gitversion.readthedocs.io/en/latest/)
 - Versioning Scheme - [Semantic Versioning](https://semver.org/)
 - Build Tool - [Invoke-Build](https://github.com/nightroman/Invoke-Build). Only used for packaging/versioning, this plaster is primarily for script modules.
 - Build Host - [Appveyor](https://www.appveyor.com/) ([Windows](https://www.appveyor.com/docs/) and [Linux](https://www.appveyor.com/docs/getting-started-with-appveyor-for-linux/))
+- Commit Messages - [AngularJS Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#commit)
 - Code Testing Tool - [Pester](https://github.com/pester/Pester) and [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer)
 - Code Coverage Host - [CodeCov](https://codecov.io)
 - Documentation - [PlatyPS](https://github.com/PowerShell/platyPS)
 - Documentation Host - [ReadTheDocs](https://docs.readthedocs.io)
-- Coding Process - [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) where develop and master are always deployable
-- Repository - [Git](https://git-scm.com/) (Local, [Github](https://github.com/), or [Visual Studio Team Services](https://visualstudio.microsoft.com/team-services/))
+- Coding Process - [Git Ship](https://markshust.com/2018/04/07/introducing-git-ship-simplified-git-flow-workflow)
+    - Next release is always named release/vNext, and is always deployable as a prerelease build
+    - Feature Branches pull request to release/vNext
+    - release/vNext pull requests to master for production release
+- Repository - [Git](https://git-scm.com/) (Local, [Github](https://github.com/), or [Azure Devops](https://dev.azure.com/))
 - Deploy Targets
-  - Local (Release Folder .zip)
+  - Local (Release Folder .zip and .nupkg)
+  - Local (Install-Module via Temporary Repository)
   - [GitHub Releases](https://help.github.com/articles/about-releases/)
   - [Powershell Gallery](https://www.powershellgallery.com/)
-  - [VSTS Package Feed](https://docs.microsoft.com/en-us/vsts/package/overview?view=vsts)
+  - [Azure Devops Packages](https://docs.microsoft.com/en-us/vsts/package/overview?view=vsts)
   - Any repository supported by Publish-Module.
 
-### FAQs / Whatabouts
+## FAQs / Whatabouts
 
-*Why do you only support PS5.1 and PS6 as build environments?*
+**Why do you only support PS5.1+ and PS Core as build environments?**
 
 PS5.1 is the "last" version of Windows Powershell, as such it makes a good Long Term Support (LTS) target. The inclusion of the Powershell Gallery and its proven stability (VMware/AWS/Azure all use it as their primary delivery mechanism) allows requirements and dependencies to be managed. Also specific to modules, multi-version support became standard so the logic and testing is based around that.
 
@@ -86,6 +104,10 @@ Appveyor added Linux support in May 2018 and it works, so we use that for PowerC
 **What about OSX builds and testing?**
 
 Will add Travis support to do this later, right now focus is just on WindowsPowershell and Powershell Core builds on Windows and Linux (ubuntu as test target). If the linux build passes, it's probably going to be OK on OSX.
+
+**Why /Release for build output instead of /BuildOutput or /Output**
+
+Because it has a vscode-icons default icon and the others do not. Build and Out have default vscode icons, but people may already be using those to keep files in existing projects.
 
 **Why not a /src directory?**
 
@@ -115,10 +137,6 @@ If you're concerned about Microsoft buying GitHub, well, Powershell Core is on G
 
 The function of this module is to publish the modules to places where they can then be consumed, it's not to deploy the software directly into production, hence it is only Continuous Delivery, not Continuous Deployment. If you bolt on a piece in the build code that pushes this directly to production, then it is Continuous Deployment.
 
-**Why is the version tagging so weird?**
-We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track. If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.
-
-Semantic versioning is all meaningful version numbers, so don't worry about the specific number, just use the +semver commit messages whenever you make a feature or breaking change, and it will "figure it out". If you want to explicity set a module version, just tag the commit with the version you want (e.g. git tag v3.0.0) and push it to Github/VSTS/Whatever (git push origin v3.0.0). All future builds will start basing off that number.
 
 [PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=windows&label=Powershell+Gallery+Latest
 [PSGalleryLink]: https://www.powershellgallery.com/packages/PowerCD
@@ -126,7 +144,7 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 [PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
 [PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
 
-[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=Stable
+[AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=Current
 [AppVLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
 
 [AppVTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/master.svg?logo=appveyor&label=tests
@@ -144,3 +162,8 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 [GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
 
+[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Current
+[ADOLink]: https://dev.azure.com/justingrote/Default/_build
+
+[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=release/vNext&label=vNext
+[ADOVNextLink]: https://dev.azure.com/justingrote/Default/_build

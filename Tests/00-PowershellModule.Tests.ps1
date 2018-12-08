@@ -8,7 +8,7 @@ $currentDir = Get-Location
 if (
     (Test-Path $currentDir -PathType Container) -and
     $currentDir -match 'Tests$' -and
-    (Get-Item (join-path ".." "*.psd1"))
+    (Get-Item (join-path ".." "*.psd1") | where name -notmatch '\.(depend|requirements)\.psd1$')
 ) {
     $ModulePath = (split-path $modulepath)
 }
@@ -18,7 +18,7 @@ if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 
 #Find the module manifest. Get-ChildItem's last item is the one closest to the root directory. #FIXME: Do this in a safer manner
 try {
-    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | Select-Object -last 1
+    $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | where name -notmatch '(depend|requirements)\.psd1$'| Select-Object -last 1
     $SCRIPT:moduleDirectory = $moduleManifestFile.directory
 } catch {
     throw "Did not detect any module manifests in $ModulePath. Did you run 'Invoke-Build Build' first?"
@@ -28,13 +28,13 @@ Describe 'Powershell Module' {
     Context ($ModuleName) {
         It 'Has a valid Module Manifest' {
             if ($PSEdition -eq 'Core' -or $PSVersionTable.PSVersion -ge [Version]"5.1") {
-                $Script:Manifest = Test-ModuleManifest $ModuleManifestFile
+                $Script:Manifest = Test-ModuleManifest $ModuleManifestFile -Verbose:$false
             } else {
                 #Copy the Module Manifest to a temp file for testing. This fixes a bug where
                 #Test-ModuleManifest caches the first result, thus not catching changes if subsequent tests are run
                 $TempModuleManifestPath = [System.IO.Path]::GetTempFileName() + '.psd1'
                 copy-item $ModuleManifestPath $TempModuleManifestPath
-                $Script:Manifest = Test-ModuleManifest $TempModuleManifestPath
+                $Script:Manifest = Test-ModuleManifest $TempModuleManifestPath -Verbose:$false
                 remove-item $TempModuleManifestPath -verbose:$false
             }
         }
@@ -42,7 +42,6 @@ Describe 'Powershell Module' {
         It 'Has a valid root module' {
             Test-Path $Manifest.RootModule -Type Leaf | Should Be $true
         }
-
 
         It 'Has a valid folder structure (ModuleName\Manifest or ModuleName\Version\Manifest)' {
             $moduleDirectoryErrorMessage = "Module directory structure doesn't match either $ModuleName or $moduleName\$($Manifest.Version)"
@@ -91,13 +90,13 @@ Describe 'Powershell Module' {
             $BuildOutputModule | Should BeOfType System.Management.Automation.PSModuleInfo
         }
         It 'Can be removed as a module' {
-            $BuildOutputModule | Remove-Module -erroraction stop | Should BeNullOrEmpty
+            $BuildOutputModule | Remove-Module -erroraction stop -verbose:$false | Should BeNullOrEmpty
         }
 
     }
 }
 Describe 'Powershell Gallery Readiness (PSScriptAnalyzer)' {
-    $results = Invoke-ScriptAnalyzer -Path $ModuleManifestFile.directory -Recurse -Setting PSGallery -Severity Error
+    $results = Invoke-ScriptAnalyzer -Path $ModuleManifestFile.directory -Recurse -Setting PSGallery -Severity Error -Verbose:$false
     It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
         if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
         $results.Count | Should Be 0
