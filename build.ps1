@@ -67,6 +67,7 @@ function BootStrapInvokeBuild {
 }
 
 #region Main
+if ($isCoreCLR) {write-host -fore green 'Detected Powershell Core'}
 $IBModulePath = if (-not $FindInvokeBuild) {BootStrapInvokeBuild}
 Invoke-Expression "Invoke-Build $($args -join ' ')"
 exit $LastExitCode

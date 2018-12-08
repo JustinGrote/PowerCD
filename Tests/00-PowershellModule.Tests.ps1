@@ -28,13 +28,13 @@ Describe 'Powershell Module' {
     Context ($ModuleName) {
         It 'Has a valid Module Manifest' {
             if ($PSEdition -eq 'Core' -or $PSVersionTable.PSVersion -ge [Version]"5.1") {
-                $Script:Manifest = Test-ModuleManifest $ModuleManifestFile
+                $Script:Manifest = Test-ModuleManifest $ModuleManifestFile -Verbose:$false
             } else {
                 #Copy the Module Manifest to a temp file for testing. This fixes a bug where
                 #Test-ModuleManifest caches the first result, thus not catching changes if subsequent tests are run
                 $TempModuleManifestPath = [System.IO.Path]::GetTempFileName() + '.psd1'
                 copy-item $ModuleManifestPath $TempModuleManifestPath
-                $Script:Manifest = Test-ModuleManifest $TempModuleManifestPath
+                $Script:Manifest = Test-ModuleManifest $TempModuleManifestPath -Verbose:$false
                 remove-item $TempModuleManifestPath -verbose:$false
             }
         }
@@ -90,13 +90,13 @@ Describe 'Powershell Module' {
             $BuildOutputModule | Should BeOfType System.Management.Automation.PSModuleInfo
         }
         It 'Can be removed as a module' {
-            $BuildOutputModule | Remove-Module -erroraction stop | Should BeNullOrEmpty
+            $BuildOutputModule | Remove-Module -erroraction stop -verbose:$false | Should BeNullOrEmpty
         }
 
     }
 }
 Describe 'Powershell Gallery Readiness (PSScriptAnalyzer)' {
-    $results = Invoke-ScriptAnalyzer -Path $ModuleManifestFile.directory -Recurse -Setting PSGallery -Severity Error
+    $results = Invoke-ScriptAnalyzer -Path $ModuleManifestFile.directory -Recurse -Setting PSGallery -Severity Error -Verbose:$false
     It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
         if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
         $results.Count | Should Be 0

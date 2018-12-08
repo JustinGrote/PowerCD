@@ -137,7 +137,6 @@ Enter-Build {
     }
     #>
 
-
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
@@ -159,9 +158,6 @@ Enter-Build {
         write-verbose $Message
         write-verbose $lines
     }
-
-
-
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
     Set-Location $buildRoot
@@ -660,7 +656,8 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
         try {
             Publish-Module @publishParams @PassThruParams -ErrorAction Stop
         }
-        catch [InvalidOperationException] {
+        #WriteErrorException appears to be a bug in the Linux Publish-Module cmdlet
+        catch [InvalidOperationException],[Microsoft.PowerShell.Commands.WriteErrorException] {
             #Downgrade a conflict to a warning, as this is common with multiple build matrices.
             #TODO: Validate build matrices succeded before attempting and only do on one worker
             if ($psItem.exception.message -match 'cannot be published as the current version .* is already available in the repository|already exists and cannot be modified') {
