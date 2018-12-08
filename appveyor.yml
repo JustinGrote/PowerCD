@@ -55,7 +55,6 @@ for:
   on_finish:
     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
   build_script:
-    - ps: echo "PS Build"
     - ps: .\build.ps1
   cache:
     - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
@@ -69,7 +68,6 @@ for:
   init:
     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
   build_script:
-    - ps: echo "PWSH Build"
     - pwsh: .\build.ps1
   cache:
     - '%USERPROFILE%\Documents\PowerShell\Modules -> PSModule.requirements.ps1'
@@ -84,7 +82,6 @@ for:
   init:
     - ps: if ($isLinux -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorSSHDebug')) {"export APPVEYOR_SSH_BLOCK=true" + [Environment]::NewLine + (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh').content | bash -e -}
   build_script:
-    - pwsh: echo "Ubuntu PWSH Build"
     - pwsh: .\build.ps1
   cache:
     - '/home/appveyor/.nuget'

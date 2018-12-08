@@ -48,7 +48,6 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 			return $true
 		}
 	}
-
 }
 
 function BootStrapInvokeBuild {
