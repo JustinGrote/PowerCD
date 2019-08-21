@@ -1,5 +1,5 @@
 name: PowerCD Build
-on: [push]
+on: push
 
 jobs:
   build:
