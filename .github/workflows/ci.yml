@@ -1,0 +1,13 @@
+name: PowerCD Build
+on: [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Default Test
+        run: echo hello world
+      - name: Pwsh Test
+        shell: pwsh
+        run: echo hello world
