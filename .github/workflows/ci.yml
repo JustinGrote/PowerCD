@@ -26,7 +26,6 @@ jobs:
       - name: Pwsh Test
         shell: pwsh
         run: Write-Output "##[debug] Debug"
-        steps:
       - name: Pwsh Test
         shell: pwsh
         run: Write-Output "##[warning] Warning"
