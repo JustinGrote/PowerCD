@@ -4,10 +4,16 @@ on: push
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          ubuntu-latest
+          windows-latest
+          macOS-latest
+        ]
     steps:
-      - name: Default Test
-        run: echo hello world
       - name: Pwsh Test
         shell: pwsh
-        run: echo hello world
+        run: echo hello world;write-host -fore green test;echo "`u{1F600}"
