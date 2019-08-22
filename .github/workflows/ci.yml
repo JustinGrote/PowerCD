@@ -16,5 +16,5 @@ jobs:
     steps:
       - name: Pwsh Test
         shell: pwsh
-        #run: echo hello world;write-host -fore green test;echo "`u{1F600}"
-        run: echo hello world
+        run: echo hello world;write-host -fore green test;echo "`u{1F600}"
+        #run: echo hello world
