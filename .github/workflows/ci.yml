@@ -17,7 +17,7 @@ jobs:
       - name: Pwsh Test
         shell: pwsh
         run:
-          "##[section] This is colored green!"
+          Write-Host "##[section] This is colored green!"
           # Write-Host "This is a standard log message!"
           # Write-Host " --------------------------------- "
           # Write-Host "These tags just colorize the logs to improve readability"
