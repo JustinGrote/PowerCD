@@ -17,6 +17,17 @@ jobs:
       - name: Pwsh Test
         shell: pwsh
         run:
-          echo hello world;write-host -fore green test;echo "`u{1F600}"
-          echo test 2
+          Write-Host "This is a standard log message!"
+          Write-Host " --------------------------------- "
+          Write-Host "These tags just colorize the logs to improve readability"
+          Write-Host "##[section] This is colored green!"
+          Write-Host "##[command] This is colored blue!"
+          Write-Host "##[debug] This is colored gray!"
+          Write-Host " --------------------------------- "
+          Write-Host "These tags colorize the logs and are picked up by the build"
+          Write-Host "##[warning] This is a warning!"
+          Write-Host "##vso[task.logissue type=warning;]This is another warning"
+          Write-Host "##[error] This is an error!"
+          Write-Host "##vso[task.logissue type=error;]This is another error"
+          Write-Error "Actually fail the build task…"
         #run: echo hello world
