@@ -16,7 +16,26 @@ jobs:
     steps:
       - name: Pwsh Test
         shell: pwsh
-        run:
-          "Test1"
-          "Test2 #with comment"
-          Test3 #with comment
+        run: Write-Output "Test1"
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##[section] Section"
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##[command] Command"
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##[debug] Debug"
+        steps:
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##[warning] Warning"
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##[error] Error"
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##vso[task.logissue type=warning;]This is another warning"
+      - name: Pwsh Test
+        shell: pwsh
+        run: Write-Output "##vso[task.logissue type=error;]This is error"
