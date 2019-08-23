@@ -22,4 +22,4 @@ jobs:
           "##[warning]StandaloneWarning"
           "##[group]MyCustomGroup"
           "My custom log output"
-          "##endgroup]"
+          "##[endgroup]"
