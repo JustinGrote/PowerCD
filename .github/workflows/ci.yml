@@ -22,3 +22,4 @@ jobs:
           "##[group]MyCustomGroup"
           "My custom log output"
           "##[endgroup]"
+          throw EpicFail
