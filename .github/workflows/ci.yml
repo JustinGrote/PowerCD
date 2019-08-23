@@ -24,3 +24,8 @@ jobs:
           "##[endgroup]"
           "##[error]Kill this script maybe?"
           "Nope still running!"
+          "##[group]BasicColorTest"
+          (30..37 + 90..97) | foreach {
+            "`e[${PSItem}m $PSItem"
+          }
+          "##[endgroup]"
