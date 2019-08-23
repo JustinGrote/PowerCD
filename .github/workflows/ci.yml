@@ -31,8 +31,12 @@ jobs:
           }
           "##[endgroup]"
 
+          "##[group]256 Color Test"
+          "`e[38;5;69m I should be Blue"
+          "##[endgroup]"
+
           "##[group]24 Bit Color"
-          "`e[38;2;255;100;0mI Should Be Orange`e[0m"
+          "`e[38;2;255;100;0mI Should Be Orange, but I'm not, so no 24 bit"
           "##[endgroup]"
 
           "##[group]Marvin the Martian"
