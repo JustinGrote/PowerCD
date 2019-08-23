@@ -20,3 +20,6 @@ jobs:
           iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
           "##[section]StandaloneSection"
           "##[warning]StandaloneWarning"
+          "##[group]MyCustomGroup"
+          "My custom log output"
+          "##endgroup]"
