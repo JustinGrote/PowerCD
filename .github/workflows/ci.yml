@@ -22,4 +22,5 @@ jobs:
           "##[group]MyCustomGroup"
           "My custom log output"
           "##[endgroup]"
-          throw EpicFail
+          "##[error]Kill this script maybe?"
+          "Nope still running!"
