@@ -16,25 +16,4 @@ jobs:
     steps:
       - name: Pwsh Test
         shell: pwsh
-        run: Write-Output "Test1"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##[section] Section"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##[command] Command"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##[debug] Debug"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##[warning] Warning"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##[error] Error"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##vso[task.logissue type=warning;]This is another warning"
-      - name: Pwsh Test
-        shell: pwsh
-        run: Write-Output "##vso[task.logissue type=error;]This is error"
+        run: iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
