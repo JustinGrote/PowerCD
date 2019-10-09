@@ -10,12 +10,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-16.04
-          - windows-latest
-          - windows-2016
-          - macOS-latest
+          # - ubuntu-16.04
+          # - windows-latest
+          # - windows-2016
+          # - macOS-latest
         destination:
           - pwsh
+          - powershell
         # include:
         #   - os: windows-latest
         #     destination: powershell
@@ -23,6 +24,13 @@ jobs:
         #     destination: powershell
     steps:
       - uses: actions/checkout@master
+      - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT"
+
+      - name: Matrix Destination
+        run: echo "${{ matrix.destination }}"
 
       # - name: Setup tmate debug session
       #   uses: mxschmitt/action-tmate@v1
