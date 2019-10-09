@@ -1,6 +1,7 @@
 #requires -version 5
 using namespace System.IO
 
+$progresspreference = 'silentlycontinue'
 <#
 .SYNOPSIS
 Bootstraps Invoke-Build and starts it with supplied parameters.
@@ -67,7 +68,7 @@ function BootStrapInvokeBuild {
 }
 
 #region Main
-write-host -fore green 'Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)'
+write-host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
 $IBModulePath = if (-not $FindInvokeBuild) {BootStrapInvokeBuild}
 Invoke-Expression "Invoke-Build $($args -join ' ')"
 exit $LastExitCode

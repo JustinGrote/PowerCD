@@ -8,6 +8,12 @@ param (
 )
 
 task Init.PowerCD {
+    try {
+        Import-Module BuildHelpers -ErrorAction Stop
+    } catch {
+        Install-Module BuildHelpers -scope currentuser -force
+    }
+
     Initialize-PowerCD
 
     $GetBuildEnvironmentParams = @{
