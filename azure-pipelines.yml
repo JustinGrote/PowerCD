@@ -8,15 +8,14 @@
 jobs:
   - job: Build
     strategy:
+      maxParallel: 10
       matrix:
-        linux:
-          os: 'ubuntu-16.04'
-        mac:
-          os: 'macos-10.14'
-        windows:
-          os: 'vs2017-win2016'
-        windows2019:
-          os: 'windows-win2019'
+        Windows:
+          os: 'windows-latest'
+        Linux:
+          os: 'ubuntu-latest'
+        Mac:
+          os: 'macos-latest'
     pool:
       vmImage: $(os)
     steps:
