@@ -9,9 +9,18 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - windows-latest
           - ubuntu-latest
+          - ubuntu-16.04
+          - windows-latest
+          - windows-2016
           - macOS-latest
+        psedition:
+          - pwsh
+        include:
+          - os: windows-latest
+            psedition: powershell
+          - os: windows-2016
+            psedition: powershell
     steps:
       - uses: actions/checkout@master
 
@@ -20,10 +29,8 @@ jobs:
       #   if: contains(github.event.commits[0].message, 'DEBUGME:')
 
       - name: Pwsh Test
-        shell: pwsh
+        shell: {{matrix.psedition}}
         run: |
-          gci | % fullname | out-string
-          pwd | % path | out-string
           . .\build.ps1
           # iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
 
