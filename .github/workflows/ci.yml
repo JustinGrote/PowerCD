@@ -16,11 +16,11 @@ jobs:
           - macOS-latest
         destination:
           - pwsh
-        include:
-          - os: windows-latest
-            destination: powershell
-          - os: windows-2016
-            destination: powershell
+        # include:
+        #   - os: windows-latest
+        #     destination: powershell
+        #   - os: windows-2016
+        #     destination: powershell
     steps:
       - uses: actions/checkout@master
 
