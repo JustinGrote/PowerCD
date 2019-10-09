@@ -1,7 +1,7 @@
 #requires -version 5
 using namespace System.IO
+$ErrorActionPreference = 'Stop'
 
-$progresspreference = 'silentlycontinue'
 <#
 .SYNOPSIS
 Bootstraps Invoke-Build and starts it with supplied parameters.
@@ -52,24 +52,30 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 	}
 }
 
-function BootStrapInvokeBuild {
-	#Get a temporary directory
-	$tempFileObj = (New-TemporaryFile)
-	$tempfile = $tempFileObj -replace '\.tmp$','.zip'
-	$tempdir = $tempfileObj.DirectoryName
+function FastImportModule ($ModuleName) {
+    process {
+        #Get a temporary directory
+        $tempFilePath = [System.IO.Path]::GetTempFileName()
+        $tempfile = $tempFilePath -replace '\.tmp$','.zip'
+        $tempdir = Split-Path $tempfilePath -Parent
 
-	#Fetch Invoke-Build and import the module
-	$invokeBuildLatestURI = 'https://powershellgallery.com/api/v1/package/InvokeBuild'
-	(New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
-	Expand-Archive $tempfile $tempdir -Force -ErrorAction stop
+        #Fetch Invoke-Build and import the module
+        $invokeBuildLatestURI = "https://powershellgallery.com/api/v1/package/$ModuleName"
+        (New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
 
-	$IBModule = Join-Path $tempdir 'InvokeBuild.psd1'
-	Import-Module $IBModule -force
+        $CurrentProgressPreference = $ProgressPreference
+        $GLOBAL:ProgressPreference = 'silentlycontinue'
+        Expand-Archive $tempfile $tempdir -Force -ErrorAction stop
+        $GLOBAL:ProgressPreference = $CurrentProgressPreference
+
+        $ModuleToImportPath = Join-Path $tempdir "$ModuleName.psd1"
+        Import-Module $ModuleToImportPath -force
+    }
 }
 
 #region Main
 write-host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
-$IBModulePath = if (-not $FindInvokeBuild) {BootStrapInvokeBuild}
+$IBModulePath = if (-not $FindInvokeBuild) {FastImportModule InvokeBuild}
 Invoke-Expression "Invoke-Build $($args -join ' ')"
 exit $LastExitCode
 #endRegion Main
