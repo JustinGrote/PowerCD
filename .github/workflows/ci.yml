@@ -16,11 +16,11 @@ jobs:
           - macOS-latest
         psedition:
           - pwsh
-        include:
-          - os: windows-latest
-            psedition: powershell
-          - os: windows-2016
-            psedition: powershell
+        # include:
+        #   - os: windows-latest
+        #     psedition: powershell
+        #   - os: windows-2016
+        #     psedition: powershell
     steps:
       - uses: actions/checkout@master
 
