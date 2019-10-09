@@ -29,7 +29,7 @@ jobs:
       #   if: contains(github.event.commits[0].message, 'DEBUGME:')
 
       - name: Pwsh Test
-        shell: {{matrix.psedition}}
+        shell: ${{ matrix.psedition }}
         run: |
           . .\build.ps1
           # iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
