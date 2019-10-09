@@ -13,6 +13,7 @@ jobs:
           - ubuntu-latest
           - macOS-latest
     steps:
+      - uses: actions/checkout@master
       - name: Pwsh Test
         shell: pwsh
         run: |
