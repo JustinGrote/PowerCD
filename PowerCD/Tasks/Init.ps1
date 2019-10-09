@@ -8,14 +8,10 @@ param (
 )
 
 task Init.PowerCD {
-
-
-    Set-Variable -Name PCDSetting -Option ReadOnly -Value (Get-PowerCDSetting)
+    Initialize-PowerCD
 
     $GetBuildEnvironmentParams = @{
         GitPath = (get-command git -CommandType application)
     }
-    if ($UserPrefs.BuildOutput) { $GetBuildEnvironmentParams.BuildOutput = $UserPrefs.BuildOutput }
 
-    Set-Variable PCDBuildEnvironment -Scope Script -Value (Get-BuildEnvironment @GetBuildEnvironmentParams)
 }

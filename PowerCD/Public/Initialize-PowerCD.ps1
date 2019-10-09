@@ -3,7 +3,7 @@
 Initializes the build environment and detects various aspects of the environment
 #>
 
-function Initialize-PowerCDEnvironment {
+function Initialize-PowerCD {
     [CmdletBinding()]
     param (
         #Specify this if you don't want initialization to switch to the folder build root
