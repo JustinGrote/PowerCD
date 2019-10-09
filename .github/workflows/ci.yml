@@ -10,23 +10,11 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - ubuntu-16.04
           - windows-latest
-          # - windows-2016
           - macOS-latest
-        # psedition:
-        #   - pwsh
-        # include:
-        #   - os: windows-latest
-        #     psedition: powershell
-        #   - os: windows-2016
-        #     psedition: powershell
+
     steps:
       - uses: actions/checkout@master
-
-      # - name: Setup tmate debug session
-      #   uses: mxschmitt/action-tmate@v1
-      #   if: contains(github.event.commits[0].message, 'DEBUGME:')
 
       - name: Pwsh Test
         shell: pwsh
@@ -59,3 +47,19 @@ jobs:
           # iex (iwr https://gist.githubusercontent.com/JustinGrote/001e93fccda6ebec9f35b22a1dff6e16/raw/744b3f88d65ccd0ad8c1a365830e60abd9863941/MarvinAscii.ps1)
           # "##[endgroup]"
 
+          # - windows-2016
+
+
+
+        # psedition:
+        #   - pwsh
+        # include:
+        #   - os: windows-latest
+        #     psedition: powershell
+        #   - os: windows-2016
+        #     psedition: powershell
+
+
+      # - name: Setup tmate debug session
+      #   uses: mxschmitt/action-tmate@v1
+      #   if: contains(github.event.commits[0].message, 'DEBUGME:')
