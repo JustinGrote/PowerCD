@@ -14,9 +14,11 @@ jobs:
           - macOS-latest
     steps:
       - uses: actions/checkout@master
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v1
-        if: contains(github.event.commits[0].message, 'DEBUGME:')
+
+      # - name: Setup tmate debug session
+      #   uses: mxschmitt/action-tmate@v1
+      #   if: contains(github.event.commits[0].message, 'DEBUGME:')
+
       - name: Pwsh Test
         shell: pwsh
         run: |
