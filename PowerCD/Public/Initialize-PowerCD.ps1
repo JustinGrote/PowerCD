@@ -43,11 +43,6 @@ function Initialize-PowerCD {
         FastImportModule BuildHelpers -Erroractionstop
     }
 
-
-    (gci $buildroot\PowerCD\Public).fullname.foreach{
-        . $PSItem
-    }
-
     . $PSScriptRoot\Get-PowerCDSetting.ps1
     Set-Variable -Name PCDSetting -Scope Script -Option ReadOnly -Force -Value (Get-PowerCDSetting)
 

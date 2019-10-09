@@ -56,6 +56,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 
 #region Main
 write-host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
+. PowerCD\Private\FastImportModule.ps1
 $IBModulePath = if (-not $FindInvokeBuild) {FastImportModule InvokeBuild}
 Invoke-Expression "Invoke-Build $($args -join ' ')"
 exit $LastExitCode

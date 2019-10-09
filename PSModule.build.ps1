@@ -6,7 +6,14 @@
     . $PSItem
 }
 
-task Init Init.PowerCD
+Enter-Build {
+    . $BuildRoot\PowerCD\Public\Initialize-PowerCD.ps1
+    Initialize-PowerCD
+    (gci $buildroot\PowerCD\Public).fullname.foreach{
+        . $PSItem
+    }
+}
+
 task Clean Clean.PowerCD
 task Version Version.PowerCD
-task . Init,Clean,Version
+task . Clean,Version

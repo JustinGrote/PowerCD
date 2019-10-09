@@ -1,4 +1,4 @@
 #requires -module InvokeBuild
-task Clean.PowerCD Init.PowerCD,{
+task Clean.PowerCD {
     Invoke-PowerCDClean
 }
