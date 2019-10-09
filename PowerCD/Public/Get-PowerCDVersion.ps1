@@ -1,4 +1,9 @@
 function Get-PowerCDVersion {
+    [Cmdletbinding()]
+    param (
+        [Switch]$As
+    )
+
     $ModulePath = FastImportModule GitVersion.CommandLine -Package
     $GitVersionEXE = [IO.Path]::Combine($ModulePath,'tools','GitVersion.exe')
 

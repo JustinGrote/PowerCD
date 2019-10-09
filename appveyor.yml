@@ -92,5 +92,5 @@ for:
   on_finish:
     - ps: if ($isLinux -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorSSHDebug')) {"export APPVEYOR_SSH_BLOCK=true" + [Environment]::NewLine + (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh').content | bash -e -}
   #Deploy from Ubuntu as the last step, to avoid conflicts and verify all other builds passed (failed previous builds will cancel all builds with fast-fail setting)
-  deploy_script:
-    - ps: .\build.ps1 Publish
+  #deploy_script:
+    #- ps: .\build.ps1 Publish
