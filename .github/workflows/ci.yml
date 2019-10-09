@@ -10,13 +10,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-16.04
-          - windows-latest
-          - windows-2016
-          - macOS-latest
+          # - ubuntu-16.04
+          # - windows-latest
+          # - windows-2016
+          # - macOS-latest
         psversion:
           - pwsh
-          - powershell
+          # - powershell
         exclude:
           - os: ubuntu-latest
             psversion: powershell
@@ -29,10 +29,7 @@ jobs:
 
       #Workaround for shell not supporting variables
       - name: Powershell Build
-        env:
-          PSBUILDEXE: {{ matrix.psversion }}
-        shell: powershell
-        if: matrix.psversion == 'powershell'
+        shell: pwsh
         run: "& $env:PSBUILDEXE -f .\build.ps1"
 
 
