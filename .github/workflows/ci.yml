@@ -16,30 +16,31 @@ jobs:
       - name: Pwsh Test
         shell: pwsh
         run: |
-          iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
+          .\build.ps1
+          # iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
 
-          "##[section]Section Header"
-          "##[command]Command Definition"
-          "##[debug]Debug Line"
-          "##[warning]StandaloneWarning - Doesn't escape the special but it colors, must be a bug!"
-          "##[error]Kill this script maybe? - Also doesn't escape the special code"
-          "Nope still running!"
+          # "##[section]Section Header"
+          # "##[command]Command Definition"
+          # "##[debug]Debug Line"
+          # "##[warning]StandaloneWarning - Doesn't escape the special but it colors, must be a bug!"
+          # "##[error]Kill this script maybe? - Also doesn't escape the special code"
+          # "Nope still running!"
 
-          "##[group]BasicColorTest"
-          (30..37 + 90..97) | foreach {
-            "`e[${PSItem}m $PSItem"
-          }
-          "##[endgroup]"
+          # "##[group]BasicColorTest"
+          # (30..37 + 90..97) | foreach {
+          #   "`e[${PSItem}m $PSItem"
+          # }
+          # "##[endgroup]"
 
-          "##[group]256 Color Test"
-          "`e[38;5;69m I should be Blue"
-          "##[endgroup]"
+          # "##[group]256 Color Test"
+          # "`e[38;5;69m I should be Blue"
+          # "##[endgroup]"
 
-          "##[group]24 Bit Color"
-          "`e[38;2;255;100;0mI Should Be Orange, but I'm not, so no 24 bit"
-          "##[endgroup]"
+          # "##[group]24 Bit Color"
+          # "`e[38;2;255;100;0mI Should Be Orange, but I'm not, so no 24 bit"
+          # "##[endgroup]"
 
-          "##[group]Marvin the Martian"
-          iex (iwr https://gist.githubusercontent.com/JustinGrote/001e93fccda6ebec9f35b22a1dff6e16/raw/744b3f88d65ccd0ad8c1a365830e60abd9863941/MarvinAscii.ps1)
-          "##[endgroup]"
+          # "##[group]Marvin the Martian"
+          # iex (iwr https://gist.githubusercontent.com/JustinGrote/001e93fccda6ebec9f35b22a1dff6e16/raw/744b3f88d65ccd0ad8c1a365830e60abd9863941/MarvinAscii.ps1)
+          # "##[endgroup]"
 

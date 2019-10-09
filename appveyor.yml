@@ -1,0 +1,96 @@
+# See http://www.appveyor.com/docs/appveyor-yml for many more options
+version: '{build}-{branch}'
+image:
+  - Visual Studio 2017
+  - Ubuntu
+
+#Encrypted Variables - https://ci.appveyor.com/tools/encrypt
+environment:
+  GitHubUserName: JustinGrote
+  GitHubAPIKey:
+    secure: MolSn4T0aNBnph/BVkKA8HQ1qvpJjIV3CcjRg3DYynijlOVL5RftqbXD5l0IUw6L
+  NuGetAPIKey:
+    secure: HncD30pn+cWRepdP28pyB1l4BNg3x3MdvcNV8EysOhQ5kBFMHVyXiQM0whuUW78P
+  APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAqOJfFgHyHbQk1d/oCxPn2mGCd92GOFaT9PvA4pICCpMH8w+9Cv1OZpNcwvk+RIzTO9Fm8ilfK/x4gUFrRmAp9BkkmFDhqol0/3e2ZrsxjsYJsUcic/fcRINrDTrwSMaOghUO2fcSTJ3N7WsGKlcG3NXszPgJD95Ulpgk6qvclWJEt15xoYuqHnlhohkXA3zbfcWzuGsMZkuv1fMZB5nEjfLKegzCesQ+swAUaEbUxOeKIFD4VlluDuKONeKqDTETkpLZXKV8pRwDBxgD3i8zQJcSGZ8XoYyPLPbZD/J7AEOap6uYOr4jC8EbFug8SsnxPQ7vxnwslgHoRFzNeYlkIQ== d8:72:f4:1f:1f:31:4c:01:ce:3e:5a:ec:1b:31:8b:da rsa-jgrote-Jan2016
+  matrix:
+    - APPVEYOR_BUILD_WITH_PSCORE: "false"
+    - APPVEYOR_BUILD_WITH_PSCORE: "true"
+# Skip on updates to the readme.
+# We can force this by adding [skip ci] or [ci skip] anywhere in commit message
+skip_commits:
+  message: /updated README.*|Update README.*s/
+
+# Skip Tags with GitHub
+# Releases are tracked and tagged by the build script in Appveyor, having this enabled results in a double build
+skip_tags: true
+
+#Kick off the CI/CD pipeline. We do test and build in the same script
+#To be portable to non-Appveyor builds
+
+#Fast Fail the build if any one build fails
+matrix:
+  fast_finish: true
+  exclude:
+    - image: Ubuntu
+      APPVEYOR_BUILD_WITH_PSCORE: "false"
+
+# #Capture the artifacts
+# artifacts:
+#   - path: Release\*.zip
+#     name: Powershell Module Zip Package
+
+#   - path: Release\*.nupkg
+#     name: Powershell Module NuGet Package
+
+#Build Customizations
+for:
+
+#Build with Windows Powershell 5.1
+- matrix:
+    only:
+      - image: Visual Studio 2017
+        APPVEYOR_BUILD_WITH_PSCORE: "false"
+  init:
+    - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
+  on_finish:
+    - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
+  build_script:
+    - ps: .\build.ps1
+  # cache:
+  #   - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
+  #   - '%LOCALAPPDATA%\PackageManagement\NuGet'
+
+#Build with Powershell Core
+- matrix:
+    only:
+      - image: Visual Studio 2017
+        APPVEYOR_BUILD_WITH_PSCORE: "true"
+  init:
+    - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
+  build_script:
+    - pwsh: .\build.ps1
+  # cache:
+  #   - '%USERPROFILE%\Documents\PowerShell\Modules -> PSModule.requirements.ps1'
+  #   - '%LOCALAPPDATA%\PackageManagement\NuGet'
+  on_finish:
+    - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
+
+#Build with Ubuntu (Powershell Core Latest)
+- matrix:
+    only:
+      - image: Ubuntu
+  init:
+    - ps: if ($isLinux -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorSSHDebug')) {"export APPVEYOR_SSH_BLOCK=true" + [Environment]::NewLine + (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh').content | bash -e -}
+  build_script:
+    - pwsh: .\build.ps1
+  cache:
+    - '/home/appveyor/.nuget'
+    - '/home/appveyor/.cache/powershell'
+    - '/home/appveyor/.local/share/NuGet'
+    - '/home/appveyor/.local/share/powershell'
+    - '/home/appveyor/.config/share/powershell'
+  on_finish:
+    - ps: if ($isLinux -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorSSHDebug')) {"export APPVEYOR_SSH_BLOCK=true" + [Environment]::NewLine + (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh').content | bash -e -}
+  #Deploy from Ubuntu as the last step, to avoid conflicts and verify all other builds passed (failed previous builds will cancel all builds with fast-fail setting)
+  deploy_script:
+    - ps: .\build.ps1 Publish
