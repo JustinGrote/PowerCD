@@ -1,8 +1,8 @@
 #requires -module InvokeBuild
 task Clean.PowerCD Init.PowerCD,{
-    $buildProjectPath = $pcdBuildEnvironment.ProjectPath
-    $buildOutputPath  = $pcdBuildEnvironment.BuildOutput
-    $buildProjectName = $pcdBuildEnvironment.ProjectName
+    $buildProjectPath = $pcdSetting.BuildEnvironment.ProjectPath
+    $buildOutputPath  = $pcdSetting.BuildEnvironment.BuildOutput
+    $buildProjectName = $pcdSetting.BuildEnvironment.ProjectName
 
     #Reset the BuildOutput Directory
     if (test-path $buildProjectPath) {

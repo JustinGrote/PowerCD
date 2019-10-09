@@ -8,11 +8,10 @@ param (
 )
 
 task Init.PowerCD {
-    #Check for variable overrides and apply them.
-    #TODO: Handle this better
-    $UserPrefs = Import-PowershellDataFile .\PSModule.build.psd1
 
-    #These variables are used by nearly every task to determine context
+
+    Set-Variable -Name PCDSetting -Option ReadOnly -Value (Get-PowerCDSetting)
+
     $GetBuildEnvironmentParams = @{
         GitPath = (get-command git -CommandType application)
     }
