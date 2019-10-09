@@ -60,7 +60,9 @@ function FastImportModule ($ModuleName) {
         $tempdir = Split-Path $tempfilePath -Parent
 
         #Fetch Invoke-Build and import the module
+
         $invokeBuildLatestURI = "https://powershellgallery.com/api/v1/package/$ModuleName"
+        write-verbose "Fetching $ModuleName from $invokeBuildLatestURI"
         (New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
 
         $CurrentProgressPreference = $ProgressPreference
@@ -69,6 +71,7 @@ function FastImportModule ($ModuleName) {
         $GLOBAL:ProgressPreference = $CurrentProgressPreference
 
         $ModuleToImportPath = Join-Path $tempdir "$ModuleName.psd1"
+        write-verbose "Importing $ModuleName from $ModuleToImportPath"
         Import-Module $ModuleToImportPath -force
     }
 }

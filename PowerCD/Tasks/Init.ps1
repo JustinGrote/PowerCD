@@ -8,6 +8,10 @@ param (
 )
 
 task Init.PowerCD {
+
+    $erroractionPreference = 'Stop'
+    write-host -fore magenta "Checking for BuildHelpers"
+
     function FastImportModule ($ModuleName) {
         process {
             #Get a temporary directory
@@ -16,7 +20,9 @@ task Init.PowerCD {
             $tempdir = Split-Path $tempfilePath -Parent
 
             #Fetch Invoke-Build and import the module
+
             $invokeBuildLatestURI = "https://powershellgallery.com/api/v1/package/$ModuleName"
+            write-verbose "Fetching $ModuleName from $invokeBuildLatestURI"
             (New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
 
             $CurrentProgressPreference = $ProgressPreference
@@ -25,6 +31,7 @@ task Init.PowerCD {
             $GLOBAL:ProgressPreference = $CurrentProgressPreference
 
             $ModuleToImportPath = Join-Path $tempdir "$ModuleName.psd1"
+            write-verbose "Importing $ModuleName from $ModuleToImportPath"
             Import-Module $ModuleToImportPath -force
         }
     }
@@ -32,13 +39,15 @@ task Init.PowerCD {
     try {
         Import-Module BuildHelpers -ErrorAction Stop
     } catch {
-        FastImportModule BuildHelpers
+        FastImportModule BuildHelpers -Erroractionstop
     }
+
+    #Load Public Functions after prerequisites
+    . $BuildRoot\PowerCD\Public\Initialize-PowerCD.ps1
 
     Initialize-PowerCD
 
     $GetBuildEnvironmentParams = @{
         GitPath = (get-command git -CommandType application)
     }
-
 }
