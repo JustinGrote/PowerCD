@@ -45,19 +45,9 @@ Enter-Build {
 
     ###Detect certain environments
 
-    #Appveyor
-    if ($ENV:APPVEYOR) {$IsAppVeyor = $true}
-    #Azure DevOps
-    if ($ENV:SYSTEM_COLLECTIONID) {$IsAzureDevOps = $true}
 
-    #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
-    if ($ENV:CI -or $CI -or $IsAppVeyor -or $IsAzureDevOps -or ([Environment]::GetCommandLineArgs() -like '-noni*')) {
-        write-build Green 'Build Initialization - Detected a Noninteractive or CI environment, disabling prompt confirmations'
-        $SCRIPT:CI = $true
-        $ConfirmPreference = 'None'
-        #Disabling Progress speeds up the build because Write-Progress can be slow
-        $ProgressPreference = "SilentlyContinue"
-    }
+
+
 
 #region Bootstrap
     $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
