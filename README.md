@@ -8,6 +8,9 @@
 
 [![AppVNext][]][AppVNextLink] [![ADOvNext][]][ADOvNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
 
+[![Actions Status](https://github.com/justingrote/PowerCD/workflows/ci/badge.svg)](https://github.com/justingrote/PowerCD/actions)
+
+
 ---
 
 This project's goal is to deliver an opinionated continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
