@@ -12,7 +12,7 @@
 RootModule = 'PowerCD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
