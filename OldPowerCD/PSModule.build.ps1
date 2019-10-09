@@ -3,7 +3,7 @@ using namespace System.IO
 #Build Script for Powershell Modules
 #Uses Invoke-Build (https://github.com/nightroman/Invoke-Build)
 #Run by changing to the project root directory and run ./Invoke-Build.ps1
-#Uses a master-always-deploys strategy and semantic versioning - http://nvie.com/posts/a-successful-git-branching-model/
+#Uses GitLab Flow Trunk-Based Development
 
 param (
     #Skip publishing to various destinations (Appveyor,Github,PowershellGallery,etc.)

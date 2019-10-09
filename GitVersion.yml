@@ -1,11 +1,9 @@
 #Use Mainline Mode (master increments on every commit)
-mode: Mainline
+#mode: Mainline
 
 branches:
-  release:
-    track-merge-target: true
-    tracks-release-branches: true
-    prevent-increment-of-merged-branch-version: false
+  master:
+    tag: 'beta'
 
 #Custom commit messages to support Angular.js-style commit messages
 major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
