@@ -3,10 +3,22 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+
+
 jobs:
-  - job: Build_PSModule_Win2016
+  - job: Build
+    strategy:
+      matrix:
+        linux:
+          os: 'ubuntu-16.04'
+        mac:
+          os: 'macos-10.14'
+        windows:
+          os: 'vs2017-win2016'
+        windows2019:
+          os: 'windows-win2019'
     pool:
-      vmImage: vs2017-win2016
+      vmImage: $(os)
     steps:
     - powershell: .\build.ps1
       displayName: 'Powershell Module Build and Test'
@@ -31,20 +43,20 @@ jobs:
     #     artifactName: 'Powershell Module built with Powershell 5.1 on Windows'
     #     targetpath: '$(Build.ArtifactStagingDirectory)'
 
-  - job: Build_PSModule_Ubuntu1604
-    pool:
-      vmImage: ubuntu-16.04
-    steps:
-    - script: |
-        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft.list
-        sudo apt-get update
-        sudo apt-get install -y powershell
-      displayName: 'Install PowerShell Core'
+  # - job: Build_PSModule_Ubuntu1604
+  #   pool:
+  #     vmImage: ubuntu-16.04
+  #   steps:
+  #   - script: |
+  #       curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+  #       curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft.list
+  #       sudo apt-get update
+  #       sudo apt-get install -y powershell
+  #     displayName: 'Install PowerShell Core'
 
-    - script: |
-        pwsh -c '.\build.ps1'
-      displayName: 'Powershell Module Build and Test'
+  #   - script: |
+  #       pwsh -c '.\build.ps1'
+  #     displayName: 'Powershell Module Build and Test'
 
     # - task: PublishTestResults@2
     #   displayName: 'Pester Test Results'
