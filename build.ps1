@@ -1,3 +1,3 @@
 Install-Module BuildHelpers -scope currentuser -Force
 Import-Module BuildHelpers
-Get-BuildEnvironment | ft | out-string
+Get-BuildEnvironment | fl | out-string
