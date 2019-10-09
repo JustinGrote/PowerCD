@@ -24,7 +24,7 @@ jobs:
           - os: macOS-latest
             psversion: powershell
     env:
-      PSBUILDEXE: pwsh
+      PSBUILDEXE: ${{ matrix.psversion }}
     steps:
       - uses: actions/checkout@master
       #Workaround for shell not supporting variables
