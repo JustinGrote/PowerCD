@@ -10,36 +10,38 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - ubuntu-16.04
-          # - windows-latest
-          # - windows-2016
-          # - macOS-latest
-        destination:
+          - ubuntu-16.04
+          - windows-latest
+          - windows-2016
+          - macOS-latest
+        psversion:
           - pwsh
           - powershell
-        include:
-          - os: windows-latest
-            destination: powershell
-          - os: windows-2016
-            destination: powershell
+        exclude:
+          - os: ubuntu-latest
+            psversion: powershell
+          - os: ubuntu-16.04
+            psversion: powershell
+          - os: macOS-latest
+            psversion: powershell
     steps:
       - uses: actions/checkout@master
-      - name: Dump matrix context
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        run: echo "$MATRIX_CONTEXT"
-
-      - name: Matrix Destination
-        run: echo "${{ matrix.destination }}"
-
-      # - name: Setup tmate debug session
-      #   uses: mxschmitt/action-tmate@v1
-      #   if: contains(github.event.commits[0].message, 'DEBUGME:')
-
-      - name: Pwsh Test
-        shell: pwsh
+      #Workaround for shell not supporting variables
+      - name: Windows Powershell Build
+        shell: powershell
+        if: matrix.psversion == 'powershell'
         run: |
           . .\build.ps1
+      - name: Powershell Core Build
+        shell: pwsh
+        if: matrix.psversion == 'pwsh'
+        run: |
+          . .\build.ps1
+
+
+
+
+
           # iex (iwr https://gist.githubusercontent.com/JustinGrote/0ffbe5f514d5d6e5b5a62354a6545738/raw/TestAction.ps1)
 
           # "##[section]Section Header"
