@@ -1,0 +1,8 @@
+language: generic
+os:
+  - linux
+  - windows
+  - osx
+
+script:
+  - powershell -f build.sh
