@@ -1,4 +1,3 @@
-$verbosepreference = 'continue'
 Enter-Build {
     #Bootstrap BuildHelpers Module
     #TODO: Don't do this step in production buildhelpers, it should be a nestedmodule
