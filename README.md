@@ -10,7 +10,7 @@
 
 [![Actions Status](https://github.com/justingrote/PowerCD/workflows/ci/badge.svg)](https://github.com/justingrote/PowerCD/actions)
 
-
+[![Travis Status](https://travis-ci.org/JustinGrote/PowerCD.svg?branch=master)](https://travis-ci.org/JustinGrote/PowerCD)
 ---
 
 This project's goal is to deliver an opinionated continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.

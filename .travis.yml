@@ -3,7 +3,7 @@ language: generic
 matrix:
   include:
     - os: linux
-      dist: cosmic
+      dist: xenial
       sudo: false
       addons:
         snaps:
