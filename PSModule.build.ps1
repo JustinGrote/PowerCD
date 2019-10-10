@@ -16,7 +16,7 @@ task Version.PowerCD {
 }
 
 task BuildPSModule.PowerCD {
-    Build-PowerCDModule
+    Build-PowerCDModule -NoCompile
 }
 
 task Clean Clean.PowerCD

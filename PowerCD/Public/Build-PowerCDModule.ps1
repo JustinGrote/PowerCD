@@ -70,27 +70,36 @@ function Build-PowerCDModule {
         }
     } else {
         #TODO: Track all files in the source directory to ensure none get missed on the second step
+
+        #In order to get relative paths we have to be in the directory we want to be relative to
+        Push-Location (Split-Path $PSModuleManifest)
+
         $SourceFiles | Foreach-Object {
             #Powershell 6+ Preferred way.
             #TODO: Enable when dropping support for building on 5.x
             #$RelativePath = [io.path]::GetRelativePath($SourceModuleDir,$PSItem.fullname)
 
-            #Powershell 5.x compatible "Ugly" Regex method
-            $RelativePath = $PSItem.FullName -replace [Regex]::Escape($SourceModuleDir),''
+            #Powershell 3.x compatible "Ugly" Regex method
+            #$RelativePath = $PSItem.FullName -replace [Regex]::Escape($SourceModuleDir),''
+
+            $RelativePath = Resolve-Path $PSItem.FullName -Relative
 
             #Copy-Item doesn't automatically create directory structures when copying files vs. directories
             $DestinationPath = Join-Path $DestinationDirectory $RelativePath
             $DestinationDir = Split-Path $DestinationPath
-            if (-not (Test-Path $DestinationDir)) {New-Item -ItemType Directory $DestinationDir -verbose > $null}
+            if (-not (Test-Path $DestinationDir)) {New-Item -ItemType Directory $DestinationDir > $null}
             Copy-Item -Path $PSItem -Destination $DestinationPath
         }
+
+        #Return after processing relative paths
+        Pop-Location
     }
 
     #Output the modified Root Module
     $SourceRootModule | Out-File -FilePath (join-path $DestinationDirectory $SourceManifest.RootModule)
 
-    #Output the current Module Manifest
-    $SourceManifest | Out-File -FilePath (join-path $DestinationDirectory (Split-Path -Leaf $SourceManifest))
+    #Copy the Module Manifest
+    Copy-Item -Path $PSModuleManifest -Destination $DestinationDirectory
 
     #Copy-Module PowershellBuild
 <#
