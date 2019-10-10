@@ -19,8 +19,12 @@ task BuildPSModule.PowerCD {
     Build-PowerCDModule
 }
 
+task SetPSModuleVersion.PowerCD {
+    Set-PowerCDVersion
+}
+
 task Clean Clean.PowerCD
 task Version Version.PowerCD
-task Build BuildPSModule.PowerCD
+task Build BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD
 
 task . Clean,Version,Build

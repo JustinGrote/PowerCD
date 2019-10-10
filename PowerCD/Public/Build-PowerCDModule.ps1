@@ -99,7 +99,7 @@ function Build-PowerCDModule {
     $SourceRootModule | Out-File -FilePath (join-path $DestinationDirectory $SourceManifest.RootModule)
 
     #Copy the Module Manifest
-    Copy-Item -Path $PSModuleManifest -Destination $DestinationDirectory
+    [String]$PCDSetting.OutputModuleManifest = Copy-Item -PassThru -Path $PSModuleManifest -Destination $DestinationDirectory
 
     #Copy-Module PowershellBuild
 <#
