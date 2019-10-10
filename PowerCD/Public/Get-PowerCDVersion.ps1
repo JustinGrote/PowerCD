@@ -1,9 +1,12 @@
+#requires -module BuildHelpers
 function Get-PowerCDVersion {
     [CmdletBinding()]
 
+    #TODO: FEATURE: Fallback to module version if GitVersion doesn't work
+
     #TODO: Move this to dedicated dependency handler
-    $ModulePath = Import-PowerCDModuleFast GitVersion.CommandLine -Package
-    $GitVersionEXE = [IO.Path]::Combine($ModulePath,'tools','GitVersion.exe')
+    $GitVersionPackagePath = Import-PowerCDModuleFast GitVersion.CommandLine -Package
+    $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
@@ -42,14 +45,14 @@ function Get-PowerCDVersion {
 
         $GitVersionInfo | format-list | out-string | write-verbose
         [String]$PCDSetting.VersionLabel = $GitVersionInfo.NuGetVersionV2
-        [Version]$PCDSetting.Version      = $GitVersionInfo.MajorMinorPatch
+        [Version]$PCDSetting.Version     = $GitVersionInfo.MajorMinorPatch
         [String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
 
         if ($PCDSetting.Environment.BuildOutput) {
             $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.Environment.BuildOutput,$PCDSetting.Environment.ProjectName,$PCDSetting.Version)
         }
     } catch {
-        write-error "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"
+        write-warning "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"
     } finally {
         #Restore the tag if it was present
         #TODO: Evaluate if this is still necessary
