@@ -3,7 +3,7 @@ language: generic
 matrix:
   include:
     - os: linux
-      dist: xenial
+      dist: cosmic
       sudo: false
       addons:
         snaps:
@@ -14,9 +14,9 @@ matrix:
     - os: osx
       addons:
         homebrew:
-          packages:
-          - powershell
-          update: true
+          casks:
+            - powershell
+            - powershell-preview
   fast_finish: true
 script:
   - pwsh -f build.ps1
