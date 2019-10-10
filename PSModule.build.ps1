@@ -15,12 +15,12 @@ task Version.PowerCD {
     . Get-PowerCDVersion > $null
 }
 
-task CopyFilesToBuildDir.PowerCD {
+task BuildPSModule.PowerCD {
     Build-PowerCDModule
 }
 
 task Clean Clean.PowerCD
 task Version Version.PowerCD
-task Build CopyFilesToBuildDir.PowerCD
+task Build BuildPSModule.PowerCD
 
 task . Clean,Version,Build
