@@ -4,6 +4,7 @@ Enter-Build {
     #TODO: Don't do this step in production buildhelpers, it should be a nestedmodule
     . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
     Import-PowerCDModuleFast BuildHelpers
+    Import-PowerCDModuleFast Configuration
     Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
     Initialize-PowerCD
 }

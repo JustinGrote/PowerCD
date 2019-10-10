@@ -27,7 +27,7 @@ strategy:
 pool:
   vmImage: $(os)
 steps:
-- script: "$(psversion) -f build.ps1"
+- script: "$(psversion) -noninteractive -noprofile -f build.ps1"
   displayName: 'Powershell Module Build and Test'
 
     # - task: PublishTestResults@2
