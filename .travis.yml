@@ -15,8 +15,7 @@ matrix:
     - os: osx
       osx_image: xcode9.1
       before_install:
-        - brew tap caskroom/cask
         - brew cask install powershell
   fast_finish: true
 script:
-  - pwsh -f "${env:TRAVIS_BUILD_DIR}/build.ps1"
+  - pwsh -f build.ps1
