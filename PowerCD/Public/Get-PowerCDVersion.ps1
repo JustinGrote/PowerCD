@@ -1,12 +1,19 @@
 #requires -module BuildHelpers
 function Get-PowerCDVersion {
     [CmdletBinding()]
+    param()
 
     #TODO: FEATURE: Fallback to module version if GitVersion doesn't work
 
     #TODO: Move this to dedicated dependency handler
-    $GitVersionPackagePath = Import-PowerCDModuleFast GitVersion.CommandLine -Package
-    $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
+    if (-not $IsMacOS) {
+        $GitVersionPackagePath = Import-PowerCDModuleFast GitVersion.CommandLine -Package
+        $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
+    } else {
+        & brew install GitVersion
+        $GitversionEXE = 'gitversion'
+    }
+
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
