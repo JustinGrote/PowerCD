@@ -13,7 +13,7 @@ jobs:
   strategy:
     maxParallel: 10
     matrix:
-      Windows-pwsh:
+      ${{ each os in parameters.os }}:
         os: 'windows-latest'
         #${{ format('{0}-{1}', psversion, os) }}:
         #     ${{ each os in parameters.os }}:
