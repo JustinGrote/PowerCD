@@ -1,3 +1,0 @@
-@{
-    BuildOutput = "Release"
-}
