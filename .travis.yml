@@ -8,7 +8,7 @@ matrix:
       addons:
         apt:
           sources:
-            - sourceline: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/14.04/prod xenial main"
+            - sourceline: 'deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe'
               key_url: "https://packages.microsoft.com/keys/microsoft.asc"
           packages:
             - powershell
