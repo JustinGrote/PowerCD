@@ -40,7 +40,7 @@ function Build-PowerCDModule {
     #TODO: Use this one command and sort out the items later
     #$FilesToCopy = Get-ChildItem -Path $PSModuleManifestDirectory -Filter '*.ps*1' -Exclude '*.tests.ps1' -Recurse
 
-    $SourceManifest = Import-Metadata $PSModuleManifest
+    $SourceManifest = Import-PowershellDataFile $PSModuleManifest
 
     #TODO: Allow .psm1 to be blank and generate it on-the-fly
     if (-not $SourceManifest.RootModule) {throw "The source manifest at $PSModuleManifest does not have a RootModule specified. This is required to build the module."}
@@ -84,10 +84,10 @@ function Build-PowerCDModule {
     }
 
     #Output the modified Root Module
-    $SourceRootModule > (join-path $DestinationDirectory $SourceManifest.RootModule)
+    $SourceRootModule | Out-File -FilePath (join-path $DestinationDirectory $SourceManifest.RootModule) -Verbose
 
     #Output the current Module Manifest
-
+    $SourceManifest | Out-File -FilePath (join-path $DestinationDirectory (Split-Path -Leaf $SourceManifest))
 
     #Copy-Module PowershellBuild
 <#
