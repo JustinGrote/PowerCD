@@ -16,6 +16,7 @@ matrix:
         homebrew:
           packages:
           - powershell
+          update: true
   fast_finish: true
 script:
   - pwsh -f build.ps1
