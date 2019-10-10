@@ -1,5 +1,6 @@
 Enter-Build {
     Import-PowerCDModuleFast BuildHelpers
+    Import-PowerCDModuleFast PowershellBuild
     Import-Module $BuildRoot\PowerCD\PowerCD -force
     Initialize-PowerCD
 }
@@ -12,6 +13,13 @@ task Version.PowerCD {
     . Get-PowerCDVersion > $null
 }
 
+task CopyFilesToBuildDir.PowerCD {
+    Build-PowerCDModule
+}
+
+
 task Clean Clean.PowerCD
 task Version Version.PowerCD
-task . Clean,Version
+task Build CopyFilesToBuildDir.PowerCD
+
+task . Clean,Version,Build

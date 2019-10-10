@@ -1,5 +1,5 @@
 function Get-PowerCDVersion {
-    [Cmdletbinding()]
+    [CmdletBinding()]
 
     #TODO: Move this to dedicated dependency handler
     $ModulePath = Import-PowerCDModuleFast GitVersion.CommandLine -Package
@@ -45,7 +45,9 @@ function Get-PowerCDVersion {
         [Version]$PCDSetting.Version      = $GitVersionInfo.MajorMinorPatch
         [String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
 
-        if (-not $PCDSetting.BuildOutputPath)
+        if ($PCDSetting.Environment.BuildOutput) {
+            $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.Environment.BuildOutput,$PCDSetting.Environment.ProjectName,$PCDSetting.Version)
+        }
     } catch {
         write-error "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"
     } finally {
