@@ -27,7 +27,7 @@ Author = 'Justin Grote'
 CompanyName = 'Unspecified'
 
 # Copyright statement for this module
-Copyright = 'Copyright 2018 Justin Grote, All Rights Reserved. Released under the MIT license'
+Copyright = 'Copyright 2019 Justin Grote, All Rights Reserved. Released under the MIT license'
 
 # Description of the functionality provided by this module
 Description = 'A Continuous Deployment Environment for building Powershell Modules and Scripts'
