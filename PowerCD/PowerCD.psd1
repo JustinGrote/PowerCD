@@ -107,15 +107,15 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
-        Extensions = @(
-            @{
-                Module = "Plaster"
-                MinimumVersion = "1.0.1"
-                Details = @{
-                    TemplatePaths = "PlasterTemplates\Default"
-                }
-            }
-        )
+        # Extensions = @(
+        #     @{
+        #         Module = "Plaster"
+        #         MinimumVersion = "1.0.1"
+        #         Details = @{
+        #             TemplatePaths = "PlasterTemplates\Default"
+        #         }
+        #     }
+        # )
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable

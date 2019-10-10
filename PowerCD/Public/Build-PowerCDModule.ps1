@@ -86,6 +86,9 @@ function Build-PowerCDModule {
     #Output the modified Root Module
     $SourceRootModule > (join-path $DestinationDirectory $SourceManifest.RootModule)
 
+    #Output the current Module Manifest
+
+
     #Copy-Module PowershellBuild
 <#
     #Detect the .psm1 file and copy all files to the root directory, excluding build files unless this is PowerCD
