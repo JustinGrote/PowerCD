@@ -23,8 +23,12 @@ task SetPSModuleVersion.PowerCD {
     Set-PowerCDVersion
 }
 
+task UpdatePSModulePublicFunctions.PowerCD {
+    Update-PowerCDPublicFunctions
+}
+
 task Clean Clean.PowerCD
 task Version Version.PowerCD
-task Build BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD
+task Build BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD
 
 task . Clean,Version,Build
