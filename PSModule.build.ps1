@@ -1,3 +1,4 @@
+$verbosepreference = 'continue'
 Enter-Build {
     #Bootstrap BuildHelpers Module
     #TODO: Don't do this step in production buildhelpers, it should be a nestedmodule
@@ -18,7 +19,6 @@ task Version.PowerCD {
 task CopyFilesToBuildDir.PowerCD {
     Build-PowerCDModule
 }
-
 
 task Clean Clean.PowerCD
 task Version Version.PowerCD
