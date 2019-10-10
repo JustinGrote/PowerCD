@@ -2,25 +2,18 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-
-
-
 jobs:
-  - job: Build
-    strategy:
-      maxParallel: 10
-      matrix:
-        Windows:
-          os: 'windows-latest'
-        Linux:
-          os: 'ubuntu-latest'
-        Mac:
-          os: 'macos-latest'
-    pool:
-      vmImage: $(os)
-    steps:
-    - powershell: .\build.ps1
-      displayName: 'Powershell Module Build and Test'
+- template: azure-pipelines-psjob.yml
+# jobs:
+#   - job: Build
+#     strategy:
+#       maxParallel: 10
+#       matrix:
+#         ${{ each job in parameters.jobs }}:
+#           ${{ each py in parameters.pythonVersions }}:
+#               ${{ each os in parameters.operatingSystems }}:
+#                 ${{ format('{0}{1}', py, os) }}:
+
 
     # - task: PublishTestResults@2
     #   displayName: 'Pester Test Results'
