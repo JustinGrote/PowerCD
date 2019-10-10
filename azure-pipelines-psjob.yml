@@ -10,14 +10,14 @@ parameters:
 
 jobs:
 - job: PSBuild
-  strategy:
-    maxParallel: 10
-    matrix:
-        ${{ each os in parameters.os }}:
-            ${{ each psversion in parameters.psversion }}:
-              ${{ format('{0}{1}', psversion, os) }}:
+  # strategy:
+  #   maxParallel: 10
+  #   # matrix:
+  #   #     ${{ each os in parameters.os }}:
+  #   #         ${{ each psversion in parameters.psversion }}:
+  #   #           ${{ format('{0}{1}', psversion, os) }}:
   pool:
-    vmImage: $(os)
+    vmImage: 'windows-latest'
   steps:
   - powershell: .\build.ps1
     displayName: 'Powershell Module $(os) $(psversion)'
