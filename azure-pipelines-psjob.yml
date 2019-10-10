@@ -11,9 +11,9 @@ parameters:
 jobs:
 - job: PSBuild
   strategy:
-   maxParallel: 10
+    maxParallel: 10
     matrix:
-      Windows-Pwsh:
+      Windows-pwsh:
         os: 'windows-latest'
         #${{ format('{0}-{1}', psversion, os) }}:
         #     ${{ each os in parameters.os }}:
