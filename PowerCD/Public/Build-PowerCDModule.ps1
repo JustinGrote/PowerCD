@@ -28,7 +28,7 @@ function Build-PowerCDModule {
 
     #Verify a clean build folder
     try {
-        $DestinationDirectory = New-Item -ItemType Directory -Path $Destination -ErrorAction Stop -Verbose
+        $DestinationDirectory = New-Item -ItemType Directory -Path $Destination -ErrorAction Stop
     } catch [IO.IOException] {
         if ($PSItem.exception.message -match 'already exists\.$') {
             throw "Folder $Destination already exists. Make sure that you cleaned your Build Output directory. To override this behavior, specify -Force"
