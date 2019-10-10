@@ -1,17 +1,15 @@
-
-(gci $buildroot\PowerCD\Tasks).fullname.foreach{
-    . $PSItem
-}
-(gci $buildroot\PowerCD\Private).fullname.foreach{
-    . $PSItem
-}
-
 Enter-Build {
-    . $BuildRoot\PowerCD\Public\Initialize-PowerCD.ps1
+    Import-PowerCDModuleFast BuildHelpers
+    Import-Module $BuildRoot\PowerCD\PowerCD -force
     Initialize-PowerCD
-    (gci $buildroot\PowerCD\Public).fullname.foreach{
-        . $PSItem
-    }
+}
+
+task Clean.PowerCD {
+    Invoke-PowerCDClean
+}
+
+task Version.PowerCD {
+    . Get-PowerCDVersion > $null
 }
 
 task Clean Clean.PowerCD
