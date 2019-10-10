@@ -40,7 +40,10 @@ function Build-PowerCDModule {
     #TODO: Use this one command and sort out the items later
     #$FilesToCopy = Get-ChildItem -Path $PSModuleManifestDirectory -Filter '*.ps*1' -Exclude '*.tests.ps1' -Recurse
 
-    $SourceManifest = Import-PowershellDataFile $PSModuleManifest
+    #TODO: Replace when dropping support for Powershell 5.1
+    #PS6+ Preferred Method, doesn't work on 5.1 Windows Server
+    #$SourceManifest = Import-PowershellDataFile $PSModuleManifest
+    $SourceManifest = Import-LocalizedData -FileName (Split-Path $PSModuleManifest -Leaf) -BaseDirectory (Split-Path $PSModuleManifest)
 
     #TODO: Allow .psm1 to be blank and generate it on-the-fly
     if (-not $SourceManifest.RootModule) {throw "The source manifest at $PSModuleManifest does not have a RootModule specified. This is required to build the module."}
@@ -79,12 +82,12 @@ function Build-PowerCDModule {
             $DestinationPath = Join-Path $DestinationDirectory $RelativePath
             $DestinationDir = Split-Path $DestinationPath
             if (-not (Test-Path $DestinationDir)) {New-Item -ItemType Directory $DestinationDir -verbose > $null}
-            Copy-Item -Path $PSItem -Destination $DestinationPath -Verbose
+            Copy-Item -Path $PSItem -Destination $DestinationPath
         }
     }
 
     #Output the modified Root Module
-    $SourceRootModule | Out-File -FilePath (join-path $DestinationDirectory $SourceManifest.RootModule) -Verbose
+    $SourceRootModule | Out-File -FilePath (join-path $DestinationDirectory $SourceManifest.RootModule)
 
     #Output the current Module Manifest
     $SourceManifest | Out-File -FilePath (join-path $DestinationDirectory (Split-Path -Leaf $SourceManifest))
