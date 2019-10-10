@@ -1,8 +1,6 @@
 Enter-Build {
-
     Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
     Import-PowerCDModuleFast BuildHelpers
-    Import-PowerCDModuleFast PowershellBuild
     Initialize-PowerCD
 }
 
