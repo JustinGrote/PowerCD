@@ -53,6 +53,7 @@ function Get-PowerCDVersion {
         }
     } catch {
         write-warning "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"
+        & $GitVersionexe /nofetch /diag *>&1
     } finally {
         #Restore the tag if it was present
         #TODO: Evaluate if this is still necessary
