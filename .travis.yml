@@ -1,25 +1,26 @@
 
+#TODO: Fix Gitversion not working in Travis
 #This is still currently broken
-language: generic
+# language: generic
 
-matrix:
-  include:
-    - os: linux
-      sudo: false
-      mono: none
-      dotnet: 2.0.0
-      addons:
-        snaps:
-          - name: powershell
-            confinement: classic
-          - name: powershell-preview
-            confinement: classic
-    - os: osx
-      addons:
-        homebrew:
-          casks:
-            - powershell
-            - powershell-preview
-  fast_finish: true
-script:
-  - pwsh -f build.ps1
+# matrix:
+#   include:
+#     - os: linux
+#       sudo: false
+#       mono: none
+#       dotnet: 2.0.0
+#       addons:
+#         snaps:
+#           - name: powershell
+#             confinement: classic
+#           - name: powershell-preview
+#             confinement: classic
+#     - os: osx
+#       addons:
+#         homebrew:
+#           casks:
+#             - powershell
+#             - powershell-preview
+#   fast_finish: true
+# script:
+#   - pwsh -f build.ps1
