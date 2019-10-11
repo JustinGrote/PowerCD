@@ -18,6 +18,10 @@ function Update-PowerCDPublicFunctions {
         $Functions = Get-PowerCDPublicFunctions $PublicFunctionPath
     }
 
+    if (-not $Functions) {
+        write-warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
+        return
+    }
 
     Update-Metadata -Path $Path -PropertyName FunctionsToExport -Value $Functions
 }

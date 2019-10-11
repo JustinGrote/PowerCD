@@ -15,7 +15,7 @@ function Get-PowerCDPublicFunctions {
 
     $PublicFunctionCode = Get-ChildItem $PublicModulePath -Filter '*.ps1' | Get-Content -Raw
 
-    [ScriptBlock]::Create($PublicFunctionCode).AST.EndBlock.Statements | where {
-        $_ -is [Management.Automation.Language.FunctionDefinitionAst]
+    [ScriptBlock]::Create($PublicFunctionCode).AST.EndBlock.Statements | Where-Object {
+        $PSItem -is [Management.Automation.Language.FunctionDefinitionAst]
     } | Foreach-Object Name
 }
