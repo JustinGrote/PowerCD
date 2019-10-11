@@ -68,6 +68,8 @@ function Build-PowerCDModule {
         } else {
             $SourceRootModule += [Environment]::NewLine() + $CombinedSourceFiles
         }
+        #Strip non-help-related comments and whitespace
+        $SourceRootModule = Remove-CommentsAndWhiteSpace $SourceRootModule
     } else {
         #TODO: Track all files in the source directory to ensure none get missed on the second step
 
