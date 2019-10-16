@@ -4,7 +4,7 @@ function Test-PowerCDPester {
     [CmdletBinding()]
     param (
         $ModuleDirectory = $PCDSetting.BuildModuleOutput,
-        $PesterResultFile = ([IO.Path]::Combine($PCDSetting.Environment.BuildOutput,"$($PCDSetting.ProjectName)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml"))
+        $PesterResultFile = ([IO.Path]::Combine($PCDSetting.Environment.BuildOutput,"$($PCDSetting.Environment.ProjectName)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml"))
     )
 
     #Try autodetecting the "furthest out module manifest"

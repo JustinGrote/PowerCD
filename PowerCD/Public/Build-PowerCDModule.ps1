@@ -21,7 +21,9 @@ function Build-PowerCDModule {
         #Files that are considered for inclusion to the 'compiled' module. This by default includes .ps1 files only. Uses Filesystem Filter syntax
         [String[]]$PSFileInclude = '*.ps1',
         #Files that are considered for inclusion to the 'compiled' module. This excludes any files that have two periods before ps1 (e.g. .build.ps1, .tests.ps1). Uses Filesystem Filter syntax
-        [String[]]$PSFileExclude = '*.*.ps1'
+        [String[]]$PSFileExclude = '*.*.ps1',
+        #If a prerelease tag exists, the build will touch a prerelease warning file into the root of the module folder. Specify this parameter to disable this behavior.
+        [Switch]$NoPreReleaseFile
     )
 
     $SourceModuleDir = Split-Path $PSModuleManifest
@@ -102,4 +104,11 @@ function Build-PowerCDModule {
 
     #Copy the Module Manifest
     [String]$PCDSetting.OutputModuleManifest = Copy-Item -PassThru -Path $PSModuleManifest -Destination $DestinationDirectory
+
+    #Add a prerelease
+    if ($PCDSetting.PreRelease) {
+        "This is a prerelease build and not meant for deployment!" > (Join-Path $DestinationDirectory "PRERELEASE-$($PCDSetting.VersionLabel)")
+    }
+
+
 }
