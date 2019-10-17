@@ -35,7 +35,7 @@ steps:
       inputs:
         testRunner: 'NUnit'
         testResultsFiles: '**/*TestResults*.xml'
-        testRunTitle: 'Pester $(os)-$(psversion)'
+        testRunTitle: 'Pester'
 
     - task: CopyFiles@2
       displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
@@ -44,8 +44,8 @@ steps:
         contents: '*.zip'
         targetfolder: '$(Build.ArtifactStagingDirectory)'
 
-    - task: PublishPipelineArtifact@0
-      displayName: 'Capture Powershell Module as Artifact'
-      inputs:
-        artifactName: '$(os)-$(psversion)'
-        targetpath: '$(Build.ArtifactStagingDirectory)'
+    # - task: PublishPipelineArtifact@0
+    #   displayName: 'Capture Powershell Module as Artifact'
+    #   inputs:
+    #     artifactName: '$(os)-$(psversion)'
+    #     targetpath: '$(Build.ArtifactStagingDirectory)'
