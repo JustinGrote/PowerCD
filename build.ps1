@@ -23,9 +23,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 		#Specify this if you know it isn't present as a powershell module and want to save some detection time
 		[Switch]$SkipPSModuleDetection,
 		#Specify this if you know it isn't present as a nuget package and want to save some detection time
-		[Switch]$SkipNugetPackageDetection,
-		#Specify this if you just want a simple true/false result
-		[Switch]$Quiet
+		[Switch]$SkipNugetPackageDetection
 	)
 
 	if (-not $SkipPSModuleDetection) {
@@ -39,29 +37,22 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 	}
 
 	if ($InvokeBuild) {
-		if ($Quiet) {
-			return $true
-		} else {
-			Write-Verbose "Invoke-Build $MinimumVersion was detected at $InvokeBuild."
-			$invokeBuild
-		}
+		Write-Verbose "Invoke-Build $MinimumVersion was detected at $InvokeBuild."
+		return $invokeBuild
 	} else {
 		Write-Warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module."
-		if ($Quiet) {
-			return $false
-		}
+		return $false
 	}
 }
 
 #region Main
 Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
 
-
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
 	#Bootstrap it
-	Install-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -scope currentuser -verbose -Force
-	Import-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -Force
+	Install-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -Scope CurrentUser -Force -Verbose
+	Import-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -Force -Scope Global -Verbose
 }
 
 Invoke-Expression "Invoke-Build $($args -join ' ')"
