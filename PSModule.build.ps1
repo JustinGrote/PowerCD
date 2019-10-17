@@ -1,6 +1,6 @@
-param(
-    $Settings =
-)
+# param(
+#     $Settings =
+# )
 
 
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
@@ -17,7 +17,7 @@ Enter-Build {
 
     #Fix a bug in case powershell was started in pwsh: https://github.com/PowerShell/PowerShell/issues/9957
     if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
-        Write-Warning 'Powershell 5.1 was started inside of pwsh, reinitializing Microsoft.Powershell.Utility'
+        Write-Verbose 'Powershell 5.1 was started inside of pwsh, reinitializing Microsoft.Powershell.Utility'
         $ModuleToImport = Get-Module Microsoft.Powershell.Utility -ListAvailable |
             Where-Object Version -lt 6.0.0 |
             Sort-Object Version -Descending |
