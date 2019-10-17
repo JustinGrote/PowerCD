@@ -6,39 +6,37 @@ function Get-PowerCDSetting {
         $BuildOutput = 'BuildOutput'
     )
 
-    $BuildEnvironment = (Get-BuildEnvironment -BuildOutput $BuildOutput -As Hashtable)
-
     $Settings = [ordered]@{}
 
-    $Settings.BuildEnvironment = $BuildEnvironment
+    $Settings.BuildEnvironment = (Get-BuildEnvironment -BuildOutput $BuildOutput -As Hashtable).AsReadOnly()
 
     $Settings.General = [ordered]@{
         # Root directory for the project
-        ProjectRoot = $BuildEnvironment.ProjectPath
+        ProjectRoot = $Settings.BuildEnvironment.ProjectPath
 
         # Root directory for the module
-        SrcRootDir = $BuildEnvironment.ModulePath
+        SrcRootDir = $Settings.BuildEnvironment.ModulePath
 
         # The name of the module. This should match the basename of the PSD1 file
-        ModuleName = $BuildEnvironment.ProjectName
+        ModuleName = $Settings.BuildEnvironment.ProjectName
 
         # Module version
-        ModuleVersion = (Import-PowerShellDataFile -Path $BuildEnvironment.PSModuleManifest).ModuleVersion
+        ModuleVersion = (Import-PowerShellDataFile -Path $Settings.BuildEnvironment.PSModuleManifest).ModuleVersion
 
         # Module manifest path
-        ModuleManifestPath = $BuildEnvironment.PSModuleManifest
+        ModuleManifestPath = $Settings.BuildEnvironment.PSModuleManifest
     }
 
     $Settings.Build = [ordered]@{
         Dependencies = @('StageFiles', 'BuildHelp')
 
         # Default Output directory when building a module
-        OutDir = $BuildEnvironment.BuildOutput
+        OutDir = $Settings.BuildEnvironment.BuildOutput
 
         # Module output directory
         # This will be computed in 'Initialize-PSBuild' so we can allow the user to
         # override the top-level 'OutDir' above and compute the full path to the module internally
-        ModuleOutDir = $BuildEnvironment.BuildOutput
+        ModuleOutDir = $Settings.BuildEnvironment.BuildOutput
 
         # Controls whether to "compile" module into single PSM1 or not
         CompileModule = $true
@@ -53,7 +51,7 @@ function Get-PowerCDSetting {
         Enabled = $true
 
         # Directory containing Pester tests
-        RootDir = Join-Path -Path $BuildEnvironment.ProjectPath -ChildPath tests
+        RootDir = Join-Path -Path $Settings.BuildEnvironment.ProjectPath -ChildPath tests
 
         # Specifies an output file path to send to Invoke-Pester's -OutputFile parameter.
         # This is typically used to write out test results so that they can be sent to a CI
@@ -90,8 +88,8 @@ function Get-PowerCDSetting {
             # acts as a direct input to the Pester -CodeCoverage parameter, so will support constructions
             # like the ones found here: https://github.com/pester/Pester/wiki/Code-Coverage.
             Files = @(
-                Join-Path -Path $BuildEnvironment.ModulePath -ChildPath '*.ps1'
-                Join-Path -Path $BuildEnvironment.ModulePath -ChildPath '*.psm1'
+                Join-Path -Path $Settings.BuildEnvironment.ModulePath -ChildPath '*.ps1'
+                Join-Path -Path $Settings.BuildEnvironment.ModulePath -ChildPath '*.psm1'
             )
         }
     }

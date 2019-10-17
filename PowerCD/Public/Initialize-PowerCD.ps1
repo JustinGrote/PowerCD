@@ -11,7 +11,7 @@ function Initialize-PowerCD {
     )
 
     . $PSScriptRoot\Get-PowerCDSetting.ps1
-    Set-Variable -Name PCDSetting -Scope Script -Option ReadOnly -Force -Value (Get-PowerCDSetting)
+    Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value (Get-PowerCDSetting)
 
     #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
     if ($ENV:CI -or $CI -or ($PCDSetting.BuildEnvironment.buildsystem -and $PCDSetting.BuildEnvironment.buildsystem -ne 'Unknown')) {
