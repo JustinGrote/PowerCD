@@ -9,7 +9,7 @@ function Build-PowerCDModule {
     [CmdletBinding()]
     param (
         #Path to the Powershell Module Manifest representing the file you wish to compile
-        $PSModuleManifest = $pcdSetting.Environment.PSModuleManifest,
+        $PSModuleManifest = $PCDSetting.BuildEnvironment.PSModuleManifest,
         #Path to the build destination. This should be non-existent or deleted by Clean prior
         $Destination = $pcdSetting.BuildModuleOutput,
         #By Default this command expects a nonexistent destination, specify this to allow for a "Dirty" copy

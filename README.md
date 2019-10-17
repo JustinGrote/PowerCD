@@ -37,7 +37,7 @@ I wanted to create a standard methodology to build powershell modules, as the op
 1. Windows with Powershell v5+
 2. Windows with Powershell Core v6.0.1+
 3. Linux with Powershell Core v6.0.1+
-4. *Maybe* MacOS with Powershell Core v6.0.1+
+4. MacOS with Powershell Core v6.0.1+
 
 ### Make the build process work in userspace, not requiring admin privileges for dependencies if at all possible
 
@@ -62,6 +62,7 @@ I've also tried tried to ensure that projects will "build" on any Windows or Lin
 Based on RamblingCookieMonster's template plus what is seen in the community. (Public/Private/Lib)
 
 ### Versioning
+
 We use GitVersion to establish automatic versions and tags of the module so you don't have to keep track.
 
 If you use Github and Appveyor, this may lead to inconsistencies between local and remote if you don't sync after every commit (e.g. your local "tag" may be 0.2.5 for the same commit on Appveyor that says 0.2.1, if you make 5 changes and build 5 times locally, but then only sync once) . This is fine if you use VSCode because it automatically overwrites the local tags with the "correct" GitHub/VSTS tags every time you sync, but you can do it using any other editor as long as your git pull command includes the --tags argument.

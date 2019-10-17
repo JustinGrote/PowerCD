@@ -10,7 +10,7 @@ function Update-PowerCDPublicFunctions {
         #Specify to override the auto-detected function list
         [String[]]$Functions = $PCDSetting.Functions,
         #Paths to the module public function files
-        [String]$PublicFunctionPath = (Join-Path $PCDSetting.Environment.ModulePath 'Public')
+        [String]$PublicFunctionPath = (Join-Path $PCDSetting.BuildEnvironment.ModulePath 'Public')
     )
 
     if (-not $Functions) {

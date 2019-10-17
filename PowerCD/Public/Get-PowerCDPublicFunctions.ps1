@@ -10,7 +10,7 @@ function Get-PowerCDPublicFunctions {
     [CmdletBinding()]
     param(
         #The path to the public module directory containing the modules. Defaults to the "Public" folder where the source module manifest resides.
-        [String]$PublicModulePath = (Join-Path (Split-Path $pcdSetting.Environment.PSModuleManifest) 'Public')
+        [String]$PublicModulePath = (Join-Path (Split-Path $PCDSetting.BuildEnvironment.PSModuleManifest) 'Public')
     )
 
     $PublicFunctionCode = Get-ChildItem $PublicModulePath -Filter '*.ps1'

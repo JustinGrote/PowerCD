@@ -56,8 +56,8 @@ function Get-PowerCDVersion {
         [Version]$PCDSetting.Version     = $GitVersionInfo.MajorMinorPatch
         [String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
 
-        if ($PCDSetting.Environment.BuildOutput) {
-            $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.Environment.BuildOutput,$PCDSetting.Environment.ProjectName,$PCDSetting.Version)
+        if ($PCDSetting.BuildEnvironment.BuildOutput) {
+            $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,$PCDSetting.BuildEnvironment.ProjectName,$PCDSetting.Version)
         }
     } catch {
         write-warning "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"

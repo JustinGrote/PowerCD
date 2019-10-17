@@ -3,9 +3,9 @@
 function Invoke-PowerCDClean {
     [CmdletBinding()]
     param (
-        $buildProjectPath = $pcdSetting.Environment.ProjectPath,
-        $buildOutputPath  = $pcdSetting.Environment.BuildOutput,
-        $buildProjectName = $pcdSetting.Environment.ProjectName
+        $buildProjectPath = $PCDSetting.BuildEnvironment.ProjectPath,
+        $buildOutputPath  = $PCDSetting.BuildEnvironment.BuildOutput,
+        $buildProjectName = $PCDSetting.BuildEnvironment.ProjectName
     )
 
     #Taken from Invoke-Build because it does not preserve the command in the scope this function normally runs
