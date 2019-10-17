@@ -28,14 +28,14 @@ pool:
   vmImage: $(os)
 steps:
 - script: "$(psversion) -noninteractive -noprofile -f build.ps1"
-  displayName: 'Powershell Module Build and Test'
+  displayName: 'Build and Test Powershell Module'
 
 - task: PublishTestResults@2
   displayName: 'Pester Test Results'
   inputs:
     testRunner: 'NUnit'
     testResultsFiles: '**/*TestResults*.xml'
-    testRunTitle: 'Pester'
+    testRunTitle: 'Pester $(os)-$(psversion)'
 
 - task: CopyFiles@2
   displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
