@@ -1,13 +1,15 @@
 
+. $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
+Import-PowerCDModuleFast BuildHelpers
+Import-PowerCDModuleFast Pester
+Import-PowerCDModuleFast PackageManagement
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue -verbose
 . PowerCD.Tasks
 
 Enter-Build {
     #Bootstrap BuildHelpers Module
     #TODO: Don't do this step in production buildhelpers, it should be a nestedmodule
-    . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
-    Import-PowerCDModuleFast BuildHelpers
-    Import-PowerCDModuleFast Pester
+
     Initialize-PowerCD
 }
 
