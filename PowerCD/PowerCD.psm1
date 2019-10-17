@@ -13,7 +13,8 @@ foreach ($ScriptPathItem in 'Private','Public') {
 Set-Alias PowerCD.Tasks $PSScriptRoot/PowerCD.tasks.ps1
 
 if (-not $PublicFunctions) {
-    $publicFunctions = (Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName powercd.psd1).FunctionsToExport
+    write-host -fore magenta "PSScriptRoot: $PSScriptRoot"
+    $publicFunctions = (Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName 'powercd.psd1').FunctionsToExport
     Export-ModuleMember -Alias PowerCD.Tasks -Function $publicFunctions
 }
 
