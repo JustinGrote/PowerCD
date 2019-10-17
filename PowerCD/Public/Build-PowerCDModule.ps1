@@ -42,10 +42,7 @@ function Build-PowerCDModule {
     #TODO: Use this one command and sort out the items later
     #$FilesToCopy = Get-ChildItem -Path $PSModuleManifestDirectory -Filter '*.ps*1' -Exclude '*.tests.ps1' -Recurse
 
-    #TODO: Replace when dropping support for Powershell 5.1
-    #PS6+ Preferred Method, doesn't work on 5.1 Windows Server
-    #$SourceManifest = Import-PowershellDataFile $PSModuleManifest
-    $SourceManifest = Import-LocalizedData -FileName (Split-Path $PSModuleManifest -Leaf) -BaseDirectory (Split-Path $PSModuleManifest)
+    $SourceManifest = Import-PowershellDataFile -Path $PSModuleManifest
 
     #TODO: Allow .psm1 to be blank and generate it on-the-fly
     if (-not $SourceManifest.RootModule) {throw "The source manifest at $PSModuleManifest does not have a RootModule specified. This is required to build the module."}
