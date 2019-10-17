@@ -34,3 +34,8 @@ jobs:
           & $env:PSBUILDEXE -noninteractive -noprofile -f ./build.ps1
           $myexit = $LASTEXITCODE
           if ($myexit) {exit $myexit}
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: PSModule
+          path: BuildOutput
