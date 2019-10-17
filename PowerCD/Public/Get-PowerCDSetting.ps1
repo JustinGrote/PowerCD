@@ -1,3 +1,4 @@
+using namespace System.IO
 #requires -module BuildHelpers
 <#
 .SYNOPSIS

@@ -9,5 +9,12 @@ foreach ($ScriptPathItem in 'Private','Public') {
 }
 #endregion SourceInit
 
+#Module Startup
 Set-Alias PowerCD.Tasks $PSScriptRoot/PowerCD.tasks.ps1
+
+if (-not $PublicFunctions) {
+    $publicFunctions = (Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName powercd.psd1).FunctionsToExport
+    Export-ModuleMember -Alias PowerCD.Tasks -Function $publicFunctions
+}
+
 Export-ModuleMember -Alias PowerCD.Tasks -Function $publicFunctions

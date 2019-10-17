@@ -49,7 +49,6 @@ function Build-PowerCDModule {
 
     #TODO: Allow .psm1 to be blank and generate it on-the-fly
     if (-not $SourceManifest.RootModule) {throw "The source manifest at $PSModuleManifest does not have a RootModule specified. This is required to build the module."}
-
     $SourceRootModulePath = Join-Path $SourceModuleDir $sourceManifest.RootModule
     $SourceRootModule = Get-Content -Raw $SourceRootModulePath
 
@@ -59,7 +58,16 @@ function Build-PowerCDModule {
     $SourceFiles = Get-ChildItem -Path $SourceModuleDir -Include $PSFileInclude -Exclude $PSFileExclude -File -Recurse
     if (-not $NoCompile) {
         #TODO: Apply ordering if important (e.g. classes)
-        $CombinedSourceFiles = Get-Content -Raw $SourceFiles
+
+        #Collate the files, pulling out using lines because these have to go first
+        [String[]]$UsingLines = @()
+        [String]$CombinedSourceFiles = (Get-Content $SourceFiles | Where-Object {
+            if ($_ -match '^using .+$') {
+                $UsingLines += $_
+                return $false
+            }
+            return $true
+        }) -join [Environment]::NewLine
 
         #If a SourceInit region was set, inject the files there, otherwise just append to the end.
         $sourceRegionRegex = "(?s)#region $SourceRegionName.+#endregion $SourceRegionName"
@@ -68,10 +76,20 @@ function Build-PowerCDModule {
             $RegexEscapedCombinedSourceFiles = [String]$CombinedSourceFiles.replace('$','$$')
             $SourceRootModule = $SourceRootModule -replace $sourceRegionRegex,$RegexEscapedCombinedSourceFiles
         } else {
-            $SourceRootModule += [Environment]::NewLine() + $CombinedSourceFiles
+            #Just add them to the end of the file
+            $SourceRootModule += [Environment]::NewLine + $CombinedSourceFiles
         }
+
+        #Use a stringbuilder to piece the portions of the config back together, with using statements up-front
+        [Text.StringBuilder]$OutputRootModule = ''
+        $UsingLines | Select-Object -Unique | Foreach-Object {
+            [void]$OutputRootModule.AppendLine($PSItem)
+        }
+        [void]$OutputRootModule.AppendLine($SourceRootModule)
+        [String]$SourceRootModule = $OutputRootModule
+
         #Strip non-help-related comments and whitespace
-        $SourceRootModule = Remove-CommentsAndWhiteSpace $SourceRootModule
+        [String]$SourceRootModule = Remove-CommentsAndWhiteSpace $SourceRootModule
     } else {
         #TODO: Track all files in the source directory to ensure none get missed on the second step
 

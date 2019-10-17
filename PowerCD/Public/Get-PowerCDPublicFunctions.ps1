@@ -13,7 +13,24 @@ function Get-PowerCDPublicFunctions {
         [String]$PublicModulePath = (Join-Path (Split-Path $pcdSetting.Environment.PSModuleManifest) 'Public')
     )
 
-    $PublicFunctionCode = Get-ChildItem $PublicModulePath -Filter '*.ps1' | Get-Content -Raw
+    $PublicFunctionCode = Get-ChildItem $PublicModulePath -Filter '*.ps1'
+
+    #using statements have to be first, so we have to pull them out and move them to the top
+    [String[]]$UsingLines = @()
+    [String]$PublicFunctionCodeWithoutUsing = (Get-Content $PublicFunctionCode.FullName | Where-Object {
+        if ($_ -match '^using .+$') {
+            $UsingLines += $_
+            return $false
+        }
+        return $true
+    }) -join [Environment]::NewLine
+
+    #Rebuild PublicFunctionCode with a stringbuilder to put all the using up top
+    [Text.StringBuilder]$PublicFunctionCode = ''
+    $UsingLines | Select-Object -Unique | Foreach-Object {
+        [void]$PublicFunctionCode.AppendLine($PSItem)
+    }
+    [void]$PublicFunctionCode.AppendLine($PublicFunctionCodeWithoutUsing)
 
     [ScriptBlock]::Create($PublicFunctionCode).AST.EndBlock.Statements | Where-Object {
         $PSItem -is [Management.Automation.Language.FunctionDefinitionAst]

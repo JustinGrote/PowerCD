@@ -22,7 +22,6 @@ function Test-PowerCDPester {
     #write-verboseheader "Starting Pester Tests..."
     Write-Verbose "Task $($task.name)` -  Testing $moduleDirectory"
 
-
     $PesterParams = @{
         #TODO: Fix for source vs built object
         # Script       = @{
@@ -60,7 +59,7 @@ function Test-PowerCDPester {
     # Need to error out or it will proceed to the deployment. Danger!
     if ($TestResults.failedcount -isnot [int] -or $TestResults.FailedCount -gt 0) {
         $testFailedMessage = "Failed '$($TestResults.FailedCount)' tests, build failed"
-        Write-Error $testFailedMessage
+        throw $testFailedMessage
         #TODO: Rewrite to use BuildHelpers
         # if ($isAzureDevOps) {
         #     Write-Host "##vso[task.logissue type=error;]$testFailedMessage"

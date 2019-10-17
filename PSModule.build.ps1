@@ -11,7 +11,15 @@ Enter-Build {
     Initialize-PowerCD
 }
 
+#TODO: Make task for this
+task CopyBuildTasksFile {
+    Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0] -verbose
+}
+
+
 task Clean Clean.PowerCD
-task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD
+task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
 task Test TestPester.PowerCD
+
+
 task . Clean,Build,Test

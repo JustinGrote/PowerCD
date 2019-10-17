@@ -17,13 +17,13 @@ function Invoke-PowerCDClean {
             foreach($_ in $Path) {
                 if (Get-Item $_ -Force -ErrorAction 0) {
                     if ($v) {Write-Verbose "remove: removing $_" -Verbose}
-                    Remove-Item $_ -Force -Recurse
+                    Remove-Item $_ -Force -Recurse -ErrorAction stop
                 }
                 elseif ($v) {Write-Verbose "remove: skipping $_" -Verbose}
             }
         }
         catch {
-            *Die $_
+            throw $_
         }
     }
 
