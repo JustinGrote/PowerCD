@@ -2,7 +2,6 @@
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
 Import-PowerCDModuleFast BuildHelpers
 Import-PowerCDModuleFast Pester
-Import-PowerCDModuleFast PackageManagement
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue -verbose
 . PowerCD.Tasks
 
