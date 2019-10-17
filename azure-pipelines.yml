@@ -30,22 +30,22 @@ steps:
 - script: "$(psversion) -noninteractive -noprofile -f build.ps1"
   displayName: 'Powershell Module Build and Test'
 
-    - task: PublishTestResults@2
-      displayName: 'Pester Test Results'
-      inputs:
-        testRunner: 'NUnit'
-        testResultsFiles: '**/*TestResults*.xml'
-        testRunTitle: 'Pester'
+- task: PublishTestResults@2
+  displayName: 'Pester Test Results'
+  inputs:
+    testRunner: 'NUnit'
+    testResultsFiles: '**/*TestResults*.xml'
+    testRunTitle: 'Pester'
 
-    - task: CopyFiles@2
-      displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
-        contents: '*.zip'
-        targetfolder: '$(Build.ArtifactStagingDirectory)'
+- task: CopyFiles@2
+  displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
+    contents: '*.zip'
+    targetfolder: '$(Build.ArtifactStagingDirectory)'
 
-    # - task: PublishPipelineArtifact@0
-    #   displayName: 'Capture Powershell Module as Artifact'
-    #   inputs:
-    #     artifactName: '$(os)-$(psversion)'
-    #     targetpath: '$(Build.ArtifactStagingDirectory)'
+- task: PublishPipelineArtifact@0
+  displayName: 'Capture Powershell Module as Artifact'
+  inputs:
+    artifactName: '$(os)-$(psversion)'
+    targetpath: '$(Build.ArtifactStagingDirectory)'
