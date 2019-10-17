@@ -60,7 +60,7 @@ Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVe
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
 	#Bootstrap it
-	Install-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -scope currentuser -verbose
+	Install-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -scope currentuser -verbose -Force
 	Import-Module -Name InvokeBuild -MinimumVersion $MinimumVersion -Force
 }
 
