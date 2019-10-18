@@ -16,8 +16,8 @@ environment:
 
   # Build Once with Powershell and once with pwsh
   matrix:
-    - PSVERSION = 'powershell'
-    - PSVERSION = 'pwsh'
+    - PSVERSION: 'powershell'
+    - PSVERSION: 'pwsh'
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
 skip_commits:
