@@ -33,13 +33,16 @@ task CopyBuildTasksFile {
 }
 
 task PackageZip {
-    $ProgressPreference = 'SilentlyContinue'
+
     [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
     $CompressArchiveParams = @{
         Path = $PCDSetting.BuildEnvironment.ModulePath
         DestinationPath = join-path $PCDSetting.BuildEnvironment.BuildOutput $ZipFileName
     }
+    $CurrentProgressPreference = $GLOBAL:ProgressPreference
+    $GLOBAL:ProgressPreference = 'SilentlyContinue'
     Compress-Archive @CompressArchiveParams
+    $GLOBAL:ProgressPreference = $CurrentProgressPreference
     write-verbose ("Zip File Output:" + $CompressArchiveParams.DestinationPath)
 }
 
