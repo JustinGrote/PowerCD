@@ -14,10 +14,11 @@ environment:
     secure: HncD30pn+cWRepdP28pyB1l4BNg3x3MdvcNV8EysOhQ5kBFMHVyXiQM0whuUW78P
   APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAqOJfFgHyHbQk1d/oCxPn2mGCd92GOFaT9PvA4pICCpMH8w+9Cv1OZpNcwvk+RIzTO9Fm8ilfK/x4gUFrRmAp9BkkmFDhqol0/3e2ZrsxjsYJsUcic/fcRINrDTrwSMaOghUO2fcSTJ3N7WsGKlcG3NXszPgJD95Ulpgk6qvclWJEt15xoYuqHnlhohkXA3zbfcWzuGsMZkuv1fMZB5nEjfLKegzCesQ+swAUaEbUxOeKIFD4VlluDuKONeKqDTETkpLZXKV8pRwDBxgD3i8zQJcSGZ8XoYyPLPbZD/J7AEOap6uYOr4jC8EbFug8SsnxPQ7vxnwslgHoRFzNeYlkIQ== d8:72:f4:1f:1f:31:4c:01:ce:3e:5a:ec:1b:31:8b:da rsa-jgrote-Jan2016
 
-  # Build Once with Powershell and once with pwsh
+  # Build with both powershell and pwsh
   matrix:
     - PSVERSION: 'powershell'
     - PSVERSION: 'pwsh'
+
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
 skip_commits:
@@ -27,23 +28,16 @@ skip_commits:
 # Releases are tracked and tagged by the build script in Appveyor, having this enabled results in a double build
 skip_tags: true
 
-#Kick off the CI/CD pipeline. We do test and build in the same script
-#To be portable to non-Appveyor builds
-
-#Fast Fail the build if any one build fails
-# matrix:
-#   fast_finish: true
-#   exclude:
-#     - image: Ubuntu
-#       APPVEYOR_BUILD_WITH_PSCORE: "false"
+build_script:
+  - ps: & $ENV:PSVERSION -noninteractive -noprofile -f build.ps1
+on_finish:
+  #Upload Test Results
+  - ps: (Get-Item './BuildOutput/*TestResults*.xml').Foreach{([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $PSItem)}
 
 #Capture the artifacts
 artifacts:
   - path: BuildOutput\*.zip
-    name: Powershell Module Zip Package
-
-build_script:
-  - ps: "& $ENV:PSVERSION -noninteractive -noprofile -f build.ps1"
+    name: Powershell Module Zip
 
 #   - path: Release\*.nupkg
 #     name: Powershell Module NuGet Package
@@ -77,7 +71,6 @@ build_script:
 #         APPVEYOR_BUILD_WITH_PSCORE: "true"
 #   init:
 #     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
-# (Get-Item './BuildOutput/*TestResults*.xml').Foreach{([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $PSItem)}  build_script:
 #     - pwsh: .\build.ps1
 #   # cache:
 #   #   - '%USERPROFILE%\Documents\PowerShell\Modules -> PSModule.requirements.ps1'
