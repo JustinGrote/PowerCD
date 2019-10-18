@@ -1,41 +1,58 @@
-function Import-PowerCDModuleFast ($ModuleName,[Switch]$Package,[Switch]$Force) {
+function Import-PowerCDModuleFast {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory, ValueFromPipeline)][String[]]$ModuleName,
+        [String]$Version,
+        [Switch]$Package,
+        [Switch]$Force
+    )
     process {
-        #Get a temporary directory
-        $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(),'PowerCD',$ModuleName)
-        $tempfile = join-path $tempModulePath "$ModuleName.zip"
+        foreach ($ModuleName in $ModuleName) {
 
-        if ((Test-Path $tempfile) -and -not $Force) {
-            Write-Verbose "$ModuleName already installed as $tempfile"
-            if ($Package) {$tempModulePath}
-            return
-        }
+            #Get a temporary directory
+            $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(), 'PowerCD', $ModuleName)
+            $ModuleManifestPath = Join-Path $tempModulePath "$ModuleName.psd1"
+            $tempfile = join-path $tempModulePath "$ModuleName.zip"
 
-        #This only happens if -Force was specified, so we require confirmation so that the user didn't do something stupid like put ../../.. in the path
-        if (Test-Path $tempModulePath) {Remove-Item $tempModulePath -Recurse -Confirm:$true}
+            if ((Test-Path $tempModulePath) -and -not $Force) {
+                Write-Verbose "$ModuleName already found in $tempModulePath"
+            }
+            else {
+                if (Test-Path $tempModulePath) {
+                    Remove-Item $tempfile -Force
+                    Remove-Item $tempModulePath -Recurse -Force
+                }
 
-        New-Item -ItemType Directory -Path $tempModulePath > $null
+                New-Item -ItemType Directory -Path $tempModulePath > $null
 
-        #Fetch and import the module
-        $baseURI = 'https://powershellgallery.com/api/v2/package/'
-        if ($Package) {
-            $baseURI = 'https://www.nuget.org/api/v2/package/'
-        }
-        $moduleLatestURI = "$baseURI$ModuleName"
+                #Fetch and import the module
+                $baseURI = 'https://powershellgallery.com/api/v2/package/'
+                if ($Package) {
+                    $baseURI = 'https://www.nuget.org/api/v2/package/'
+                }
 
-        write-verbose "Fetching $ModuleName from $moduleLatestURI"
-        (New-Object Net.WebClient).DownloadFile($moduleLatestURI, $tempfile)
+                if ($Version) {
+                    #Ugly syntax for what is effectively "Join-Path" for URIs
+                    [uri]::new([uri]$baseURI, $version)
+                }
+                $moduleLatestURI = "$baseURI$ModuleName"
 
-        $CurrentProgressPreference = $ProgressPreference
-        $GLOBAL:ProgressPreference = 'silentlycontinue'
-        Expand-Archive $tempfile $tempModulePath -Force -ErrorAction stop
-        $GLOBAL:ProgressPreference = $CurrentProgressPreference
+                write-verbose "Fetching $ModuleName from $moduleLatestURI"
+                (New-Object Net.WebClient).DownloadFile($moduleLatestURI, $tempfile)
 
-        $ModuleToImportPath = Join-Path $tempModulePath "$ModuleName.psd1"
-        if (-not $Package) {
-            write-verbose "Importing $ModuleName from $ModuleToImportPath"
-            Import-Module $ModuleToImportPath -force
-        } else {
-            $tempModulePath
+                $CurrentProgressPreference = $ProgressPreference
+                $GLOBAL:ProgressPreference = 'silentlycontinue'
+                Expand-Archive $tempfile $tempModulePath -Force -ErrorAction stop
+                $GLOBAL:ProgressPreference = $CurrentProgressPreference
+            }
+
+            if (-not $Package) {
+                write-verbose "Importing $ModuleName from $ModuleManifestPath"
+                Import-Module $ModuleManifestPath -force
+            }
+            else {
+                $tempModulePath
+            }
         }
     }
 }

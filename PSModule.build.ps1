@@ -4,9 +4,11 @@
 
 
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
-Import-PowerCDModuleFast BuildHelpers
-Import-PowerCDModuleFast Pester
-Import-PowerCDModuleFast PSScriptAnalyzer
+Import-PowerCDModuleFast = @(
+    BuildHelpers
+    Pester
+    PSScriptAnalyzer
+)
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
 
@@ -31,7 +33,7 @@ task CopyBuildTasksFile {
 }
 
 task PackageZip {
-
+    $ProgressPreference = 'SilentlyContinue'
     [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
     $CompressArchiveParams = @{
         Path = $PCDSetting.BuildEnvironment.ModulePath
