@@ -22,7 +22,7 @@ function Get-PSModuleNugetDependencies {
         [Parameter(Position=1)][String]$Destination,
         #Which PS Standard library to use. Defaults to 5.1.0.
         [String]$PowershellTarget = '5.1.0',
-        [String]$BuildPath = (Join-Path ([io.path]::GetTempPath()) 'PSModuleDeps'),
+        [String]$BuildPath = (Join-Path ([io.path]::GetTempPath()) "PSModuleDeps-$((New-Guid).Guid)"),
         #Name of the build project. You normally don't need to change this.
         [String]$BuildProjectName = 'PSModuleDeps',
         #Whether to output the resultant copied file paths
@@ -42,7 +42,7 @@ function Get-PSModuleNugetDependencies {
     }
 
     #Add Powershell Standard Library
-    $Packages['PowerShellStandard.Library'] = '5.1.0'
+    $Packages['PowerShellStandard.Library'] = $PowershellTarget
 
     if (-not ([version](dotnet --version) -ge 2.2)) {throw 'dotnet 2.2 or later is required. Make sure you have the .net core SDK 2.x+ installed'}
 
@@ -54,6 +54,7 @@ function Get-PSModuleNugetDependencies {
 
 <PropertyGroup>
     <TargetFramework>$Target</TargetFramework>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 </PropertyGroup>
 <ItemGroup>
 <PackageReference Include="PowerShellStandard.Library" Version="$PowerShellTarget">
@@ -69,7 +70,7 @@ function Get-PSModuleNugetDependencies {
         $dotnetArgs = 'add',$BuildProjectFile,'package',$ModuleItem
 
         if ($Packages[$ModuleItem] -ne $true) {
-            $dotNetArgs += '--no-restore'
+            #$dotNetArgs += '--no-restore'
             $dotnetArgs += '--version'
             $dotnetArgs += $Packages[$ModuleItem]
         }
