@@ -1,4 +1,3 @@
-#requires -module BuildHelpers
 <#
 .SYNOPSIS
 This is a set of standard tests to ensure a powershell module is valid
@@ -15,10 +14,6 @@ param (
     #How far up the directory tree to recursively search for module manifests.
     [Parameter(ParameterSetName='Search')][int]$Depth=0
 )
-
-
-
-
 
 Describe 'Powershell Module' {
     BeforeAll {

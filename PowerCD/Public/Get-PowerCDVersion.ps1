@@ -1,5 +1,4 @@
 using namespace System.IO
-#requires -module BuildHelpers
 function Get-PowerCDVersion {
     [CmdletBinding()]
     param()

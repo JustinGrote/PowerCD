@@ -1,4 +1,3 @@
-#Requires -module BuildHelpers
 <#
 .SYNOPSIS
 Sets the version on a powershell Module

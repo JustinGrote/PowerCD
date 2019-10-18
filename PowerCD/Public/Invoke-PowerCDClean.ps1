@@ -1,5 +1,3 @@
-#requires -module BuildHelpers
-
 function Invoke-PowerCDClean {
     [CmdletBinding()]
     param (

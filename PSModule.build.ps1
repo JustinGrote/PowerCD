@@ -4,10 +4,10 @@
 
 
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
-Import-PowerCDModuleFast = @(
-    BuildHelpers
-    Pester
-    PSScriptAnalyzer
+Import-PowerCDModuleFast @(
+    'BuildHelpers'
+    'Pester'
+    'PSScriptAnalyzer'
 )
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
