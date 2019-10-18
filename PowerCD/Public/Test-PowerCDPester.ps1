@@ -6,7 +6,8 @@ function Test-PowerCDPester {
         $ModuleDirectory = $PCDSetting.BuildModuleOutput,
         $PesterResultFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
         $CodeCoverageOutputFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-CodeCoverage_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
-        $CodeCoverage = (Get-ChildItem -Path $ModuleDirectory -Filter *.ps1 -Recurse)
+        [String[]]$Exclude = 'PowerCD.tasks.ps1',
+        $CodeCoverage = (Get-ChildItem -Path (Join-Path $ModuleDirectory '*') -Include *.ps1,*.psm1 -Exclude $Exclude -Recurse)
     )
 
     #Try autodetecting the "furthest out module manifest"
