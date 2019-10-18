@@ -57,6 +57,8 @@ for:
     - ps:
   build_script:
     - ps: .\build.ps1
+    - ps: write-warning $env:APPVEYOR_JOB_ID
+    - ps: write-warning (Get-Item './BuildOutput/*TestResults*.xml')
     - ps: (Get-Item './BuildOutput/*TestResults*.xml').Foreach{([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $PSItem)}
   # cache:
   #   - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
