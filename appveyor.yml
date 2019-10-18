@@ -39,7 +39,7 @@ skip_tags: true
 
 #Capture the artifacts
 artifacts:
-  - path: Release\*.zip
+  - path: BuildOutput\*.zip
     name: Powershell Module Zip Package
 
 build_script:
