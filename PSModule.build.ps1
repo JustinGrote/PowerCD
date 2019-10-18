@@ -22,9 +22,7 @@ Enter-Build {
         Remove-Module 'Microsoft.Powershell.Utility'
         Import-Module $ModuleToImport -Force
     }
-
     Initialize-PowerCD
-
 }
 
 #TODO: Make task for this
