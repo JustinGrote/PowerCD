@@ -2,7 +2,8 @@
 version: '{build}-{branch}'
 image:
   - Visual Studio 2017
-  - Ubuntu
+  - Visual Studio 2019
+#  - Ubuntu
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:
@@ -12,9 +13,7 @@ environment:
   NuGetAPIKey:
     secure: HncD30pn+cWRepdP28pyB1l4BNg3x3MdvcNV8EysOhQ5kBFMHVyXiQM0whuUW78P
   APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAqOJfFgHyHbQk1d/oCxPn2mGCd92GOFaT9PvA4pICCpMH8w+9Cv1OZpNcwvk+RIzTO9Fm8ilfK/x4gUFrRmAp9BkkmFDhqol0/3e2ZrsxjsYJsUcic/fcRINrDTrwSMaOghUO2fcSTJ3N7WsGKlcG3NXszPgJD95Ulpgk6qvclWJEt15xoYuqHnlhohkXA3zbfcWzuGsMZkuv1fMZB5nEjfLKegzCesQ+swAUaEbUxOeKIFD4VlluDuKONeKqDTETkpLZXKV8pRwDBxgD3i8zQJcSGZ8XoYyPLPbZD/J7AEOap6uYOr4jC8EbFug8SsnxPQ7vxnwslgHoRFzNeYlkIQ== d8:72:f4:1f:1f:31:4c:01:ce:3e:5a:ec:1b:31:8b:da rsa-jgrote-Jan2016
-  matrix:
-    - APPVEYOR_BUILD_WITH_PSCORE: "false"
-    - APPVEYOR_BUILD_WITH_PSCORE: "true"
+
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
 skip_commits:
@@ -34,10 +33,18 @@ skip_tags: true
 #     - image: Ubuntu
 #       APPVEYOR_BUILD_WITH_PSCORE: "false"
 
-# # #Capture the artifacts
-# artifacts:
-#   - path: Release\*.zip
-#     name: Powershell Module Zip Package
+environment:
+  matrix:
+    - PSVERSION = 'powershell'
+    - PSVERSION = 'pwsh'
+
+#Capture the artifacts
+artifacts:
+  - path: Release\*.zip
+    name: Powershell Module Zip Package
+
+build_script:
+  - ps: "$(psversion) -noninteractive -noprofile -f build.ps1"
 
 #   - path: Release\*.nupkg
 #     name: Powershell Module NuGet Package
@@ -46,23 +53,23 @@ skip_tags: true
 # for:
 
 #Build with Windows Powershell 5.1
-- matrix:
-    only:
-      - image: Visual Studio 2017
-        APPVEYOR_BUILD_WITH_PSCORE: "false"
-  init:
-    - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
-  on_finish:
-    - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
-    - ps:
-  build_script:
-    - ps: .\build.ps1
-    - ps: write-warning $env:APPVEYOR_JOB_ID
-    - ps: write-warning (Get-Item './BuildOutput/*TestResults*.xml')
-    - ps: (Get-Item './BuildOutput/*TestResults*.xml').Foreach{([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", $PSItem)}
-  # cache:
-  #   - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
-  #   - '%LOCALAPPDATA%\PackageManagement\NuGet'
+# - matrix:
+#     only:
+#       - image: Visual Studio 2017
+#         APPVEYOR_BUILD_WITH_PSCORE: "false"
+#   init:
+#     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
+#   on_finish:
+#     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
+#     - ps:
+#   build_script:
+#     - ps: .\build.ps1
+#     - ps: write-warning $env:APPVEYOR_JOB_ID
+#     - ps: write-warning (Get-Item './BuildOutput/*TestResults*.xml')
+#     - ps: (Get-Item './BuildOutput/*TestResults*.xml').Foreach{([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", $PSItem)}
+# cache:
+#   - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
+#   - '%LOCALAPPDATA%\PackageManagement\NuGet'
 
 # #Build with Powershell Core
 # - matrix:
