@@ -4,7 +4,8 @@ function Test-PowerCDPester {
     [CmdletBinding()]
     param (
         $ModuleDirectory = $PCDSetting.BuildModuleOutput,
-        $PesterResultFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml"))
+        $PesterResultFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
+        $CodeCoverageOutputFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-CodeCoverage_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml"))
     )
 
     #Try autodetecting the "furthest out module manifest"
@@ -31,6 +32,7 @@ function Test-PowerCDPester {
         #     }
         # }
         OutputFile   = $PesterResultFile
+        CodeCoverageOutputFile = $CodeCoverageOutputFile
         OutputFormat = 'NunitXML'
         PassThru     = $true
         OutVariable  = 'TestResults'

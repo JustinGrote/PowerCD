@@ -31,11 +31,21 @@ steps:
   displayName: 'Build and Test Powershell Module'
 
 - task: PublishTestResults@2
-  displayName: 'Pester Test Results'
+  displayName: 'Capture Pester Test Result'
   inputs:
     testRunner: 'NUnit'
     testResultsFiles: '**/*TestResults*.xml'
     testRunTitle: 'Pester $(os)-$(psversion)'
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Capture Pester Code Coverage Result'
+  inputs:
+    codeCoverageTool: 'JaCoCo'
+    summaryFileLocation: '**/*CodeCoverage*.xml'
+    #pathToSources: # Optional
+    #reportDirectory: # Optional
+    #additionalCodeCoverageFiles: # Optional
+    #failIfCoverageEmpty: false # Optional
 
 - task: CopyFiles@2
   displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
