@@ -54,9 +54,10 @@ for:
     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
   on_finish:
     - ps: if ($isWindows -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorRDPDebug')) {$blockRdp = $true; iex (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1').content}
-    - ps: ([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID", (Get-Item ./BuildOutput/*TestResults*.xml))
+    - ps:
   build_script:
     - ps: .\build.ps1
+    - ps: (Get-Item './BuildOutput/*TestResults*.xml').Foreach{([Net.WebClient]::new()).UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $PSItem)}
   # cache:
   #   - '%USERPROFILE%\Documents\WindowsPowerShell\Modules -> PSModule.requirements.ps1'
   #   - '%LOCALAPPDATA%\PackageManagement\NuGet'
@@ -91,7 +92,6 @@ for:
     - '/home/appveyor/.local/share/powershell'
     - '/home/appveyor/.config/share/powershell'
   on_finish:
-    - pwsh:
     - ps: if ($isLinux -and ($env:APPVEYOR_REPO_COMMIT_MESSAGE -match 'AppveyorSSHDebug')) {"export APPVEYOR_SSH_BLOCK=true" + [Environment]::NewLine + (iwr -useb 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh').content | bash -e -}
   #Deploy from Ubuntu as the last step, to avoid conflicts and verify all other builds passed (failed previous builds will cancel all builds with fast-fail setting)
   #deploy_script:
