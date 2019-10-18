@@ -3,7 +3,7 @@ version: '{build}-{branch}'
 image:
   - Visual Studio 2017
   - Visual Studio 2019
-#  - Ubuntu
+  - Ubuntu
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
 environment:
@@ -18,6 +18,14 @@ environment:
   matrix:
     - PSVERSION: 'powershell'
     - PSVERSION: 'pwsh'
+
+for:
+-
+  matrix:
+    except:
+      - image: Ubuntu
+        environment:
+          - PSVERSION: 'powershell'
 
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message

@@ -40,9 +40,7 @@ task PackageZip {
     }
     Compress-Archive @CompressArchiveParams
     write-verbose ("Zip File Output:" + $CompressArchiveParams.DestinationPath)
-
 }
-
 
 task Clean Clean.PowerCD
 task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
