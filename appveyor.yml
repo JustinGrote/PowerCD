@@ -43,7 +43,7 @@ artifacts:
     name: Powershell Module Zip Package
 
 build_script:
-  - ps: "$(psversion) -noninteractive -noprofile -f build.ps1"
+  - ps: "& $ENV:PSVERSION -noninteractive -noprofile -f build.ps1"
 
 #   - path: Release\*.nupkg
 #     name: Powershell Module NuGet Package
