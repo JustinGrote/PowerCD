@@ -22,7 +22,7 @@ environment:
 for:
 -
   matrix:
-    except:
+    exclude:
       - image: Ubuntu
         PSVERSION: 'powershell'
 
