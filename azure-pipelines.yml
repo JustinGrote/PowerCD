@@ -37,14 +37,10 @@ steps:
     testResultsFiles: '**/*TestResults*.xml'
     testRunTitle: 'Pester $(os)-$(psversion)'
 
-- task: PublishCodeCoverageResults@1
+- task: PublishCodeCoverageResults@2
   displayName: 'Capture Pester Code Coverage Result'
   inputs:
-    codeCoverageTool: 'JaCoCo'
     summaryFileLocation: '**/*CodeCoverage*.xml'
-    #pathToSources: # Optional
-    #reportDirectory: # Optional
-    #additionalCodeCoverageFiles: # Optional
     #failIfCoverageEmpty: false # Optional
 
 - task: CopyFiles@2
