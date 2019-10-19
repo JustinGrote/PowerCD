@@ -12,7 +12,7 @@ try {
         #'PackageManagement'
         #'PowerShellGet'
     )
-    Import-PowerCDModuleFast -ModuleName PowerShellGet -Version 1.6.7
+    #Import-PowerCDModuleFast -ModuleName PowerShellGet -Version 1.6.7
 } catch [IO.FileLoadException] {
     write-warning "An Assembly is currently in use. This happens if you try to update a module with a DLL that's already loaded. Please run a 'Clean' task as a separate process prior to starting Invoke-Build. This will exit cleanly to avoid a CI failure now."
 }
@@ -57,6 +57,7 @@ task PackageZip {
 
 task Clean Clean.PowerCD
 task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
-task Package PackageZip,PackageNuget.PowerCD
+#task Package PackageZip,PackageNuget.PowerCD
+task Package PackageZip
 task Test TestPester.PowerCD
 task . Clean,Build,Test,Package
