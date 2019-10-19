@@ -1,10 +1,12 @@
 #requires -version 5
 using namespace System.IO
 
+
+write-warning "PM: (gmo packagemanagement | out-string)"
 #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
 if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
     Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
-    ($env:psmodulepath -split [io.path]::PathSeparator | where {$_ -match 'WindowsPowershell'}) -join [io.path]::PathSeparator
+    $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator | where {$_ -match 'WindowsPowershell'}) -join [io.path]::PathSeparator
     $ModuleToImport = Get-Module Microsoft.Powershell.Utility -ListAvailable |
         Where-Object Version -lt 6.0.0 |
         Sort-Object Version -Descending |
@@ -128,3 +130,5 @@ if (-not $InvokeBuildPath) {
 }
 
 Invoke-Expression "Invoke-Build $($args -join ' ')"
+
+Write-Host -fore green "End Invoke-Build Bootstrap"
