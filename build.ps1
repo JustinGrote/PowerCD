@@ -78,11 +78,11 @@ function Import-ModuleFast {
                     [uri]$baseURI = 'https://www.nuget.org/api/v2/package/'
                 }
 
-                [uri]$moduleLatestURI = [uri]::new($baseURI, $ModuleName)
+                [uri]$moduleURI = [uri]::new($baseURI, $ModuleName)
 
                 if ($Version) {
                     #Ugly syntax for what is effectively "Join-Path" for URIs
-                    [uri]::new($baseURI, $version)
+                    $moduleURI = [uri]::new($moduleURI, $version)
                 }
 
                 write-verbose "Fetching $ModuleName from $moduleLatestURI"
