@@ -4,7 +4,7 @@ image:
   - Visual Studio 2019
   - Ubuntu
   # You can enable newer builds by uncommenting these lines
-  - Visual Studio 2017
+  # - Visual Studio 2017
   # - Ubuntu1804
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
