@@ -1,10 +1,10 @@
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
 version: '{build}-{branch}'
 image:
-  - Visual Studio 2017
+  - Visual Studio 2019
   - Ubuntu
   # You can enable newer builds by uncommenting these lines
-  # - Visual Studio 2019
+  - Visual Studio 2017
   # - Ubuntu1804
 
 #Encrypted Variables - https://ci.appveyor.com/tools/encrypt
