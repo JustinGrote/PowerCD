@@ -38,7 +38,7 @@ function Import-PowerCDModuleFast {
                     $moduleURI = [uri]::new($moduleURI, $version)
                 }
 
-                write-verbose "Fetching $ModuleNameItem from $moduleURI"
+                write-warning "Fetching $ModuleNameItem from $moduleURI"
                 (New-Object Net.WebClient).DownloadFile($moduleURI, $tempfile)
 
                 $CurrentProgressPreference = $ProgressPreference
