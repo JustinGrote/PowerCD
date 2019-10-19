@@ -2,7 +2,7 @@
 using namespace System.IO
 
 
-write-warning "PM: (gmo packagemanagement | out-string)"
+write-warning "PM: $(gmo packagemanagement | out-string)"
 #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
 if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
     Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
