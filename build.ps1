@@ -73,16 +73,17 @@ function Import-ModuleFast {
                 New-Item -ItemType Directory -Path $tempModulePath > $null
 
                 #Fetch and import the module
-                $baseURI = 'https://powershellgallery.com/api/v2/package/'
+                [uri]$baseURI = 'https://powershellgallery.com/api/v2/package/'
                 if ($Package) {
-                    $baseURI = 'https://www.nuget.org/api/v2/package/'
+                    [uri]$baseURI = 'https://www.nuget.org/api/v2/package/'
                 }
+
+                [uri]$moduleLatestURI = [uri]::new($baseURI, $ModuleName)
 
                 if ($Version) {
                     #Ugly syntax for what is effectively "Join-Path" for URIs
-                    [uri]::new([uri]$baseURI, $version)
+                    [uri]::new($baseURI, $version)
                 }
-                $moduleLatestURI = "$baseURI$ModuleName"
 
                 write-verbose "Fetching $ModuleName from $moduleLatestURI"
                 (New-Object Net.WebClient).DownloadFile($moduleLatestURI, $tempfile)
