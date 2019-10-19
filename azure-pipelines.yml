@@ -48,10 +48,10 @@ steps:
   displayName: 'Capture Powershell Module Zip as Artifact'
   inputs:
     artifactName: 'PSModule Zip $(os)-$(psversion)'
-    targetpath: '$(Build.SourcesDirectory)/BuildOutput/*.zip'
+    targetpath: '**/*.zip'
 
 - task: PublishPipelineArtifact@1
   displayName: 'Capture Powershell Module NuGet Package as Artifact'
   inputs:
     artifactName: 'PSModule Nupkg $(os)-$(psversion)'
-    targetpath: '$(Build.SourcesDirectory)/BuildOutput/*.nupkg'
+    targetpath: '**/*.nupkg'
