@@ -1,16 +1,9 @@
-# param(
-#     $Settings =
-# )
-
-
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
 try {
     Import-PowerCDModuleFast @(
         'BuildHelpers'
-        'Pester'
         'PSScriptAnalyzer'
-        #'PackageManagement'
-        #'PowerShellGet'
+        'Pester'
     )
 } catch [IO.FileLoadException] {
     write-warning "An Assembly is currently in use. This happens if you try to update a module with a DLL that's already loaded. Please run a 'Clean' task as a separate process prior to starting Invoke-Build. This will exit cleanly to avoid a CI failure now."
@@ -40,7 +33,6 @@ task CopyBuildTasksFile {
 }
 
 task PackageZip {
-
     [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
     $CompressArchiveParams = @{
         Path = $PCDSetting.BuildEnvironment.ModulePath
@@ -52,7 +44,6 @@ task PackageZip {
     $GLOBAL:ProgressPreference = $CurrentProgressPreference
     write-verbose ("Zip File Output:" + $CompressArchiveParams.DestinationPath)
 }
-
 
 task Clean Clean.PowerCD
 task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile

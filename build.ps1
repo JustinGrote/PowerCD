@@ -85,8 +85,8 @@ function Import-ModuleFast {
                     $moduleURI = [uri]::new($moduleURI, $version)
                 }
 
-                write-verbose "Fetching $ModuleName from $moduleLatestURI"
-                (New-Object Net.WebClient).DownloadFile($moduleLatestURI, $tempfile)
+                write-verbose "Fetching $ModuleName from $moduleURI"
+                (New-Object Net.WebClient).DownloadFile($moduleURI, $tempfile)
 
                 $CurrentProgressPreference = $ProgressPreference
                 $GLOBAL:ProgressPreference = 'silentlycontinue'

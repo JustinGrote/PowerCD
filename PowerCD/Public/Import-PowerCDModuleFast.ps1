@@ -1,3 +1,4 @@
+
 function Import-PowerCDModuleFast {
     [CmdletBinding()]
     param (
@@ -7,38 +8,38 @@ function Import-PowerCDModuleFast {
         [Switch]$Force
     )
     process {
-        foreach ($ModuleName in $ModuleName) {
-
+        foreach ($ModuleNameItem in $ModuleName) {
             #Get a temporary directory
-            $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(), 'PowerCD', $ModuleName)
-            $ModuleManifestPath = Join-Path $tempModulePath "$ModuleName.psd1"
-            $tempfile = join-path $tempModulePath "$ModuleName.zip"
+            $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(), 'PowerCD', $ModuleNameItem)
+            $ModuleManifestPath = Join-Path $tempModulePath "$ModuleNameItem.psd1"
+            $tempfile = join-path $tempModulePath "$ModuleNameItem.zip"
 
-            if ((Test-Path $tempModulePath) -and -not $Force) {
-                Write-Verbose "$ModuleName already found in $tempModulePath"
+            if ((Test-Path $tempfile) -and -not $Force) {
+                Write-Verbose "$ModuleNameItem already found in $tempModulePath"
             }
             else {
                 if (Test-Path $tempModulePath) {
-                    Remove-Item $tempfile -Force
+                    Remove-Item $tempfile -Force -ErrorAction SilentlyContinue
                     Remove-Item $tempModulePath -Recurse -Force
                 }
 
                 New-Item -ItemType Directory -Path $tempModulePath > $null
 
                 #Fetch and import the module
-                $baseURI = 'https://powershellgallery.com/api/v2/package/'
+                [uri]$baseURI = 'https://powershellgallery.com/api/v2/package/'
                 if ($Package) {
-                    $baseURI = 'https://www.nuget.org/api/v2/package/'
+                    [uri]$baseURI = 'https://www.nuget.org/api/v2/package/'
                 }
+
+                [uri]$moduleURI = [uri]::new($baseURI, $ModuleNameItem)
 
                 if ($Version) {
                     #Ugly syntax for what is effectively "Join-Path" for URIs
-                    [uri]::new([uri]$baseURI, $version)
+                    $moduleURI = [uri]::new($moduleURI, $version)
                 }
-                $moduleLatestURI = "$baseURI$ModuleName"
 
-                write-verbose "Fetching $ModuleName from $moduleLatestURI"
-                (New-Object Net.WebClient).DownloadFile($moduleLatestURI, $tempfile)
+                write-verbose "Fetching $ModuleNameItem from $moduleURI"
+                (New-Object Net.WebClient).DownloadFile($moduleURI, $tempfile)
 
                 $CurrentProgressPreference = $ProgressPreference
                 $GLOBAL:ProgressPreference = 'silentlycontinue'
@@ -47,9 +48,8 @@ function Import-PowerCDModuleFast {
             }
 
             if (-not $Package) {
-                write-verbose "Importing $ModuleName from $ModuleManifestPath and removing any existing modules with the same name"
-                Get-Module $ModuleName | Remove-Module -Force -ErrorAction SilentlyContinue
-                Import-Module $ModuleManifestPath -force
+                write-verbose "Importing $ModuleNameItem from $ModuleManifestPath"
+                Import-Module $ModuleManifestPath
             }
             else {
                 $tempModulePath
