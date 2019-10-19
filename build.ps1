@@ -61,7 +61,7 @@ function Import-ModuleFast {
             $ModuleManifestPath = Join-Path $tempModulePath "$ModuleName.psd1"
             $tempfile = join-path $tempModulePath "$ModuleName.zip"
 
-            if ((Test-Path $tempModulePath) -and -not $Force) {
+            if ((Test-Path $tempfile) -and -not $Force) {
                 Write-Verbose "$ModuleName already found in $tempModulePath"
             }
             else {
@@ -78,14 +78,14 @@ function Import-ModuleFast {
                     [uri]$baseURI = 'https://www.nuget.org/api/v2/package/'
                 }
 
-                [uri]$moduleURI = [uri]::new($baseURI, $ModuleName)
+                [uri]$moduleURI = [uri]::new($baseURI, "$ModuleName/")
 
                 if ($Version) {
                     #Ugly syntax for what is effectively "Join-Path" for URIs
-                    $moduleURI = [uri]::new($moduleURI, $version)
+                    $moduleURI = [uri]::new($moduleURI,"$version/")
                 }
 
-                write-warning "Fetching $ModuleName from $moduleURI"
+                Write-Verbose "Fetching $ModuleName from $moduleURI"
                 (New-Object Net.WebClient).DownloadFile($moduleURI, $tempfile)
 
                 $CurrentProgressPreference = $ProgressPreference
@@ -108,13 +108,14 @@ function Import-ModuleFast {
 #region Main
 Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
 
+
+Import-Module PackageManagement
+Import-ModuleFast -ModuleName PowerShellGet -Version 2.1.3
+
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
 	#Bootstrap it
-    Import-Module PackageManagement
-    Import-ModuleFast -ModuleName PowerShellGet -Version 2.1.3
     Import-ModuleFast InvokeBuild
-
 }
 
 Invoke-Expression "Invoke-Build $($args -join ' ')"

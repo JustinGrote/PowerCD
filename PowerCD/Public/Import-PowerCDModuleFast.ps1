@@ -8,18 +8,19 @@ function Import-PowerCDModuleFast {
         [Switch]$Force
     )
     process {
-        foreach ($ModuleNameItem in $ModuleName) {
+        foreach ($ModuleName in $ModuleName) {
+
             #Get a temporary directory
-            $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(), 'PowerCD', $ModuleNameItem)
-            $ModuleManifestPath = Join-Path $tempModulePath "$ModuleNameItem.psd1"
-            $tempfile = join-path $tempModulePath "$ModuleNameItem.zip"
+            $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(), 'PowerCD', $ModuleName)
+            $ModuleManifestPath = Join-Path $tempModulePath "$ModuleName.psd1"
+            $tempfile = join-path $tempModulePath "$ModuleName.zip"
 
             if ((Test-Path $tempfile) -and -not $Force) {
-                Write-Verbose "$ModuleNameItem already found in $tempModulePath"
+                Write-Verbose "$ModuleName already found in $tempModulePath"
             }
             else {
                 if (Test-Path $tempModulePath) {
-                    Remove-Item $tempfile -Force -ErrorAction SilentlyContinue
+                    Remove-Item $tempfile -Force
                     Remove-Item $tempModulePath -Recurse -Force
                 }
 
@@ -31,14 +32,14 @@ function Import-PowerCDModuleFast {
                     [uri]$baseURI = 'https://www.nuget.org/api/v2/package/'
                 }
 
-                [uri]$moduleURI = [uri]::new($baseURI, $ModuleNameItem)
+                [uri]$moduleURI = [uri]::new($baseURI, "$ModuleName/")
 
                 if ($Version) {
                     #Ugly syntax for what is effectively "Join-Path" for URIs
-                    $moduleURI = [uri]::new($moduleURI, $version)
+                    $moduleURI = [uri]::new($moduleURI,"$version/")
                 }
 
-                write-warning "Fetching $ModuleNameItem from $moduleURI"
+                Write-Verbose "Fetching $ModuleName from $moduleURI"
                 (New-Object Net.WebClient).DownloadFile($moduleURI, $tempfile)
 
                 $CurrentProgressPreference = $ProgressPreference
@@ -48,8 +49,8 @@ function Import-PowerCDModuleFast {
             }
 
             if (-not $Package) {
-                write-verbose "Importing $ModuleNameItem from $ModuleManifestPath"
-                Import-Module $ModuleManifestPath
+                write-verbose "Importing $ModuleName from $ModuleManifestPath"
+                Import-Module $ModuleManifestPath -force
             }
             else {
                 $tempModulePath
