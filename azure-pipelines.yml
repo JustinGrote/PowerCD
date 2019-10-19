@@ -57,7 +57,7 @@ steps:
     contents: '*.nupkg'
     targetfolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: PublishPipelineArtifact@0
+- task: PublishPipelineArtifact@1
   displayName: 'Capture Powershell Module as Artifact'
   inputs:
     artifactName: '$(os)-$(psversion)'
