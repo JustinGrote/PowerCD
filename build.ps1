@@ -1,8 +1,18 @@
 #requires -version 5
 using namespace System.IO
 
+<#
+.SYNOPSIS
+Bootstraps Invoke-Build and starts it with supplied parameters.
+.NOTES
+If you already have Invoke-Build installed, just use Invoke-Build instead of this script. This is for CI/CD environments like Appveyor, Jenkins, or Azure DevOps pipelines.
+.EXAMPLE
+.\build.ps1
+Starts Invoke-Build with the default parameters
+#>
 
-write-warning "PM: $(gmo packagemanagement | out-string)"
+$ErrorActionPreference = 'Stop'
+
 #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
 if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
     Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
@@ -14,18 +24,6 @@ if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utili
     Remove-Module 'Microsoft.Powershell.Utility'
     Import-Module $ModuleToImport -Force
 }
-
-$ErrorActionPreference = 'Stop'
-
-<#
-.SYNOPSIS
-Bootstraps Invoke-Build and starts it with supplied parameters.
-.NOTES
-If you already have Invoke-Build installed, just use Invoke-Build instead of this script. This is for CI/CD environments like Appveyor, Jenkins, or Azure DevOps pipelines.
-.EXAMPLE
-.\build.ps1
-Starts Invoke-Build with the default parameters
-#>
 
 function FindInvokeBuild {
 	<#
