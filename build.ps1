@@ -40,7 +40,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 		Write-Verbose "Invoke-Build $MinimumVersion was detected at $InvokeBuild."
 		return $invokeBuild
 	} else {
-		Write-Warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module."
+		Write-Warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module. Bootstrapping..."
 		return $false
 	}
 }
@@ -107,10 +107,6 @@ function Import-ModuleFast {
 
 #region Main
 Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
-
-
-Import-Module PackageManagement
-Import-ModuleFast -ModuleName PowerShellGet -Version 2.1.3
 
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
