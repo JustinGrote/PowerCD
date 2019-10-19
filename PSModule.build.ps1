@@ -8,6 +8,7 @@ Import-PowerCDModuleFast @(
     'BuildHelpers'
     'Pester'
     'PSScriptAnalyzer'
+    'PackageManagement'
     'PowerShellGet'
 )
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
