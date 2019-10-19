@@ -10,8 +10,9 @@ try {
         'Pester'
         'PSScriptAnalyzer'
         #'PackageManagement'
-        'PowerShellGet'
+        #'PowerShellGet'
     )
+    Import-PowerCDModuleFast -ModuleName PowerShellGet -Version 2.1.3
 } catch [IO.FileLoadException] {
     write-warning "An Assembly is currently in use. This happens if you try to update a module with a DLL that's already loaded. Please run a 'Clean' task as a separate process prior to starting Invoke-Build. This will exit cleanly to avoid a CI failure now."
 }
