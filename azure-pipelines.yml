@@ -48,17 +48,17 @@ steps:
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
     contents: '*.zip'
-    targetfolder: '$(Build.ArtifactStagingDirectory)'
+    targetfolder: '$(Build.StagingDirectory)'
 
 - task: CopyFiles@2
   displayName: 'Copy Completed Powershell Nuget Package to Artifact Staging Area'
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
     contents: '*.nupkg'
-    targetfolder: '$(Build.ArtifactStagingDirectory)'
+    targetfolder: '$(Build.StagingDirectory)'
 
 - task: PublishPipelineArtifact@1
   displayName: 'Capture Powershell Module as Artifact'
   inputs:
     artifactName: '$(os)-$(psversion)'
-    targetpath: '$(Build.ArtifactStagingDirectory)'
+    targetPath: '$(Build.StagingDirectory)'
