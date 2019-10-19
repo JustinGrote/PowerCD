@@ -49,7 +49,6 @@ function Import-PowerCDModuleFast {
             if (-not $Package) {
                 write-verbose "Importing $ModuleName from $ModuleManifestPath and removing any existing modules with the same name"
                 Get-Module $ModuleName | Remove-Module -Force -ErrorAction SilentlyContinue
-                catch [InvalidOperationException]
                 Import-Module $ModuleManifestPath -force
             }
             else {
