@@ -11,8 +11,7 @@ if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utili
 }
 
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
-Import-Module PackageManagement
-Import-ModuleFast -ModuleName PowerShellGet -Version 2.1.3
+Import-PowerCDModuleFast -ModuleName PowerShellGet -Version 2.1.3
 try {
     Import-PowerCDModuleFast @(
         'BuildHelpers'
@@ -50,7 +49,6 @@ task PackageZip {
 
 task Clean Clean.PowerCD
 task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
-#task Package PackageZip,PackageNuget.PowerCD
-task Package PackageZip
+task Package PackageZip,PackageNuget.PowerCD
 task Test TestPester.PowerCD
 task . Clean,Build,Test,Package
