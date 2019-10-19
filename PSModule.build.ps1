@@ -4,13 +4,20 @@
 
 
 . $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
-Import-PowerCDModuleFast @(
-    'BuildHelpers'
-    'Pester'
-    'PSScriptAnalyzer'
-    'PackageManagement'
-    'PowerShellGet'
-)
+try {
+    Import-PowerCDModuleFast @(
+        'BuildHelpers'
+        'Pester'
+        'PSScriptAnalyzer'
+        'PackageManagement'
+        'PowerShellGet'
+    )
+} catch [IO.FileLoadException] {
+    write-warning "An Assembly is currently in use. This happens if you try to update a module with a DLL that's already loaded. Please run a 'Clean' task as a separate process prior to starting Invoke-Build. This will exit cleanly to avoid a CI failure now."
+    exit 0
+}
+
+
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
 
