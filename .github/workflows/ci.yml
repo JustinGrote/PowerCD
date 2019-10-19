@@ -36,5 +36,9 @@ jobs:
           if ($myexit) {exit $myexit}
       - uses: actions/upload-artifact@master
         with:
-          name: PSModule
-          path: BuildOutput
+          name: PSModule Zip
+          path: BuildOutput/*.zip
+            - uses: actions/upload-artifact@master
+        with:
+          name: PSModule NuGet Package
+          path: BuildOutput/*.nupkg
