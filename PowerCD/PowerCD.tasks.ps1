@@ -24,5 +24,17 @@ task UpdatePSModulePublicFunctions.PowerCD {
 }
 
 task TestPester.PowerCD {
-    Test-PowerCDPester
+    Test-PowerCDPester -CodeCoverage $null
+}
+
+task PackageNuget.PowerCD {
+    $TaskParams = @{
+        Path = [IO.Path]::Combine(
+            $PCDSetting.BuildEnvironment.BuildOutput,
+            $PCDSetting.BuildEnvironment.ProjectName,
+            $PCDSetting.Version
+        )
+        Destination = $PCDSetting.BuildEnvironment.BuildOutput
+    }
+    New-PowerCDNugetPackage @TaskParams
 }

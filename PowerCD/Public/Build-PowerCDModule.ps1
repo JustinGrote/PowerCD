@@ -58,7 +58,7 @@ function Build-PowerCDModule {
 
         #Collate the files, pulling out using lines because these have to go first
         [String[]]$UsingLines = @()
-        [String]$CombinedSourceFiles = (Get-Content $SourceFiles | Where-Object {
+        [String]$CombinedSourceFiles = ((Get-Content -Raw $SourceFiles) -split '\r?\n' | Where-Object {
             if ($_ -match '^using .+$') {
                 $UsingLines += $_
                 return $false
@@ -86,7 +86,7 @@ function Build-PowerCDModule {
         [String]$SourceRootModule = $OutputRootModule
 
         #Strip non-help-related comments and whitespace
-        [String]$SourceRootModule = Remove-CommentsAndWhiteSpace $SourceRootModule
+        #[String]$SourceRootModule = Remove-CommentsAndWhiteSpace $SourceRootModule
     } else {
         #TODO: Track all files in the source directory to ensure none get missed on the second step
 

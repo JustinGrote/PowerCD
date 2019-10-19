@@ -8,6 +8,7 @@ Import-PowerCDModuleFast @(
     'BuildHelpers'
     'Pester'
     'PSScriptAnalyzer'
+    'PowerShellGet'
 )
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
@@ -46,8 +47,9 @@ task PackageZip {
     write-verbose ("Zip File Output:" + $CompressArchiveParams.DestinationPath)
 }
 
+
 task Clean Clean.PowerCD
 task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
-task Package PackageZip
+task Package PackageZip,PackageNuget.PowerCD
 task Test TestPester.PowerCD
 task . Clean,Build,Test,Package
