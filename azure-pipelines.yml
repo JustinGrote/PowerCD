@@ -47,8 +47,7 @@ steps:
   displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
-    contents: '*.zip
-    *.nupkg'
+    contents: '*.[zip|nupkg]'
     targetfolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishPipelineArtifact@0
