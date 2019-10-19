@@ -43,15 +43,15 @@ steps:
 #     summaryFileLocation: '**/*CodeCoverage*.xml'
     #failIfCoverageEmpty: false # Optional
 
-- task: CopyFiles@2
-  displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
-  inputs:
-    sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
-    contents: '*.zip'
-    targetfolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: PublishPipelineArtifact@0
-  displayName: 'Capture Powershell Module as Artifact'
+- task: PublishPipelineArtifact@1
+  displayName: 'Capture Powershell Module Zip as Artifact'
   inputs:
-    artifactName: '$(os)-$(psversion)'
-    targetpath: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'PSModule Zip $(os)-$(psversion)'
+    targetpath: '$(Build.SourcesDirectory)/BuildOutput/*.zip'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Capture Powershell Module NuGet Package as Artifact'
+  inputs:
+    artifactName: 'PSModule Nupkg $(os)-$(psversion)'
+    targetpath: '$(Build.SourcesDirectory)/BuildOutput/*.nupkg'
