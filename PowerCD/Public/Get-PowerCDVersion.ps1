@@ -51,9 +51,15 @@ function Get-PowerCDVersion {
         }
 
         $GitVersionInfo | format-list | out-string | write-verbose
-        [String]$PCDSetting.VersionLabel = $GitVersionInfo.NuGetVersionV2
+
         [Version]$PCDSetting.Version     = $GitVersionInfo.MajorMinorPatch
-        [String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
+
+        #TODO: Older packagemanagement don't support hyphens in Nuget name for some reason. Restore when fixed
+        #[String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
+        #[String]$PCDSetting.VersionLabel = $GitVersionInfo.NuGetVersionV2
+        #Remove separator characters for now, for instance in branch names
+        [String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2 -replace '[\/\\\-]',''
+        [String]$PCDSetting.VersionLabel = $PCDSetting.Version,$PCDSetting.PreRelease -join '-'
 
         if ($PCDSetting.BuildEnvironment.BuildOutput) {
             $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,$PCDSetting.BuildEnvironment.ProjectName,$PCDSetting.Version)
