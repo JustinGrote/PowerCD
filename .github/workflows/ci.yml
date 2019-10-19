@@ -25,15 +25,7 @@ jobs:
             psversion: powershell
     steps:
       - uses: actions/checkout@master
-      #Workaround for shell not supporting variables
-      - name: Build Initialize
-        env:
-          PSBUILDEXE: ${{ matrix.psversion }}
-        shell: pwsh
-        run: |
-          & $env:PSBUILDEXE -noninteractive -noprofile -f ./build.ps1 Clean
-          $myexit = $LASTEXITCODE
-          if ($myexit) {exit $myexit}
+
       - name: Powershell Build
         env:
           PSBUILDEXE: ${{ matrix.psversion }}
