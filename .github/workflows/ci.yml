@@ -38,7 +38,7 @@ jobs:
         with:
           name: PSModule Zip
           path: BuildOutput/*.zip
-            - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@master
         with:
           name: PSModule NuGet Package
           path: BuildOutput/*.nupkg
