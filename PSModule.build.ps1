@@ -29,15 +29,22 @@ function BootstrapPSGet {
     Start-Job -Verbose -Name "BootStrapPSGet" {
         $psGetVersionMinimum = '2.2.1'
         $progresspreference = 'silentlycontinue'
-        Install-Module PowershellGet -MinimumVersion 2.2.1 -Scope CurrentUser -AllowClobber -SkipPublisherCheck -Force -Verbose
+        Install-Module PowershellGet -MinimumVersion $psGetVersionMinimum -Scope CurrentUser -AllowClobber -SkipPublisherCheck -Force
     } | Receive-Job -Wait -Verbose
     Remove-Job -Name "BootStrapPSGet"
+    Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
 }
 BootStrapPSGet
+Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
+
 #endregion Bootstrap
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
-Import-PowerCDRequirement 'Pester','BuildHelpers','PSScriptAnalyzer'
+Import-PowerCDRequirement @(
+    'Pester'
+    'BuildHelpers'
+    'PSScriptAnalyzer'
+)
 
 #region Tasks
 
