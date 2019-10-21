@@ -49,9 +49,12 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 	if (-not $SkipPSModuleDetection) {
 		Write-Verbose "Detecting InvokeBuild as a Powershell Module..."
 		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1) | Where-Object version -ge $MinimumVersion | Foreach-Object modulebase
-	}
+    }
 
-	if (-not $invokeBuild -and (Get-Command Get-Package -erroraction silentlycontinue) -and $NugetPackageDetection) {
+    #We can't do Get-Command because it will load the module, which will break our bootstrap if we need to update packagemanagement later on. This is a loose alternative (it assumes that the latest is available)
+    $GetPackageAvailable = ('Get-Package' -in (gmo packagemanagement -listavailable).exportedcommands.keys)
+
+	if (-not $invokeBuild -and $GetPackageAvailable -and $NugetPackageDetection) {
 		Write-Verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
 		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1 | Foreach-Object source
 	}
