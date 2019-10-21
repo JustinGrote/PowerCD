@@ -26,7 +26,9 @@ function Get-PSModuleNugetDependencies {
         #Name of the build project. You normally don't need to change this.
         [String]$BuildProjectName = 'PSModuleDeps',
         #Whether to output the resultant copied file paths
-        [Switch]$PassThru
+        [Switch]$PassThru,
+        #Whether to do an online restore check of the dependencies. Disable this to speed up the process at the risk of compatibility.
+        [Switch]$NoRestore
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'String') {
@@ -70,7 +72,9 @@ function Get-PSModuleNugetDependencies {
         $dotnetArgs = 'add',$BuildProjectFile,'package',$ModuleItem
 
         if ($Packages[$ModuleItem] -ne $true) {
-            #$dotNetArgs += '--no-restore'
+            if ($NoRestore) {
+                $dotNetArgs += '--no-restore'
+            }
             $dotnetArgs += '--version'
             $dotnetArgs += $Packages[$ModuleItem]
         }

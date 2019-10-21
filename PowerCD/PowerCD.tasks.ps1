@@ -50,9 +50,12 @@ task PackageZip.PowerCD {
     Compress-PowerCDModule @CompressArchiveParams
 }
 
-#TODO: Make task for this
+#TODO: Make PowerCD-Specific task for this
 task CopyBuildTasksFile {
-    Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
+    if (Test-Path "$BuildRoot\PowerCD\PowerCD.tasks.ps1") {
+        Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
+    }
+
 }
 
 #task Clean Clean.PowerCD

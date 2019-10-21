@@ -10,7 +10,14 @@ function Initialize-PowerCD {
         [Switch]$SkipSetBuildRoot
     )
 
-    . $PSScriptRoot\Get-PowerCDSetting.ps1
+    #Import Prerequisites
+    Import-PowerCDRequirement @(
+        'Pester'
+        'BuildHelpers'
+        'PSScriptAnalyzer'
+    )
+
+    #. $PSScriptRoot\Get-PowerCDSetting.ps1
     Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value (Get-PowerCDSetting)
 
     #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively

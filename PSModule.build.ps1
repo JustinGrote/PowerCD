@@ -40,13 +40,11 @@ BootStrapPSGet
 Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
 
 #endregion Bootstrap
+
+#Import Source Module
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
-Import-PowerCDRequirement @(
-    'Pester'
-    'BuildHelpers'
-    'PSScriptAnalyzer'
-)
+
 
 #region Tasks
 
