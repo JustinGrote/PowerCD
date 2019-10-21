@@ -17,7 +17,7 @@ if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utili
 #Bootstrap package management in a new process. If you try to do it same-process you can't import it because the DLL from the old version is already loaded
 #YOU MUST DO THIS IN A NEW SESSION PRIOR TO RUNNING ANY PACKAGEMANGEMENT OR POWERSHELLGET COMMANDS
 #NOTES: Tried using a runspace but install-module would crap out on older PS5.x versions.
-gmo PackageManagement -ListAvailable | Out-String | Out-Warning
+gmo PackageManagement -ListAvailable | Out-String | Write-Warning
 
 function BootstrapPSGet {
     $psGetVersionMinimum = '2.2.1'
@@ -37,7 +37,7 @@ function BootstrapPSGet {
     Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
 }
 BootStrapPSGet
-gmo PackageManagement -ListAvailable | Out-String | Out-Warning
+gmo PackageManagement -ListAvailable | Out-String | Write-Warning
 
 Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
 
