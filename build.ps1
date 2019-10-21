@@ -11,9 +11,6 @@ If you already have Invoke-Build installed, just use Invoke-Build instead of thi
 Starts Invoke-Build with the default parameters
 #>
 
-write-warning "Build.ps1 PackageManagement Load Check!"
-Write-Warning (gmo PackageManagement | select name,version | Out-String)
-
 $ErrorActionPreference = 'Stop'
 
 function DetectNestedPowershell {
@@ -29,8 +26,6 @@ function DetectNestedPowershell {
         Import-Module $ModuleToImport -Force
     }
 }
-write-warning "Build.ps1 PackageManagement Load Check!"
-Write-Warning (gmo PackageManagement | select name,version | Out-String)
 
 function FindInvokeBuild {
 	<#
@@ -67,9 +62,6 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 		return $false
 	}
 }
-
-write-warning "Build.ps1 PackageManagement Load Check!"
-Write-Warning (gmo PackageManagement | select name,version | Out-String)
 
 function Import-ModuleFast {
     [CmdletBinding()]
@@ -135,17 +127,11 @@ function Import-ModuleFast {
 Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
 DetectNestedPowershell
 
-write-warning "Build.ps1 PackageManagement Load Check! PreIMF"
-Write-Warning (gmo PackageManagement | select name,version | Out-String)
-
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
 	#Bootstrap it
     Import-ModuleFast InvokeBuild
 }
-
-write-warning "Build.ps1 PackageManagement Load Check! PreInvokeBuild"
-Write-Warning (gmo PackageManagement | select name,version | Out-String)
 
 Invoke-Expression "Invoke-Build $($args -join ' ')"
 
