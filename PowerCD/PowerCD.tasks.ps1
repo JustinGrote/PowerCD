@@ -24,7 +24,7 @@ task UpdatePSModulePublicFunctions.PowerCD {
 }
 
 task TestPester.PowerCD {
-    Test-PowerCDPester -CodeCoverage $null
+    Test-PowerCDPester -CodeCoverage $null -Show All
 }
 
 task PackageNuget.PowerCD {
