@@ -8,7 +8,8 @@ function Test-PowerCDPester {
         $CodeCoverageOutputFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-CodeCoverage_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
         [String[]]$Exclude = 'PowerCD.tasks.ps1',
         $CodeCoverage = (Get-ChildItem -Path (Join-Path $ModuleDirectory '*') -Include *.ps1,*.psm1 -Exclude $Exclude -Recurse),
-        $Show = 'None'
+        $Show = 'None',
+        [Switch]$UseJob
     )
 
     #Try autodetecting the "furthest out module manifest"
@@ -52,7 +53,17 @@ function Test-PowerCDPester {
         $PesterParams.PesterOption = (New-PesterOption -IncludeVSCodeMarker)
     }
 
-    $TestResults = Invoke-Pester @PesterParams
+    if ($UseJob) {
+        $TestResults = Start-Job -ScriptBlock {
+            $PesterParams = $USING:PesterParams
+            Invoke-Pester @PesterParams
+        } | Receive-Job -Wait
+    } else {
+        $TestResults = Invoke-Pester @PesterParams
+    }
+
+
+
 
     # In Appveyor? Upload our test results!
     #TODO: Consolidate Test Result Upload
