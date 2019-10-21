@@ -1,3 +1,6 @@
+#requires -version 5.1
+
+#region Bootstrap
 #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
 if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
     Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
@@ -10,45 +13,40 @@ if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utili
     Import-Module $ModuleToImport -Force
 }
 
-. $BuildRoot\PowerCD\Public\Import-PowerCDModuleFast.ps1
-Import-PowerCDModuleFast -ModuleName PowerShellGet -Version 2.1.3
-try {
-    Import-PowerCDModuleFast @(
-        'BuildHelpers'
-        'PSScriptAnalyzer'
-        'Pester'
-    )
-} catch [IO.FileLoadException] {
-    write-warning "An Assembly is currently in use. This happens if you try to update a module with a DLL that's already loaded. Please run a 'Clean' task as a separate process prior to starting Invoke-Build. This will exit cleanly to avoid a CI failure now."
-}
 
+#Bootstrap package management in a new process. If you try to do it same-process you can't import it because the DLL from the old version is already loaded
+#YOU MUST DO THIS IN A NEW SESSION PRIOR TO RUNNING ANY PACKAGEMANGEMENT OR POWERSHELLGET COMMANDS
+#NOTES: Tried using a runspace but install-module would crap out on older PS5.x versions.
+function BootstrapPSGet {
+    $psGetVersionMinimum = '2.2.1'
+    $PowershellGetModules = get-module PowershellGet -listavailable | where version -ge $psGetVersionMinimum
+    if ($PowershellGetModules) {
+        write-verbose "PowershellGet $psGetVersionMinimum found. Skipping bootstrap..."
+        return
+    }
+
+    write-verbose "PowershellGet $psGetVersionMinimum not detected. Bootstrapping..."
+    Start-Job -Verbose -Name "BootStrapPSGet" {
+        $psGetVersionMinimum = '2.2.1'
+        $progresspreference = 'silentlycontinue'
+        Install-Module PowershellGet -MinimumVersion 2.2.1 -Scope CurrentUser -AllowClobber -SkipPublisherCheck -Force -Verbose
+    } | Receive-Job -Wait -Verbose
+    Remove-Job -Name "BootStrapPSGet"
+}
+BootStrapPSGet
+#endregion Bootstrap
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
+Import-PowerCDRequirement 'Pester','BuildHelpers'
+
+#region Tasks
 
 Enter-Build {
     Initialize-PowerCD
 }
 
-#TODO: Make task for this
-task CopyBuildTasksFile {
-    Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
-}
-
-task PackageZip {
-    [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
-    $CompressArchiveParams = @{
-        Path = $PCDSetting.BuildEnvironment.ModulePath
-        DestinationPath = join-path $PCDSetting.BuildEnvironment.BuildOutput $ZipFileName
-    }
-    $CurrentProgressPreference = $GLOBAL:ProgressPreference
-    $GLOBAL:ProgressPreference = 'SilentlyContinue'
-    Compress-Archive @CompressArchiveParams
-    $GLOBAL:ProgressPreference = $CurrentProgressPreference
-    write-verbose ("Zip File Output:" + $CompressArchiveParams.DestinationPath)
-}
-
 task Clean Clean.PowerCD
-task Build Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
-task Package PackageZip,PackageNuget.PowerCD
-task Test TestPester.PowerCD
+task Build Build.PowerCD
+task Package Package.PowerCD
+task Test Test.PowerCD
 task . Clean,Build,Test,Package

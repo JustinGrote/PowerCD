@@ -1,5 +1,5 @@
 
-function Import-PowerCDModuleFast {
+function Import-PowerCDRequirement {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, ValueFromPipeline)][String[]]$ModuleName,
@@ -50,7 +50,7 @@ function Import-PowerCDModuleFast {
 
             if (-not $Package) {
                 write-verbose "Importing $ModuleName from $ModuleManifestPath"
-                Import-Module $ModuleManifestPath -force
+                Import-Module $ModuleManifestPath -Force -Scope Global
             }
             else {
                 $tempModulePath

@@ -7,7 +7,7 @@ function Get-PowerCDVersion {
 
     #TODO: Move this to dedicated dependency handler
     if (-not $IsMacOS) {
-        $GitVersionPackagePath = Import-PowerCDModuleFast GitVersion.CommandLine -Package
+        $GitVersionPackagePath = Import-PowerCDRequirement GitVersion.CommandLine -Package
         $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
     } else {
         & brew install GitVersion

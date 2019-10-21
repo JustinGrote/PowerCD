@@ -38,3 +38,24 @@ task PackageNuget.PowerCD {
     }
     New-PowerCDNugetPackage @TaskParams
 }
+
+task PackageZip.PowerCD {
+    [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
+
+    $CompressArchiveParams = @{
+        Path = $PCDSetting.BuildEnvironment.ModulePath
+        Destination = join-path $PCDSetting.BuildEnvironment.BuildOutput $ZipFileName
+    }
+
+    Compress-PowerCDModule @CompressArchiveParams
+}
+
+#TODO: Make task for this
+task CopyBuildTasksFile {
+    Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
+}
+
+#task Clean Clean.PowerCD
+task Build.PowerCD Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
+task Package.PowerCD PackageZip.PowerCD,PackageNuget.PowerCD
+task Test.PowerCD TestPester.PowerCD

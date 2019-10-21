@@ -1,4 +1,4 @@
-#requires -version 5
+#requires -version 5.1
 using namespace System.IO
 
 <#
@@ -13,16 +13,18 @@ Starts Invoke-Build with the default parameters
 
 $ErrorActionPreference = 'Stop'
 
-#Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
-if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
-    Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
-    $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator | where {$_ -match 'WindowsPowershell'}) -join [io.path]::PathSeparator
-    $ModuleToImport = Get-Module Microsoft.Powershell.Utility -ListAvailable |
-        Where-Object Version -lt 6.0.0 |
-        Sort-Object Version -Descending |
-        Select-Object -First 1
-    Remove-Module 'Microsoft.Powershell.Utility'
-    Import-Module $ModuleToImport -Force
+function DetectNestedPowershell {
+    #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
+    if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
+        Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
+        $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator | where {$_ -match 'WindowsPowershell'}) -join [io.path]::PathSeparator
+        $ModuleToImport = Get-Module Microsoft.Powershell.Utility -ListAvailable |
+            Where-Object Version -lt 6.0.0 |
+            Sort-Object Version -Descending |
+            Select-Object -First 1
+        Remove-Module 'Microsoft.Powershell.Utility'
+        Import-Module $ModuleToImport -Force
+    }
 }
 
 function FindInvokeBuild {
@@ -35,8 +37,8 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 		[Version]$MinimumVersion = '5.4.1',
 		#Specify this if you know it isn't present as a powershell module and want to save some detection time
 		[Switch]$SkipPSModuleDetection,
-		#Specify this if you know it isn't present as a nuget package and want to save some detection time
-		[Switch]$SkipNugetPackageDetection
+		#Specify this if you want InvokeBuild to be discovered as a nuget package. Disabled by default due to PackageManagement module dependency
+		[Switch]$NugetPackageDetection
 	)
 
 	if (-not $SkipPSModuleDetection) {
@@ -44,7 +46,7 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1) | Where-Object version -ge $MinimumVersion | Foreach-Object modulebase
 	}
 
-	if (-not $invokeBuild -and (Get-Command Get-Package -erroraction silentlycontinue)) {
+	if (-not $invokeBuild -and (Get-Command Get-Package -erroraction silentlycontinue) -and $NugetPackageDetection) {
 		Write-Verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
 		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1 | Foreach-Object source
 	}
@@ -120,6 +122,7 @@ function Import-ModuleFast {
 
 #region Main
 Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
+DetectNestedPowershell
 
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
@@ -130,3 +133,4 @@ if (-not $InvokeBuildPath) {
 Invoke-Expression "Invoke-Build $($args -join ' ')"
 
 Write-Host -fore green "End Invoke-Build Bootstrap"
+#endregion Main

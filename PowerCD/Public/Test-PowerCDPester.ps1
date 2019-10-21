@@ -8,7 +8,7 @@ function Test-PowerCDPester {
         $CodeCoverageOutputFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-CodeCoverage_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
         [String[]]$Exclude = 'PowerCD.tasks.ps1',
         $CodeCoverage = (Get-ChildItem -Path (Join-Path $ModuleDirectory '*') -Include *.ps1,*.psm1 -Exclude $Exclude -Recurse),
-        $Show = [pester.outputtypes]::None
+        $Show = 'None'
     )
 
     #Try autodetecting the "furthest out module manifest"
@@ -35,12 +35,15 @@ function Test-PowerCDPester {
         #     }
         # }
         OutputFile   = $PesterResultFile
-        CodeCoverage = $CodeCoverage
-        CodeCoverageOutputFile = $CodeCoverageOutputFile
         OutputFormat = 'NunitXML'
         PassThru     = $true
         OutVariable  = 'TestResults'
         Show         = $Show
+    }
+
+    if ($CodeCoverage) {
+        $PesterParams.CodeCoverage = $CodeCoverage
+        $PeserParams.CodeCoverageOutputFile = $CodeCoverageOutputFile
     }
 
     #If we are in vscode, add the VSCodeMarkers
