@@ -40,6 +40,7 @@ Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorActio
 #endregion Bootstrap
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
+gmo Pester -ListAvailable | Out-String | Out-Warning
 Import-PowerCDRequirement @(
     'Pester'
     'BuildHelpers'
