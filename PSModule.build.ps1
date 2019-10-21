@@ -37,7 +37,7 @@ BootStrapPSGet
 #endregion Bootstrap
 Import-Module $BuildRoot\PowerCD\PowerCD -Force -WarningAction SilentlyContinue
 . PowerCD.Tasks
-Import-PowerCDRequirement 'Pester','BuildHelpers'
+Import-PowerCDRequirement 'Pester','BuildHelpers','PSScriptAnalyzer'
 
 #region Tasks
 
