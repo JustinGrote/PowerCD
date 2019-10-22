@@ -55,5 +55,4 @@ Enter-Build {
 task Clean Clean.PowerCD
 task Build Build.PowerCD
 task Package Package.PowerCD
-task Test Test.PowerCD
-task . Clean,Build,Test,Package
+task . Default.PowerCD

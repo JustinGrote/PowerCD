@@ -17,6 +17,9 @@ param (
 
 Describe 'Powershell Module' {
     BeforeAll {
+
+        if ($ENV:PowerCDModuleManifest) {$ModuleManifestPath = $ENV:PowerCDModuleManifest}
+
         if (-not $ModuleManifestPath) {
             #If we are in a folder named 'Tests', search the parent folder
             if ((get-location | split-path -leaf) -match '^Tests?$') {

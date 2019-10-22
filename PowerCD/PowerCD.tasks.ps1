@@ -24,7 +24,7 @@ task UpdatePSModulePublicFunctions.PowerCD {
 }
 
 task TestPester.PowerCD {
-    Test-PowerCDPester -CodeCoverage $null -Show All
+    Test-PowerCDPester -CodeCoverage $null -Show All -ModuleManifestPath $PCDSetting.OutputModuleManifest
 }
 
 task PackageNuget.PowerCD {
@@ -58,7 +58,8 @@ task CopyBuildTasksFile {
 
 }
 
-#task Clean Clean.PowerCD
 task Build.PowerCD Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
 task Package.PowerCD PackageZip.PowerCD,PackageNuget.PowerCD
 task Test.PowerCD TestPester.PowerCD
+
+task Default.PowerCD Clean.PowerCD,Build.PowerCD,Test.PowerCD,Package.PowerCD

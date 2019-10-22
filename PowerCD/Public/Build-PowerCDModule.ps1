@@ -119,6 +119,7 @@ function Build-PowerCDModule {
 
     #Copy the Module Manifest
     [String]$PCDSetting.OutputModuleManifest = Copy-Item -PassThru -Path $PSModuleManifest -Destination $DestinationDirectory
+    $ENV:PowerCDModuleManifest = $PCDSetting.OutputModuleManifest
 
     #Add a prerelease
     if ($PCDSetting.PreRelease) {

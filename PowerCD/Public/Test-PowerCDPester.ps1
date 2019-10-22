@@ -3,7 +3,7 @@
 function Test-PowerCDPester {
     [CmdletBinding()]
     param (
-        $ModuleDirectory = $PCDSetting.BuildModuleOutput,
+        [Parameter(Mandatory)]$ModuleManifestPath,
         $PesterResultFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
         $CodeCoverageOutputFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-CodeCoverage_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
         [String[]]$Exclude = 'PowerCD.tasks.ps1',
@@ -15,7 +15,7 @@ function Test-PowerCDPester {
     #Try autodetecting the "furthest out module manifest"
     # if (-not $ModuleManifestPath) {
     #     try {
-    #         $moduleManifestCandidatePath = Join-Path (Join-Path $BuildProjectPath '*') '*.psd1'
+    #         $moduleManifestCandidatePath = Join-Path (Join-Path $PWD '*') '*.psd1'
     #         $moduleManifestCandidates = Get-Item $moduleManifestCandidatePath -ErrorAction stop
     #         $moduleManifestPath = ($moduleManifestCandidates | Select-Object -last 1).fullname
     #     } catch {
@@ -25,7 +25,7 @@ function Test-PowerCDPester {
 
     #TODO: Update for new logging method
     #write-verboseheader "Starting Pester Tests..."
-    Write-Verbose "Task $($task.name)` -  Testing $moduleDirectory"
+    Write-Verbose "Task $($task.name)` -  Testing $moduleManifestPath"
 
     $PesterParams = @{
         #TODO: Fix for source vs built object
@@ -44,7 +44,7 @@ function Test-PowerCDPester {
 
     if ($CodeCoverage) {
         $PesterParams.CodeCoverage = $CodeCoverage
-        $PeserParams.CodeCoverageOutputFile = $CodeCoverageOutputFile
+        $PesterParams.CodeCoverageOutputFile = $CodeCoverageOutputFile
     }
 
     #If we are in vscode, add the VSCodeMarkers
@@ -54,16 +54,25 @@ function Test-PowerCDPester {
     }
 
     if ($UseJob) {
-        $TestResults = Start-Job -ScriptBlock {
+        #Bootstrap PowerCD Prereqs
+        $PowerCDModules = get-item $env:TEMP/PowerCD/*/*.psd1
+
+        $PesterJob = {
+            #Move to same folder as was started
+            Set-Location $USING:PWD
+            #Prepare the Destination Module Directory Environment
+            $ENV:PowerCDModuleManifest = $USING:ModuleManifestPath
+            #Bring in relevant environment
+            $USING:PowerCDModules | Import-Module -Force
             $PesterParams = $USING:PesterParams
             Invoke-Pester @PesterParams
-        } | Receive-Job -Wait
+        }
+
+        $TestResults = Start-Job -ScriptBlock $PesterJob | Receive-Job -Wait
     } else {
+        $ENV:PowerCDModuleManifest = $ModuleManifestPath
         $TestResults = Invoke-Pester @PesterParams
     }
-
-
-
 
     # In Appveyor? Upload our test results!
     #TODO: Consolidate Test Result Upload
