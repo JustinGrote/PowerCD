@@ -55,7 +55,7 @@ function Test-PowerCDPester {
 
     if ($UseJob) {
         #Bootstrap PowerCD Prereqs
-        $PowerCDModules = get-item $env:TEMP/PowerCD/*/*.psd1
+        $PowerCDModules = get-item (Join-Path ([io.path]::GetTempPath()) '/PowerCD/*/*.psd1')
 
         $PesterJob = {
             #Move to same folder as was started
