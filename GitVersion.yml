@@ -1,11 +1,24 @@
-#Use Mainline Mode (master increments on every commit)
-#mode: Mainline
+#GitLab Flow Configuration
+#https://docs.gitlab.com/ee/workflow/gitlab_flow.html
+#With Gitlab Flow, all development happens in master, with feature branches created and PR'd into master
+#For releases, you can either:
+#- Tag releases within master
+#- Create the 'production' or 'stable' branch and merge/cherrypick your releases there (in this case uncomment the commented out "mode" and "branches" sections. This is using a GitLab flow "environment" for deploying releases
 
+#You can also create dedicated release branches for a particular stable or long-term support version (e.g. release/2.0.0) and then tag within that branch for LTS updates
+
+# mode: Mainline
 branches:
-  master:
+  # master:
+  # regex: 'production|stable'
+  develop:
+    regex: 'master'
     tag: 'beta'
+  release:
+    tag: 'rc'
 
-#Custom commit messages to support Angular.js-style commit messages
+#Custom commit messages to support Convential Commits
+#https://www.conventionalcommits.org/en/v1.0.0/
 major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
 minor-version-bump-message: (^(feat(ure)?|minor)(\(.*\))?:)|(\+semver:\s?(feat(ure)?|minor))
 patch-version-bump-message: (^((bug)?fix|patch|perf|refactor)(\(.*\))?:)|(\+semver:\s?((bug)?fix|patch))
