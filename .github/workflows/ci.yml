@@ -24,9 +24,7 @@ jobs:
           - os: macOS-latest
             psversion: powershell
     steps:
-      - uses: actions/checkout@master
-      - name: Checkout Pushed Branch
-        run: git checkout "${GITHUB_REF}"
+      - uses: actions/checkout@V1
       - name: Powershell Build
         env:
           PSBUILDEXE: ${{ matrix.psversion }}
