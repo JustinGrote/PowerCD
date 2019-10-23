@@ -16,7 +16,7 @@ function Initialize-PowerCD {
         'BuildHelpers'
         'PSScriptAnalyzer'
     )
-    Import-PowerCDRequirement -ModuleName PowerConfig -Version '0.1.0-beta0001'
+    Import-PowerCDRequirement -ModuleName PowerConfig -Version '0.1.1-beta0001'
 
     #Start a new PowerConfig, using PowerCDSetting as a base
     $PCDConfig = New-PowerConfig | Add-PowerConfigObject -Object (Get-PowerCDSetting)
