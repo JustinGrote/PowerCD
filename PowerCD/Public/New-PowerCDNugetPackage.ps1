@@ -49,8 +49,8 @@ function New-PowerCDNugetPackage {
 
     try {
         $SCRIPT:tempRepositoryName = "$ModuleName-build-$(get-date -format 'yyyyMMdd-hhmmss')"
-        Unregister-PSRepository -Name $tempRepositoryName -ErrorAction SilentlyContinue
-        Register-PSRepository -Name $tempRepositoryName -SourceLocation ([String]$Destination)
+        Unregister-PSRepository -Name $tempRepositoryName -ErrorAction SilentlyContinue *>$null
+        Register-PSRepository -Name $tempRepositoryName -SourceLocation ([String]$Destination) *>$null
         If (Get-Item -ErrorAction SilentlyContinue (join-path $Path "$ModuleName*.nupkg")) {
             Write-Build Green "Nuget Package for $ModuleName already generated. Skipping. Delete the package to retry"
         } else {
@@ -62,6 +62,6 @@ function New-PowerCDNugetPackage {
     }
     catch {Write-Error $PSItem}
     finally {
-        Unregister-PSRepository $tempRepositoryName
+        Unregister-PSRepository $tempRepositoryName *>$null
     }
 }
