@@ -24,7 +24,7 @@ jobs:
           - os: macOS-latest
             psversion: powershell
     steps:
-      - uses: actions/checkout@V1
+      - uses: actions/checkout@v1
       - name: Powershell Build
         env:
           PSBUILDEXE: ${{ matrix.psversion }}

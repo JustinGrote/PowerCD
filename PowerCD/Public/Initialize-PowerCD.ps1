@@ -16,9 +16,13 @@ function Initialize-PowerCD {
         'BuildHelpers'
         'PSScriptAnalyzer'
     )
+    Import-PowerCDRequirement -ModuleName PowerConfig -Version '0.1.0-beta0001'
+
+    #Start a new PowerConfig, using PowerCDSetting as a base
+    $PCDConfig = New-PowerConfig | Add-PowerConfigObject -Object (Get-PowerCDSetting)
 
     #. $PSScriptRoot\Get-PowerCDSetting.ps1
-    Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value (Get-PowerCDSetting)
+    Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value ($PCDConfig | Get-PowerConfig)
 
     #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
     if ($ENV:CI -or $CI -or ($PCDSetting.BuildEnvironment.buildsystem -and $PCDSetting.BuildEnvironment.buildsystem -ne 'Unknown')) {
