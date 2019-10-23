@@ -7,15 +7,17 @@
 
 #You can also create dedicated release branches for a particular stable or long-term support version (e.g. release/2.0.0) and then tag within that branch for LTS updates
 
-# mode: Mainline
 branches:
   # master:
   # regex: 'production|stable'
   develop:
-    regex: 'master'
-    tag: 'beta'
+    regex: master
+    tag: beta
   release:
-    tag: 'rc'
+    mode: ContinuousDeployment
+    tag: rc
+  feature:
+    mode: ContinuousDeployment
 
 #Custom commit messages to support Convential Commits
 #https://www.conventionalcommits.org/en/v1.0.0/
