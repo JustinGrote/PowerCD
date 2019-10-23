@@ -12,7 +12,7 @@
 RootModule = 'PowerCD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -27,7 +27,7 @@ Author = 'Justin Grote'
 CompanyName = 'Unspecified'
 
 # Copyright statement for this module
-Copyright = 'Copyright 2018 Justin Grote, All Rights Reserved. Released under the MIT license'
+Copyright = 'Copyright 2019 Justin Grote, All Rights Reserved. Released under the MIT license'
 
 # Description of the functionality provided by this module
 Description = 'A Continuous Deployment Environment for building Powershell Modules and Scripts'
@@ -78,7 +78,7 @@ CmdletsToExport = @()
 VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = @('PowerCD.tasks')
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -107,15 +107,15 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
-        Extensions = @(
-            @{
-                Module = "Plaster"
-                MinimumVersion = "1.0.1"
-                Details = @{
-                    TemplatePaths = "PlasterTemplates\Default"
-                }
-            }
-        )
+        # Extensions = @(
+        #     @{
+        #         Module = "Plaster"
+        #         MinimumVersion = "1.0.1"
+        #         Details = @{
+        #             TemplatePaths = "PlasterTemplates\Default"
+        #         }
+        #     }
+        # )
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable
@@ -124,7 +124,7 @@ PrivateData = @{
 # HelpInfoURI = ''
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
-# DefaultCommandPrefix = ''
+#DefaultCommandPrefix = 'PowerCD.'
 
 }
 

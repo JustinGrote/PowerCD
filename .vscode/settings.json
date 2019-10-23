@@ -1,4 +1,18 @@
 {
     // When enabled, will trim trailing whitespace when you save a file.
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "vsicons.associations.folders": [
+        {
+            "icon"      : "dist",
+            "extensions": ["BuildOutput","Output"],
+            "format"    : "svg",
+            "extends" : "dist"
+        }
+        {
+            "icon"      : "helper",
+            "extensions": ["BuildHelpers"],
+            "format"    : "svg",
+            "extends" : "helper"
+        }
+    ]
 }

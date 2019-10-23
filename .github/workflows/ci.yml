@@ -1,0 +1,39 @@
+name: PowerCD Build
+on: push
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-16.04
+          - windows-latest
+          - windows-2016
+          - macOS-latest
+        psversion:
+          - pwsh
+          - powershell
+        exclude:
+          - os: ubuntu-latest
+            psversion: powershell
+          - os: ubuntu-16.04
+            psversion: powershell
+          - os: macOS-latest
+            psversion: powershell
+    steps:
+      - uses: actions/checkout@v1
+      - name: Powershell Build
+        env:
+          PSBUILDEXE: ${{ matrix.psversion }}
+        shell: pwsh
+        run: |
+          & $env:PSBUILDEXE -noninteractive -noprofile -f ./build.ps1
+          $myexit = $LASTEXITCODE
+          if ($myexit) {exit $myexit}
+      - uses: actions/upload-artifact@master
+        with:
+          name: PSModule Zip
+          path: BuildOutput/

@@ -3,67 +3,62 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-jobs:
-  - job: Build_PSModule_Win2016
-    pool:
-      vmImage: vs2017-win2016
-    steps:
-    - powershell: .\build.ps1
-      displayName: 'Powershell Module Build and Test'
+strategy:
+  maxParallel: 10
+  matrix:
+    windows-latest-powershell:
+      os: windows-latest
+      psversion: powershell
+    windows-latest-pwsh:
+      os: windows-latest
+      psversion: pwsh
+    ubuntu-latest-pwsh:
+      os: ubuntu-latest
+      psversion: pwsh
+    macOS-latest-pwsh:
+      os: macOS-latest
+      psversion: pwsh
+    vs2017-win2016-powershell:
+      os: vs2017-win2016
+      psversion: powershell
+    vs2017-win2016-pwsh:
+      os: vs2017-win2016
+      psversion: pwsh
+pool:
+  vmImage: $(os)
+steps:
+- script: "$(psversion) -noninteractive -noprofile -f build.ps1"
+  displayName: 'Build and Test Powershell Module'
 
-    - task: PublishTestResults@2
-      displayName: 'Pester Test Results'
-      inputs:
-        testRunner: 'NUnit'
-        testResultsFiles: '**/*TestResults*.xml'
-        testRunTitle: 'PS_Win2016'
+- task: PublishTestResults@2
+  displayName: 'Capture Pester Test Result'
+  inputs:
+    testRunner: 'NUnit'
+    testResultsFiles: '**/*TestResults*.xml'
+    testRunTitle: 'Pester $(os)-$(psversion)'
 
-    - task: CopyFiles@2
-      displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/Release'
-        contents: '*.zip'
-        targetfolder: '$(Build.ArtifactStagingDirectory)'
+# - task: PublishCodeCoverageResults@2
+#   displayName: 'Capture Pester Code Coverage Result'
+#   inputs:
+#     summaryFileLocation: '**/*CodeCoverage*.xml'
+    #failIfCoverageEmpty: false # Optional
 
-    - task: PublishPipelineArtifact@0
-      displayName: 'Capture Powershell Module as Artifact'
-      inputs:
-        artifactName: 'Powershell Module built with Powershell 5.1 on Windows'
-        targetpath: '$(Build.ArtifactStagingDirectory)'
+- task: CopyFiles@2
+  displayName: 'Copy Completed Powershell Module Zip to Artifact Staging Area'
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
+    contents: '*.zip'
+    targetfolder: '$(Build.StagingDirectory)'
 
-  - job: Build_PSModule_Ubuntu1604
-    pool:
-      vmImage: ubuntu-16.04
-    steps:
-    - script: |
-        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft.list
-        sudo apt-get update
-        sudo apt-get install -y powershell
-      displayName: 'Install PowerShell Core'
+- task: CopyFiles@2
+  displayName: 'Copy Completed Powershell Nuget Package to Artifact Staging Area'
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
+    contents: '*.nupkg'
+    targetfolder: '$(Build.StagingDirectory)'
 
-    - script: |
-        pwsh -c '.\build.ps1'
-      displayName: 'Powershell Module Build and Test'
-
-    - task: PublishTestResults@2
-      displayName: 'Pester Test Results'
-      inputs:
-        testRunner: 'NUnit'
-        testResultsFiles: '**/*TestResults*.xml'
-        testRunTitle: 'PS_UbuntuLinux'
-
-    - task: CopyFiles@2
-      displayName: 'Copy Completed Powershell Module to Artifact Staging Area'
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)/Release'
-        contents: |
-          *.zip
-          *.nupkg
-        targetfolder: '$(Build.ArtifactStagingDirectory)'
-
-    - task: PublishPipelineArtifact@0
-      displayName: 'Capture Powershell Module as Artifact'
-      inputs:
-        artifactName: 'Powershell Module built with latest Powershell Core on Ubuntu'
-        targetpath: '$(Build.ArtifactStagingDirectory)'
+- task: PublishPipelineArtifact@1
+  displayName: 'Capture Powershell Module as Artifact'
+  inputs:
+    artifactName: '$(os)-$(psversion)'
+    targetPath: '$(Build.StagingDirectory)'

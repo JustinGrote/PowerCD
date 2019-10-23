@@ -1,5 +1,6 @@
-#requires -version 5
+#requires -version 5.1
 using namespace System.IO
+
 <#
 .SYNOPSIS
 Bootstraps Invoke-Build and starts it with supplied parameters.
@@ -10,64 +11,129 @@ If you already have Invoke-Build installed, just use Invoke-Build instead of thi
 Starts Invoke-Build with the default parameters
 #>
 
+$ErrorActionPreference = 'Stop'
+
+function DetectNestedPowershell {
+    #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
+    if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
+        Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
+        $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator | where {$_ -match 'WindowsPowershell'}) -join [io.path]::PathSeparator
+        $ModuleToImport = Get-Module Microsoft.Powershell.Utility -ListAvailable |
+            Where-Object Version -lt 6.0.0 |
+            Sort-Object Version -Descending |
+            Select-Object -First 1
+        Remove-Module 'Microsoft.Powershell.Utility'
+        Import-Module $ModuleToImport -Force
+    }
+}
+
 function FindInvokeBuild {
-<#
+	<#
 .SYNOPSIS
 Returns a path to an Invoke-Build powershell module either as a Powershell Module or in NuGet
 #>
 	param (
 		#Specify the minimum version to accept as installed
-		[Version]$MinimumVersion='5.4.1',
+		[Version]$MinimumVersion = '5.4.1',
 		#Specify this if you know it isn't present as a powershell module and want to save some detection time
 		[Switch]$SkipPSModuleDetection,
-		#Specify this if you just want a simple true/false result
-		[Switch]$Quiet
+		#Specify this if you want InvokeBuild to be discovered as a nuget package. Disabled by default due to PackageManagement module dependency
+		[Switch]$NugetPackageDetection
 	)
 
 	if (-not $SkipPSModuleDetection) {
-		write-verbose "Detecting InvokeBuild as a Powershell Module..."
-		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | sort version -descending | select -first 1) | where version -gt $MinimumVersion
-	}
+		Write-Verbose "Detecting InvokeBuild as a Powershell Module..."
+		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1) | Where-Object version -ge $MinimumVersion | Foreach-Object modulebase
+    }
 
-	if (-not $invokeBuild -and (get-command Get-Package -erroraction silentlycontinue)) {
-		write-verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
-		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | sort version -descending | select -first 1
+    #We can't do Get-Command because it will load the module, which will break our bootstrap if we need to update packagemanagement later on. This is a loose alternative (it assumes that the latest is available)
+    $GetPackageAvailable = ('Get-Package' -in (gmo packagemanagement -listavailable).exportedcommands.keys)
+
+	if (-not $invokeBuild -and $GetPackageAvailable -and $NugetPackageDetection) {
+		Write-Verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
+		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1 | Foreach-Object source
 	}
 
 	if ($InvokeBuild) {
-
-		if ($Quiet) {
-			return $false
-		} else {
-			write-host -fore green "Invoke-Build $MinimumVersion is already installed. Please use the Invoke-Build command from now on instead of build.ps1."
-			return $InvokeBuild
-		}
+		Write-Verbose "Invoke-Build $MinimumVersion was detected at $InvokeBuild."
+		return $invokeBuild
 	} else {
-		write-warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module."
-		if ($Quiet) {
-			return $true
-		}
+		Write-Warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module. Bootstrapping..."
+		return $false
 	}
 }
 
-function BootStrapInvokeBuild {
-	#Get a temporary directory
-	$tempFileObj = (New-TemporaryFile)
-	$tempfile = $tempFileObj -replace '\.tmp$','.zip'
-	$tempdir = $tempfileObj.DirectoryName
+function Import-ModuleFast {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory, ValueFromPipeline)][String[]]$ModuleName,
+        [String]$Version,
+        [Switch]$Package,
+        [Switch]$Force
+    )
+    process {
+        foreach ($ModuleName in $ModuleName) {
 
-	#Fetch Invoke-Build and import the module
-	$invokeBuildLatestURI = 'https://powershellgallery.com/api/v1/package/InvokeBuild'
-	(New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
-	Expand-Archive $tempfile $tempdir -Force -ErrorAction stop
+            #Get a temporary directory
+            $tempModulePath = [io.path]::Combine([io.path]::GetTempPath(), 'PowerCD', $ModuleName)
+            $ModuleManifestPath = Join-Path $tempModulePath "$ModuleName.psd1"
+            $tempfile = join-path $tempModulePath "$ModuleName.zip"
 
-	$IBModule = Join-Path $tempdir 'InvokeBuild.psd1'
-	Import-Module $IBModule -force
+            if ((Test-Path $tempfile) -and -not $Force) {
+                Write-Verbose "$ModuleName already found in $tempModulePath"
+            }
+            else {
+                if (Test-Path $tempModulePath) {
+                    Remove-Item $tempfile -Force
+                    Remove-Item $tempModulePath -Recurse -Force
+                }
+
+                New-Item -ItemType Directory -Path $tempModulePath > $null
+
+                #Fetch and import the module
+                [uri]$baseURI = 'https://powershellgallery.com/api/v2/package/'
+                if ($Package) {
+                    [uri]$baseURI = 'https://www.nuget.org/api/v2/package/'
+                }
+
+                [uri]$moduleURI = [uri]::new($baseURI, "$ModuleName/")
+
+                if ($Version) {
+                    #Ugly syntax for what is effectively "Join-Path" for URIs
+                    $moduleURI = [uri]::new($moduleURI,"$version/")
+                }
+
+                Write-Verbose "Fetching $ModuleName from $moduleURI"
+                (New-Object Net.WebClient).DownloadFile($moduleURI, $tempfile)
+
+                $CurrentProgressPreference = $ProgressPreference
+                $GLOBAL:ProgressPreference = 'silentlycontinue'
+                Expand-Archive $tempfile $tempModulePath -Force -ErrorAction stop
+                $GLOBAL:ProgressPreference = $CurrentProgressPreference
+            }
+
+            if (-not $Package) {
+                write-verbose "Importing $ModuleName from $ModuleManifestPath"
+                Import-Module $ModuleManifestPath -force
+            }
+            else {
+                $tempModulePath
+            }
+        }
+    }
 }
 
 #region Main
-if ($isCoreCLR) {write-host -fore green 'Detected Powershell Core'}
-$IBModulePath = if (-not $FindInvokeBuild) {BootStrapInvokeBuild}
+Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
+DetectNestedPowershell
+
+$InvokeBuildPath = FindInvokeBuild
+if (-not $InvokeBuildPath) {
+	#Bootstrap it
+    Import-ModuleFast InvokeBuild
+}
+
 Invoke-Expression "Invoke-Build $($args -join ' ')"
-exit $LastExitCode
-#endRegion Main
+
+Write-Host -fore green "End Invoke-Build Bootstrap"
+#endregion Main
