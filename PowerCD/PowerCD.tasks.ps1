@@ -1,33 +1,40 @@
-task Clean.PowerCD {
+task PowerCD.Clean {
     Invoke-PowerCDClean
 }
 
-task Version.PowerCD {
+task PowerCD.Version {
     . Get-PowerCDVersion > $null
 }
 
-task BuildPSModule.PowerCD {
+task PowerCD.BuildPSModule {
     Build-PowerCDModule
 }
 
 #region PowerCDSpecific
 
+#TODO: Make PowerCD-Specific task for this
+task PowerCD.CopyBuildTasks {
+    if (Test-Path "$BuildRoot\PowerCD\PowerCD.tasks.ps1") {
+        Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
+    }
+}
+
 #endRegion PowerCDSpecific
 
 
-task SetPSModuleVersion.PowerCD {
+task PowerCD.UpdateVersion {
     Set-PowerCDVersion
 }
 
-task UpdatePSModulePublicFunctions.PowerCD {
+task PowerCD.UpdatePublicFunctions {
     Update-PowerCDPublicFunctions
 }
 
-task TestPester.PowerCD {
+task PowerCD.Test.Pester {
     Test-PowerCDPester -CodeCoverage $null -Show All -ModuleManifestPath $PCDSetting.OutputModuleManifest
 }
 
-task PackageNuget.PowerCD {
+task PowerCD.Package.Nuget {
     $TaskParams = @{
         Path = [IO.Path]::Combine(
             $PCDSetting.BuildEnvironment.BuildOutput,
@@ -39,7 +46,7 @@ task PackageNuget.PowerCD {
     New-PowerCDNugetPackage @TaskParams
 }
 
-task PackageZip.PowerCD {
+task PowerCD.Package.Zip {
     [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
 
     $CompressArchiveParams = @{
@@ -50,16 +57,11 @@ task PackageZip.PowerCD {
     Compress-PowerCDModule @CompressArchiveParams
 }
 
-#TODO: Make PowerCD-Specific task for this
-task CopyBuildTasksFile {
-    if (Test-Path "$BuildRoot\PowerCD\PowerCD.tasks.ps1") {
-        Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
-    }
 
-}
 
-task Build.PowerCD Version.PowerCD,BuildPSModule.PowerCD,SetPSModuleVersion.PowerCD,UpdatePSModulePublicFunctions.PowerCD,CopyBuildTasksFile
-task Package.PowerCD PackageZip.PowerCD,PackageNuget.PowerCD
-task Test.PowerCD TestPester.PowerCD
-
-task Default.PowerCD Clean.PowerCD,Build.PowerCD,Test.PowerCD,Package.PowerCD
+#region MetaTasks
+task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions,PowerCD.CopyBuildTasks
+task PowerCD.Package PowerCD.Package.Zip,PowerCD.Package.Nuget
+task PowerCD.Test PowerCD.Test.Pester
+task PowerCD.Default PowerCD.Clean,PowerCD.Build,PowerCD.Test,PowerCD.Package
+#endregion MetaTasks

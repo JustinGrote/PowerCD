@@ -8,5 +8,11 @@
             "format"    : "svg",
             "extends" : "dist"
         }
+        {
+            "icon"      : "helper",
+            "extensions": ["BuildHelpers"],
+            "format"    : "svg",
+            "extends" : "helper"
+        }
     ]
 }
