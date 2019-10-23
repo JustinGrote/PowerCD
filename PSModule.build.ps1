@@ -52,7 +52,7 @@ Enter-Build {
     Initialize-PowerCD
 }
 
-task Clean Clean.PowerCD
-task Build Build.PowerCD
-task Package Package.PowerCD
-task . Default.PowerCD
+task Clean PowerCD.Clean
+task Build PowerCD.Build
+task Package PowerCD.Package
+task . PowerCD.Default
