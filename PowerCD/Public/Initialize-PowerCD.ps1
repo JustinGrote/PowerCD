@@ -19,7 +19,10 @@ function Initialize-PowerCD {
     Import-PowerCDRequirement -ModuleName PowerConfig -Version '0.1.1-beta0001'
 
     #Start a new PowerConfig, using PowerCDSetting as a base
-    $PCDConfig = New-PowerConfig | Add-PowerConfigObject -Object (Get-PowerCDSetting)
+    $PCDDefaultSetting = Get-PowerCDSetting
+    $PCDConfig = New-PowerConfig | Add-PowerConfigObject -Object $PCDDefaultSetting
+    $null = $PCDConfig | Add-PowerConfigYamlSource -Path (Join-Path $PCDDefaultSetting.BuildEnvironment.ProjectPath 'PSModule.build.settings.yml')
+    $null = $PCDConfig | Add-PowerConfigEnvironmentVariableSource -Prefix 'POWERCD_'
 
     #. $PSScriptRoot\Get-PowerCDSetting.ps1
     Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value ($PCDConfig | Get-PowerConfig)
