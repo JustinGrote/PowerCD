@@ -1,22 +1,19 @@
 #GitLab Flow Configuration
 #https://docs.gitlab.com/ee/workflow/gitlab_flow.html
-#With Gitlab Flow, all development happens in master, with feature branches created and PR'd into master
-#For releases, you can either:
-#- Tag releases within master
-#- Create the 'production' or 'stable' branch and merge/cherrypick your releases there (in this case uncomment the commented out "mode" and "branches" sections. This is using a GitLab flow "environment" for deploying releases
+#With Gitlab Flow, all development happens in master, with feature branches created and PR'd into master. Master is the same as "staging" and all commits are built and deployed to the staging environment.
+#For releases, you create additional environments
+#For a library, "production" represents the stable package that will be published to Powershell Gallery,etc. and "master" represents beta/prerelease builds. You can also use the "preview" or "release/X.X" branches to denote previews or release candidates, which will also be pushed to prerelease in galleries by the CI
+#For a script, "production" represents the production deployment environment
 
+#The CI will tag and deploy all releases pushed to a "support" branch denoted by the regex below to the appropriate environment
 #You can also create dedicated release branches for a particular stable or long-term support version (e.g. release/2.0.0) and then tag within that branch for LTS updates
 
 branches:
-  # master:
-  # regex: 'production|stable'
-  develop:
-    regex: master
-    tag: beta
-  release:
+  master:
     mode: ContinuousDeployment
-    tag: rc
-  feature:
+    tag: beta
+  support:
+    regex: ^(pre)?prod(uction)?$|^pre(view)?$|^test(ing)?$|^qa$|^support|environment[/-]
     mode: ContinuousDeployment
 
 #Custom commit messages to support Convential Commits
