@@ -10,6 +10,9 @@ function Initialize-PowerCD {
         [Switch]$SkipSetBuildRoot
     )
 
+    #Fix a bug if powershell was started from pwsh
+    Reset-WinPSModules
+
     #Import Prerequisites
     Import-PowerCDRequirement @(
         'Pester'
