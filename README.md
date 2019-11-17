@@ -4,12 +4,17 @@
 
 [![PSGallery][]][PSGalleryLink] [![PSGalleryDL][]][PSGalleryDLLink]
 
-[![AppV][]][AppVLink] [![ADO][]][ADOLink]  [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
+[![ADO][]][ADOLink] [![GHRelease][]][GHReleaseLink]
 
-[![AppVNext][]][AppVNextLink] [![ADOvNext][]][ADOvNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
+[![ADOvNext][]][ADOvNextLink] [![GHPreRelease][]][GHPreReleaseLink]
 
+---
+
+[![AppV][]][AppVLink]
+[![AppVTests][]][AppVTestsLink]
+[![AppVNext][]][AppVNextLink]
+[![AppVNextTests][]][AppVNextTestsLink]
 [![Actions Status](https://github.com/justingrote/PowerCD/workflows/ci/badge.svg)](https://github.com/justingrote/PowerCD/actions)
-
 [![Travis Status](https://travis-ci.org/JustinGrote/PowerCD.svg?branch=master)](https://travis-ci.org/JustinGrote/PowerCD)
 ---
 
@@ -157,17 +162,19 @@ The function of this module is to publish the modules to places where they can t
 [GHRelease]:https://img.shields.io/github/downloads/justingrote/PowerCD/latest/total.svg?logo=github&label=download
 [GHReleaseLink]: https://github.com/JustinGrote/PowerCD/releases/latest
 
-[AppVNext]: https://img.shields.io/appveyor/ci/justingrote/powercd/release-vNext.svg?logo=appveyor&label=vNext
+[AppVNext]: https://img.shields.io/appveyor/ci/justingrote/powercd/production.svg?logo=appveyor&label=vNext
 [AppVNextLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
 
-[AppVNextTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/release/vNext.svg?logo=appveyor&label=tests
+[AppVNextTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/release/master.svg?logo=appveyor&label=tests
 [AppVNextTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/history
 
 [GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
 
-[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Current
+[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=production&label=Current
 [ADOLink]: https://dev.azure.com/justingrote/Default/_build
 
-[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=release/vNext&label=vNext
+[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Preview
 [ADOVNextLink]: https://dev.azure.com/justingrote/Default/_build
+
+
