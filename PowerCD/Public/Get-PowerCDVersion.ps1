@@ -6,12 +6,18 @@ function Get-PowerCDVersion {
     #TODO: FEATURE: Fallback to module version if GitVersion doesn't work
 
     #TODO: Move this to dedicated dependency handler
-    if (-not $IsMacOS) {
+
+    if ($IsWindows -or $PSEdition -eq 'Desktop') {
         $GitVersionPackagePath = Import-PowerCDRequirement GitVersion.CommandLine -Package
         $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
-    } else {
+    } elseif ($MacOS) {
         & brew install GitVersion
         $GitversionEXE = 'gitversion'
+    } elseif (Get-Command dotnet -ErrorAction SilentlyContinue) {
+        & dotnet tool install -g gitversion.tool
+        $GitversionExe = 'dotnet-gitversion'
+    } else {
+        throw "The version task requires the dotnet SDK to be installed if not running on Windows or Mac. For ubuntu you can install with apt-get install dotnet-sdk-3.0"
     }
 
 
