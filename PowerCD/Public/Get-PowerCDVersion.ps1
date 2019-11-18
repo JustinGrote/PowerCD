@@ -20,15 +20,6 @@ function Get-PowerCDVersion {
         throw "The version task requires the dotnet SDK to be installed if not running on Windows or Mac. For ubuntu you can install with apt-get install dotnet-sdk-3.0"
     }
 
-    #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
-    #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
-    $currentTag = git tag --points-at HEAD
-
-    if ($currentTag) {
-        write-build DarkYellow "Task $($task.name) - Git Tag $currentTag detected. Temporarily removing for GitVersion calculation."
-        git tag -d $currentTag
-    }
-
     #Strip prerelease tags, GitVersion can't handle them with Mainline deployment with version 4.0
     #TODO: Restore these for local repositories, otherwise they just come down with git pulls
     #FIXME: Remove this because

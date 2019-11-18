@@ -52,7 +52,7 @@ function New-PowerCDNugetPackage {
         Unregister-PSRepository -Name $tempRepositoryName -ErrorAction SilentlyContinue *>$null
         Register-PSRepository -Name $tempRepositoryName -SourceLocation ([String]$Destination) *>$null
         If (Get-Item -ErrorAction SilentlyContinue (join-path $Path "$ModuleName*.nupkg")) {
-            Write-Build Green "Nuget Package for $ModuleName already generated. Skipping. Delete the package to retry"
+            Write-Debug Green "Nuget Package for $ModuleName already generated. Skipping. Delete the package to retry"
         } else {
             $CurrentProgressPreference = $GLOBAL:ProgressPreference
             $GLOBAL:ProgressPreference = 'SilentlyContinue'
