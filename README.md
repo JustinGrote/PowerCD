@@ -2,20 +2,14 @@
 
 # PowerCD
 
-[![PSGallery][]][PSGalleryLink] [![PSGalleryDL][]][PSGalleryDLLink]
+[![PSGallery][]][PSGalleryLink]
+[![PSGalleryDL][]][PSGalleryDLLink]
 
-[![ADO][]][ADOLink] [![GHRelease][]][GHReleaseLink]
+[![Actions][]][ActionsLink]
+[![GHRelease][]][GHReleaseLink]
 
-[![ADOvNext][]][ADOvNextLink] [![GHPreRelease][]][GHPreReleaseLink]
-
----
-
-[![AppV][]][AppVLink]
-[![AppVTests][]][AppVTestsLink]
-[![AppVNext][]][AppVNextLink]
-[![AppVNextTests][]][AppVNextTestsLink]
-[![Actions Status](https://github.com/justingrote/PowerCD/workflows/ci/badge.svg)](https://github.com/justingrote/PowerCD/actions)
-[![Travis Status](https://travis-ci.org/JustinGrote/PowerCD.svg?branch=master)](https://travis-ci.org/JustinGrote/PowerCD)
+[![ActionsPrerelease][]][ActionsPrereleaseLink]
+[![GHPreRelease][]][GHPreReleaseLink]
 ---
 
 This project's goal is to deliver an opinionated continuous deployment framework that anyone can use to build powershell modules to be published on the Powershell Gallery.
@@ -86,9 +80,9 @@ Semantic versioning is all meaningful version numbers, so don't worry about the 
 - Documentation - [PlatyPS](https://github.com/PowerShell/platyPS)
 - Documentation Host - [ReadTheDocs](https://docs.readthedocs.io)
 - Coding Process - [Git Ship](https://markshust.com/2018/04/07/introducing-git-ship-simplified-git-flow-workflow)
-    - Next release is always named release/vNext, and is always deployable as a prerelease build
-    - Feature Branches pull request to release/vNext
-    - release/vNext pull requests to master for production release
+    - Next release is always named release/Prerelease, and is always deployable as a prerelease build
+    - Feature Branches pull request to release/Prerelease
+    - release/Prerelease pull requests to master for production release
 - Repository - [Git](https://git-scm.com/) (Local, [Github](https://github.com/), or [Azure Devops](https://dev.azure.com/))
 - Deploy Targets
   - Local (Release Folder .zip and .nupkg)
@@ -146,35 +140,61 @@ If you're concerned about Microsoft buying GitHub, well, Powershell Core is on G
 
 The function of this module is to publish the modules to places where they can then be consumed, it's not to deploy the software directly into production, hence it is only Continuous Delivery, not Continuous Deployment. If you bolt on a piece in the build code that pushes this directly to production, then it is Continuous Deployment.
 
+---
+[![ADO][]][ADOLink]
+[![ADOTests][]][ADOTestsLink]
 
-[PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=windows&label=Powershell+Gallery+Latest
+[![ADOPrerelease][]][ADOPrereleaseLink]
+[![ADOPrereleaseTests][]][ADOPrereleaseTestsLink]
+
+[![AppV][]][AppVLink]
+[![AppVTests][]][AppVTestsLink]
+
+[![AppPrerelease][]][AppPrereleaseLink]
+[![AppPrereleaseTests][]][AppPrereleaseTestsLink]
+
+[![Travis Status](https://api.travis-ci.org/JustinGrote/PowerCD.svg?branch=master)](https://travis-ci.org/JustinGrote/PowerCD)
+
+
+
+[PSGallery]: https://img.shields.io/powershellgallery/v/PowerCD.svg?logo=powershell&label=Powershell+Gallery+Latest
 [PSGalleryLink]: https://www.powershellgallery.com/packages/PowerCD
 
-[PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=windows&label=downloads
+[PSGalleryDL]: https://img.shields.io/powershellgallery/dt/PowerCD.svg?logo=powershell&label=downloads
 [PSGalleryDLLink]: https://www.powershellgallery.com/packages/PowerCD
+
+[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=production&label=Current
+[ADOLink]: https://dev.azure.com/justingrote/Github/_build?definitionId=1
+
+[ADOTests]: https://img.shields.io/azure-devops/tests/justingrote/github/1/production?label=Tests&logo=azure-pipelines
+[ADOTestsLink]: https://dev.azure.com/justingrote/Github/_build?definitionId=1
+
+[ADOPrerelease]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Prerelease
+[ADOPrereleaseLink]: https://dev.azure.com/justingrote/Github/_build?definitionId=1&_a=summary&repositoryFilter=1&branchFilter=2
+
+[ADOPrereleaseTests]: https://img.shields.io/azure-devops/tests/justingrote/Github/1/master?logo=azure-pipelines&label=Tests
+[ADOPrereleaseTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/build/tests
 
 [AppV]: https://img.shields.io/appveyor/ci/justingrote/powercd/master.svg?logo=appveyor&label=Current
 [AppVLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
 
-[AppVTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/master.svg?logo=appveyor&label=tests
+[AppVTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/master.svg?logo=appveyor&label=Tests
 [AppVTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/build/tests
 
-[GHRelease]:https://img.shields.io/github/downloads/justingrote/PowerCD/latest/total.svg?logo=github&label=download
+[GHRelease]:https://img.shields.io/github/downloads/justingrote/PowerCD/latest/total.svg?logo=github&label=Download
 [GHReleaseLink]: https://github.com/JustinGrote/PowerCD/releases/latest
 
-[AppVNext]: https://img.shields.io/appveyor/ci/justingrote/powercd/production.svg?logo=appveyor&label=vNext
-[AppVNextLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
+[AppPrerelease]: https://img.shields.io/appveyor/ci/justingrote/powercd/production.svg?logo=appveyor&label=Prerelease
+[AppPrereleaseLink]: https://ci.appveyor.com/project/JustinGrote/PowerCD
 
-[AppVNextTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/release/master.svg?logo=appveyor&label=tests
-[AppVNextTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/history
+[AppPrereleaseTests]: https://img.shields.io/appveyor/tests/justingrote/powercd/release/master.svg?logo=appveyor&label=Tests
+[AppPrereleaseTestsLink]: https://ci.appveyor.com/project/JustinGrote/powercd/history
 
-[GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=download
+[GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PowerCD/total.svg?logo=github&label=Download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PowerCD/releases
 
-[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=production&label=Current
-[ADOLink]: https://dev.azure.com/justingrote/Default/_build
+[Actions]: https://github.com/JustinGrote/PowerCD/workflows/PowerCD%20Build/badge.svg?branch=production
+[ActionsLink]: https://github.com/justingrote/PowerCD/actions
 
-[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PowerCD?branchName=master&label=Preview
-[ADOVNextLink]: https://dev.azure.com/justingrote/Default/_build
-
-
+[ActionsPreRelease]: https://github.com/JustinGrote/PowerCD/workflows/PowerCD%20Build/badge.svg?branch=master
+[ActionsPreReleaseLink]: https://github.com/justingrote/PowerCD/actions
