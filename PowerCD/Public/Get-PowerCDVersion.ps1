@@ -3,24 +3,23 @@ function Get-PowerCDVersion {
     [CmdletBinding()]
     param()
 
-    #TODO: FEATURE: Fallback to module version if GitVersion doesn't work
-
-    #TODO: Move this to dedicated dependency handler
-
+    #TODO: Potentially pin the GitVersion version, as pulling from multiple sources may have undesirable side effect of different version for different builds
+    if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+        & dotnet tool install -g gitversion.tool
+        $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
+        Write-Debug "GitVersion: Dotnet EXE detected, using .NET Global Tool"
+    }
     if ($IsWindows -or $PSEdition -eq 'Desktop') {
+        Write-Debug "Gitversion: Dotnet not found but we are on Windows, using GitVersion.CommandLine package (faster than downloading dotnet)"
         $GitVersionPackagePath = Import-PowerCDRequirement GitVersion.CommandLine -Package
         $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
     } elseif ($MacOS) {
+        Write-Debug "Gitversion: Dotnet not found but we are on Mac, using gitversion package on brew (faster than downloading dotnet)"
         & brew install GitVersion
         $GitversionEXE = 'gitversion'
-    } elseif (Get-Command dotnet -ErrorAction SilentlyContinue) {
-        write-warning "Found Linux, Installing Gitversion"
-        & dotnet tool install -g gitversion.tool
-        $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
     } else {
         throw "The version task requires the dotnet SDK to be installed if not running on Windows or Mac. For ubuntu you can install with apt-get install dotnet-sdk-3.0"
     }
-
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
