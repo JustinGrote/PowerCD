@@ -16,7 +16,7 @@ function Get-PowerCDVersion {
     } elseif (Get-Command dotnet -ErrorAction SilentlyContinue) {
         write-warning "Found Linux, Installing Gitversion"
         & dotnet tool install -g gitversion.tool
-        $GitversionExe = 'dotnet-gitversion'
+        $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
     } else {
         throw "The version task requires the dotnet SDK to be installed if not running on Windows or Mac. For ubuntu you can install with apt-get install dotnet-sdk-3.0"
     }
