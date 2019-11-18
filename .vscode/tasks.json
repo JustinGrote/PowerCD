@@ -41,10 +41,10 @@
             ]
         },
         {
-            "label": "Build with PSCore Preview",
+            "label": "Build with PSCore",
             "group": "build",
             "type": "process",
-            "command": "C:\\Program Files\\PowerShell\\6-preview\\pwsh.exe",
+            "command": "pwsh.exe",
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
@@ -86,10 +86,10 @@
             "problemMatcher": "$pester"
         },
         {
-            "label": "Test with PSCore Preview",
+            "label": "Test with PSCore",
             "group": "test",
             "type": "process",
-            "command": "C:\\Program Files\\PowerShell\\6-preview\\pwsh.exe",
+            "command": "pwsh.exe",
             "args": [
                 "-NoProfile",
                 "-NonInteractive",
