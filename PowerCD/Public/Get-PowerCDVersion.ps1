@@ -14,6 +14,7 @@ function Get-PowerCDVersion {
         & brew install GitVersion
         $GitversionEXE = 'gitversion'
     } elseif (Get-Command dotnet -ErrorAction SilentlyContinue) {
+        write-warning "Found Linux, Installing Gitversion"
         & dotnet tool install -g gitversion.tool
         $GitversionExe = 'dotnet-gitversion'
     } else {
