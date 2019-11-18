@@ -8,8 +8,7 @@ function Get-PowerCDVersion {
         & dotnet tool install -g gitversion.tool
         $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
         Write-Debug "GitVersion: Dotnet EXE detected, using .NET Global Tool"
-    }
-    if ($IsWindows -or $PSEdition -eq 'Desktop') {
+    } elseif ($IsWindows -or $PSEdition -eq 'Desktop') {
         Write-Debug "Gitversion: Dotnet not found but we are on Windows, using GitVersion.CommandLine package (faster than downloading dotnet)"
         $GitVersionPackagePath = Import-PowerCDRequirement GitVersion.CommandLine -Package
         $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
