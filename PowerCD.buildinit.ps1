@@ -59,7 +59,7 @@ Downloads a module from the Powershell Gallery using direct APIs. This is primar
         }
         $itemsToRemove.foreach{
             $verbosepreference = 'continue'
-            Remove-Item $PSItem -Force -Verbose
+            Remove-Item $PSItem -Force -Confirm:$false -Verbose
         }
 
         $destinationModulePath = Join-Path $destination $Name
