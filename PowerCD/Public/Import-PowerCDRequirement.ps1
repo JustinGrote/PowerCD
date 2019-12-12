@@ -49,8 +49,7 @@ function Import-PowerCDRequirement {
             }
 
             if (-not $Package) {
-                write-verbose "Importing $ModuleName from $ModuleManifestPath"
-                Import-Module $ModuleManifestPath -Force -Scope Global
+                Import-Module $ModuleManifestPath -Force -Scope Global 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'} | Write-Verbose
             }
             else {
                 $tempModulePath
