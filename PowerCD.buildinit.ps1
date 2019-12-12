@@ -16,7 +16,7 @@ function Install-PSGalleryModule {
     )
     if (-not (Test-Path $Destination)) {throw "Destination $Destination doesn't exist. Please specify a powershell modules directory"}
     $downloadURI = "https://www.powershellgallery.com/api/v2/package/$Name"
-    if ($version) {$downloadURI += "/$Version"}buc
+    if ($version) {$downloadURI += "/$Version"}
     try {
         $ErrorActionPreference = 'Stop'
         $tempZipName = "mybootstrappedPSGalleryModule.zip"
