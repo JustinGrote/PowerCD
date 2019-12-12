@@ -57,7 +57,10 @@ Downloads a module from the Powershell Gallery using direct APIs. This is primar
         $itemsToRemove = @($tempZipName,'_rels','package','`[Content_Types`].xml','*.nuspec').foreach{
             Join-Path $tempdir $PSItem
         }
-        Remove-Item $itemsToRemove -Recurse
+        $itemsToRemove.foreach{
+            $verbosepreference = 'continue'
+            Remove-Item $PSItem -Force -Verbose
+        }
 
         $destinationModulePath = Join-Path $destination $Name
         $destinationPath = Join-Path $destinationModulePath $modulePathVersion
