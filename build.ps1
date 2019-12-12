@@ -12,6 +12,6 @@ Starts Invoke-Build with the default parameters
 #>
 
 $ErrorActionPreference = 'Stop'
-. ./PowerCD.BuildInit.ps1
+. ./PowerCD.buildinit.ps1
 $SCRIPT:PowerCDBuildInit = $true
 Invoke-Build $args
