@@ -59,7 +59,7 @@ Downloads a module from the Powershell Gallery using direct APIs. This is primar
         $destinationModulePath = Join-Path $destination $Name
         $destinationPath = Join-Path $destinationModulePath $modulePathVersion
         if (-not (Test-Path $destinationPath)) {New-Item -ItemType Directory $destinationPath -Force > $null}
-        Move-Item $tempDir/* -Destination $destinationPath -Exclude '_rels','package','`[Content_Types`].xml','*.nuspec' > $null
+        Copy-Item -Path $tempDir/* -Recurse -Destination $destinationPath -Exclude '_rels','package','`[Content_Types`].xml','*.nuspec' > $null
 
     } catch {throw $PSItem} finally {
         #Cleanup
