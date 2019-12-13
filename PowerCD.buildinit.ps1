@@ -52,7 +52,7 @@ Downloads a module from the Powershell Gallery using direct APIs. This is primar
         $tempDirPath = $tempBase -replace '\.tmp$'
         $tempDir = New-Item -ItemType Directory -Path $tempDirPath
         [void][net.webclient]::new().DownloadFile($downloadURI,$tempZipPath)
-        [void][IO.Compression.ZipFile]::ExtractToDirectory($tempZipPath, $tempDir)
+        Expand-Archive -Path $tempZipPath -DestinationPath $tempDir > $null
         $moduleManifest = Get-Content -raw (Join-Path $tempDirPath "$Name.psd1")
         $modulePathVersion = if ($moduleManifest -match "ModuleVersion *= *'([\.\d]+)'") {$matches[1]} else {throw "Could not read Moduleversion from the module manifest"}
         # $itemsToRemove = @($tempZipName,).foreach{
