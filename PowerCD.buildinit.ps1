@@ -55,13 +55,6 @@ Downloads a module from the Powershell Gallery using direct APIs. This is primar
         Expand-Archive -Path $tempZipPath -DestinationPath $tempDir > $null
         $moduleManifest = Get-Content -raw (Join-Path $tempDirPath "$Name.psd1")
         $modulePathVersion = if ($moduleManifest -match "ModuleVersion *= *'([\.\d]+)'") {$matches[1]} else {throw "Could not read Moduleversion from the module manifest"}
-        # $itemsToRemove = @($tempZipName,).foreach{
-        #     Join-Path $tempdir $PSItem
-        # }
-        # $itemsToRemove.foreach{
-        #     $verbosepreference = 'continue'
-        #     Remove-Item $PSItem -Recurse -Force -Confirm:$false -Verbose
-        # }
 
         $destinationModulePath = Join-Path $destination $Name
         $destinationPath = Join-Path $destinationModulePath $modulePathVersion
