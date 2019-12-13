@@ -1,6 +1,6 @@
 function Reset-WinPSModules {
     if ($PSEdition -eq 'Desktop') {
-        Get-Module | Where-Object CompatiblePSEditions -eq 'Core' | foreach {
+        Get-Module | Where-Object CompatiblePSEditions -eq 'Core' | where compatiblepseditions -notcontains 'desktop' | foreach {
             $moduleToImport = Get-Module $PSItem.Name -ListAvailable | Where-Object CompatiblePSEditions -match 'Desktop' | Sort-Object Version -Descending | Select-Object -First 1
             if ($moduleToImport) {
                 write-verbose "Reloading $($PSItem.Name) with Windows Powershell-compatible version $($moduleToImport.version)"

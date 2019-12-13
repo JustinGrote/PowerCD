@@ -18,7 +18,7 @@ function DetectNestedPowershell {
     #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
     if ($PSEdition -eq 'Desktop' -and ((get-module -Name 'Microsoft.PowerShell.Utility').CompatiblePSEditions -eq 'Core')) {
         Write-Verbose 'Powershell 5.1 was started inside of pwsh, removing non-WindowsPowershell paths'
-        $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator | Where-Object {$_ -match 'WindowsPowershell'}) -join [io.path]::PathSeparator
+        $env:PSModulePath = ($env:PSModulePath -split [Path]::PathSeparator | Where-Object {$_ -match 'WindowsPowershell'}) -join [Path]::PathSeparator
         $ModuleToImport = Get-Module Microsoft.Powershell.Utility -ListAvailable |
             Where-Object Version -lt 6.0.0 |
             Sort-Object Version -Descending |
@@ -46,33 +46,32 @@ Downloads a module from the Powershell Gallery using direct APIs. This is primar
     if ($version) {$downloadURI += "/$Version"}
     try {
         $ErrorActionPreference = 'Stop'
-        $tempZipName = "mybootstrappedPSGalleryModule.zip"
-        $tempDirPath = Join-Path ([io.path]::GetTempPath()) "$Name-$(get-random)"
+        $tempBase = [Path]::GetTempFileName()
+        Remove-Item $tempBase
+        $tempZipPath = $tempBase -replace 'tmp$','zip'
+        $tempDirPath = $tempBase -replace '\.tmp$'
         $tempDir = New-Item -ItemType Directory -Path $tempDirPath
-        $tempFilePath = Join-Path $tempDir $tempZipName
-        [void][net.webclient]::new().DownloadFile($downloadURI,$tempFilePath)
-        [void][System.IO.Compression.ZipFile]::ExtractToDirectory($tempFilePath, $tempDir, $true)
+        [void][net.webclient]::new().DownloadFile($downloadURI,$tempZipPath)
+        [void][IO.Compression.ZipFile]::ExtractToDirectory($tempZipPath, $tempDir)
         $moduleManifest = Get-Content -raw (Join-Path $tempDirPath "$Name.psd1")
-        $modulePathVersion = if ($moduleManifest -match "ModuleVersion = '([\.\d]+)'") {$matches[1]} else {throw "Could not read Moduleversion from the module manifest"}
-        $itemsToRemove = @($tempZipName,'_rels','package','`[Content_Types`].xml','*.nuspec').foreach{
-            Join-Path $tempdir $PSItem
-        }
-        $itemsToRemove.foreach{
-            $verbosepreference = 'continue'
-            Remove-Item $PSItem -Recurse -Force -Confirm:$false -Verbose
-        }
+        $modulePathVersion = if ($moduleManifest -match "ModuleVersion *= *'([\.\d]+)'") {$matches[1]} else {throw "Could not read Moduleversion from the module manifest"}
+        # $itemsToRemove = @($tempZipName,).foreach{
+        #     Join-Path $tempdir $PSItem
+        # }
+        # $itemsToRemove.foreach{
+        #     $verbosepreference = 'continue'
+        #     Remove-Item $PSItem -Recurse -Force -Confirm:$false -Verbose
+        # }
 
         $destinationModulePath = Join-Path $destination $Name
         $destinationPath = Join-Path $destinationModulePath $modulePathVersion
-        if (-not (Test-Path $destinationModulePath)) {$null = New-Item -ItemType Directory $destinationModulePath}
-        if (Test-Path $destinationPath) {Remove-Item $destinationPath -force -recurse}
-        $null = Move-Item $tempdir -Destination $destinationPath
+        if (-not (Test-Path $destinationPath)) {$null = New-Item -ItemType Directory $destinationPath -Force}
+        $null = Move-Item $tempDir/* -Recurse -Destination $destinationPath -Exclude '_rels','package','`[Content_Types`].xml','*.nuspec'
 
-        Set-Location -path ([io.path]::Combine($Destination, $Name, $modulePathVersion))
-        #([IO.Path]::Combine($Destination, $Name, $modulePathVersion), $true)
     } catch {throw $PSItem} finally {
         #Cleanup
         if (Test-Path $tempdir) {Remove-Item -Recurse -Force $tempdir}
+        if (Test-Path $tempZipPath) {Remove-Item -Recurse -Force $tempZipPath}
     }
 }
 
@@ -82,7 +81,7 @@ function BootStrapModule {
     param(
         [String]$Name,
         [Alias('RequiredVersion')][String]$Version,
-        $Destination=([IO.Path]::Combine([System.Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
+        $Destination=([IO.Path]::Combine([Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
     )
 
     if (-not (Test-Path $Destination)) {
@@ -96,18 +95,17 @@ function BootStrapModule {
 
     #Attempt to load the module
     try {
-        $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([io.path]::PathSeparator)
+        $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([Path]::PathSeparator)
         if ($destination -notin $psModulePaths) {
             write-verbose "Adding Module Bootstrap $destination to PSModulePath"
             $psmodulePaths.insert(0,$destination)
-            $env:PSModulePath = $psModulePaths -join [io.path]::PathSeparator
+            $env:PSModulePath = $psModulePaths -join [Path]::PathSeparator
         }
 
         Import-Module @importModuleParams -ErrorAction Stop 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'} | Write-Verbose
     } catch [IO.FileNotFoundException] {
         #Install from Gallery and try again
         Install-PSGalleryModule -Name $Name -Version $Version -Destination $Destination
-
         Import-Module @importModuleParams -ErrorAction Stop 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'} | Write-Verbose
     }
 }
@@ -151,7 +149,6 @@ Returns a path to an Invoke-Build powershell module either as a Powershell Modul
 #region Main
 Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
 DetectNestedPowershell
-
 $InvokeBuildPath = FindInvokeBuild
 if (-not $InvokeBuildPath) {
     BootStrapModule InvokeBuild
@@ -168,6 +165,8 @@ if ($PowerCDMetaBuild) {
     if ($PowerCDVersion) { $bootstrapModuleParams.RequiredVersion = $PowerCDVersion}
     BootstrapModule @bootstrapModuleParams
 }
+
+
 
 Write-Host -fore cyan "Done PowerCD.Bootstrap $($bootstrapTimer.elapsed)"
 

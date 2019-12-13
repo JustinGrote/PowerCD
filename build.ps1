@@ -1,4 +1,4 @@
-#requires -version 5.1
+#requires -version 5
 using namespace System.IO
 
 <#
@@ -12,6 +12,7 @@ Starts Invoke-Build with the default parameters
 #>
 
 $ErrorActionPreference = 'Stop'
-. ./PowerCD.buildinit.ps1
+. $PSScriptRoot/PowerCD.buildinit.ps1
 $SCRIPT:PowerCDBuildInit = $true
+Set-Location $PSScriptRoot
 Invoke-Build $args

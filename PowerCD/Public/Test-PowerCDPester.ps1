@@ -63,7 +63,7 @@ function Test-PowerCDPester {
             #Prepare the Destination Module Directory Environment
             $ENV:PowerCDModuleManifest = $USING:ModuleManifestPath
             #Bring in relevant environment
-            $USING:PowerCDModules | Import-Module -Force 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'}
+            $USING:PowerCDModules | Import-Module 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'}
             $PesterParams = $USING:PesterParams
             Invoke-Pester @PesterParams
         }

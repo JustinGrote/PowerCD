@@ -22,7 +22,7 @@ function BootstrapPSGet {
         Install-Module PowershellGet -MinimumVersion $psGetVersionMinimum -Scope CurrentUser -AllowClobber -SkipPublisherCheck -Force
     } | Receive-Job -Wait -Verbose
     Remove-Job -Name "BootStrapPSGet"
-    Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
+    Import-Module PowershellGet -MinimumVersion 2.2 -ErrorAction Stop
 }
 BootStrapPSGet
 
