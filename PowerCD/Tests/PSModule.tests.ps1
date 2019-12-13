@@ -115,7 +115,8 @@ Describe 'Powershell Module' {
         It 'Can be imported as a module successfully' {
             #Make sure an existing module isn't present
             Remove-Module $ModuleManifestFile.basename -ErrorAction SilentlyContinue
-            $SCRIPT:BuildOutputModule = Import-Module $ModuleManifestFile -PassThru -verbose:$false -erroraction stop
+            #TODO: Make WarningAction a configurable parameter
+            $SCRIPT:BuildOutputModule = Import-Module $ModuleManifestFile -PassThru -verbose:$false -warningaction SilentlyContinue -erroraction stop
             $BuildOutputModule.Name | Should Be $ModuleName
             $BuildOutputModule | Should BeOfType System.Management.Automation.PSModuleInfo
         }

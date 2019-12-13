@@ -14,5 +14,7 @@
             "format"    : "svg",
             "extends" : "helper"
         }
-    ]
+    ],
+    // We want to test for Powershell 5.1 Compatibility
+    "powershell.powerShellDefaultVersion": "Windows Powershell (x64)"
 }
