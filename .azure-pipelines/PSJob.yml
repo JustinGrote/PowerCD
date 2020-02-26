@@ -1,0 +1,13 @@
+# https://aka.ms/yaml
+parameters:
+  vmImage: 'ubuntu-18.04'
+  psVersion: 'pwsh'
+  script: "$PSVersionTable | Out-String"
+jobs:
+  - job:
+    condition: false
+    displayName: "${{parameters.vmImage}} ${{parameters.psVersion}}"
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    steps:
+    - ${{parameters.psVersion}}: ${{parameters.script}}
