@@ -30,43 +30,76 @@ function DetectNestedPowershell {
 
 #region HelperFunctions
 function Install-PSGalleryModule {
-<#
-.SYNOPSIS
-Downloads a module from the Powershell Gallery using direct APIs. This is primarily used to bootstrap
-#>
+    <#
+    .SYNOPSIS
+    Downloads a module from the Powershell Gallery using direct APIs. This is primarily used to bootstrap
+    #>
+
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)][String]$Name,
         [Parameter(Mandatory)][String]$Destination,
         [String]$Version
     )
-
     if (-not (Test-Path $Destination)) {throw "Destination $Destination doesn't exist. Please specify a powershell modules directory"}
     $downloadURI = "https://www.powershellgallery.com/api/v2/package/$Name"
-    if ($version) {$downloadURI += "/$Version"}
+    if ($version) {$downloadURI += "/$Version"}buc
     try {
         $ErrorActionPreference = 'Stop'
-        $tempBase = [Path]::GetTempFileName()
-        Remove-Item $tempBase
-        $tempZipPath = $tempBase -replace 'tmp$','zip'
-        $tempDirPath = $tempBase -replace '\.tmp$'
+        $tempZipName = "mybootstrappedPSGalleryModule.zip"
+        $tempDirPath = Join-Path ([io.path]::GetTempPath()) "$Name-$(get-random)"
         $tempDir = New-Item -ItemType Directory -Path $tempDirPath
-        [void][net.webclient]::new().DownloadFile($downloadURI,$tempZipPath)
-        Expand-Archive -Path $tempZipPath -DestinationPath $tempDir > $null
+        $tempFilePath = Join-Path $tempDir $tempZipName
+        [void][net.webclient]::new().DownloadFile($downloadURI,$tempFilePath)
+        [void][System.IO.Compression.ZipFile]::ExtractToDirectory($tempFilePath, $tempDir, $true)
         $moduleManifest = Get-Content -raw (Join-Path $tempDirPath "$Name.psd1")
-        $modulePathVersion = if ($moduleManifest -match "ModuleVersion *= *'([\.\d]+)'") {$matches[1]} else {throw "Could not read Moduleversion from the module manifest"}
+        $modulePathVersion = if ($moduleManifest -match "ModuleVersion = '([\.\d]+)'") {$matches[1]} else {throw "Could not read Moduleversion from the module manifest"}
+        $itemsToRemove = @($tempZipName,'_rels','package','`[Content_Types`].xml','*.nuspec').foreach{
+            Join-Path $tempdir $PSItem
+        }
+        Remove-Item $itemsToRemove -Recurse
 
         $destinationModulePath = Join-Path $destination $Name
         $destinationPath = Join-Path $destinationModulePath $modulePathVersion
-        if (-not (Test-Path $destinationPath)) {New-Item -ItemType Directory $destinationPath -Force > $null}
-        Copy-Item -Path $tempDir/* -Recurse -Destination $destinationPath -Exclude '_rels','package','`[Content_Types`].xml','*.nuspec' > $null
+        if (-not (Test-Path $destinationModulePath)) {$null = New-Item -ItemType Directory $destinationModulePath}
+        if (Test-Path $destinationPath) {Remove-Item $destinationPath -force -recurse}
+        $null = Move-Item $tempdir -Destination $destinationPath
 
+        Set-Location -path ([io.path]::Combine($Destination, $Name, $modulePathVersion))
+        #([IO.Path]::Combine($Destination, $Name, $modulePathVersion), $true)
     } catch {throw $PSItem} finally {
         #Cleanup
         if (Test-Path $tempdir) {Remove-Item -Recurse -Force $tempdir}
-        if (Test-Path $tempZipPath) {Remove-Item -Force $tempZipPath}
     }
 }
+
+
+#Bootstrap package management in a new process. If you try to do it same-process you can't import it because the DLL from the old version is already loaded
+#YOU MUST DO THIS IN A NEW SESSION PRIOR TO RUNNING ANY PACKAGEMANGEMENT OR POWERSHELLGET COMMANDS
+#NOTES: Tried using a runspace but install-module would crap out on older PS5.x versions.
+
+# function BootstrapPSGet {
+#     $psGetVersionMinimum = '2.2.1'
+#     $PowershellGetModules = get-module PowershellGet -listavailable | where version -ge $psGetVersionMinimum
+#     if ($PowershellGetModules) {
+#         write-verbose "PowershellGet $psGetVersionMinimum found. Skipping bootstrap..."
+#         return
+#     }
+
+#     write-verbose "PowershellGet $psGetVersionMinimum not detected. Bootstrapping..."
+#     Start-Job -Verbose -Name "BootStrapPSGet" {
+#         $psGetVersionMinimum = '2.2.1'
+#         $progresspreference = 'silentlycontinue'
+#         Install-Module PowershellGet -MinimumVersion $psGetVersionMinimum -Scope CurrentUser -AllowClobber -SkipPublisherCheck -Force
+#     } | Receive-Job -Wait -Verbose
+#     Remove-Job -Name "BootStrapPSGet"
+#     Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
+# }
+# BootStrapPSGet
+
+# Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
+
+#endregion Bootstrap
 
 function BootStrapModule {
     #Tries to load a module and dynamically downloads it from the Powershell Gallery if not available.
@@ -74,12 +107,13 @@ function BootStrapModule {
     param(
         [String]$Name,
         [Alias('RequiredVersion')][String]$Version,
-        $Destination=([IO.Path]::Combine([Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
+        $Destination=([IO.Path]::Combine([System.Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
     )
 
     if (-not (Test-Path $Destination)) {
-        New-Item -ItemType Directory $Destination -ErrorAction Stop > $null
+        New-Item -ItemType Directory $Destination -ErrorAction Stop
     }
+
 
     $importModuleParams = @{
         Name = $Name
@@ -88,79 +122,30 @@ function BootStrapModule {
 
     #Attempt to load the module
     try {
-        $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([Path]::PathSeparator)
+        $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([io.path]::PathSeparator)
         if ($destination -notin $psModulePaths) {
             write-verbose "Adding Module Bootstrap $destination to PSModulePath"
             $psmodulePaths.insert(0,$destination)
-            $env:PSModulePath = $psModulePaths -join [Path]::PathSeparator
+            $env:PSModulePath = $psModulePaths -join [io.path]::PathSeparator
         }
-
-        Import-Module @importModuleParams -ErrorAction Stop 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'} | Write-Verbose
+        Import-Module @importModuleParams -ErrorAction Stop
     } catch [IO.FileNotFoundException] {
         #Install from Gallery and try again
         Install-PSGalleryModule -Name $Name -Version $Version -Destination $Destination
-        Import-Module @importModuleParams -ErrorAction Stop 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'} | Write-Verbose
+        Import-Module @importModuleParams -ErrorAction Stop
     }
-}
-
-function FindInvokeBuild {
-	<#
-.SYNOPSIS
-Returns a path to an Invoke-Build powershell module either as a Powershell Module or in NuGet
-#>
-	param (
-		#Specify the minimum version to accept as installed
-		[Version]$MinimumVersion = '5.4.1',
-		#Specify this if you know it isn't present as a powershell module and want to save some detection time
-		[Switch]$SkipPSModuleDetection,
-		#Specify this if you want InvokeBuild to be discovered as a nuget package. Disabled by default due to PackageManagement module dependency
-		[Switch]$NugetPackageDetection
-	)
-
-	if (-not $SkipPSModuleDetection) {
-		Write-Verbose "Detecting InvokeBuild as a Powershell Module..."
-		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1) | Where-Object version -ge $MinimumVersion | Foreach-Object modulebase
-    }
-
-    #We can't do Get-Command because it will load the module, which will break our bootstrap if we need to update packagemanagement later on. This is a loose alternative (it assumes that the latest is available)
-    $GetPackageAvailable = ('Get-Package' -in (Get-Module -Name PackageManagement -ListAvailable).exportedcommands.keys)
-
-	if (-not $invokeBuild -and $GetPackageAvailable -and $NugetPackageDetection) {
-		Write-Verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
-		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | Sort-Object version -descending | Select-Object -first 1 | Foreach-Object source
-	}
-
-	if ($InvokeBuild) {
-		Write-Verbose "Invoke-Build $MinimumVersion was detected at $InvokeBuild."
-		return $invokeBuild
-	} else {
-		Write-Warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module. Bootstrapping..."
-		return $false
-	}
-}
-
-#region Main
-Write-Host -fore green "Detected Powershell $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
-DetectNestedPowershell
-$InvokeBuildPath = FindInvokeBuild
-if (-not $InvokeBuildPath) {
-    BootStrapModule InvokeBuild
 }
 
 $PowerCDSourcePath = "$PSScriptRoot/PowerCD/PowerCD.psd1"
 $SCRIPT:PowerCDMetaBuild = Test-Path $PowerCDSourcePath
 if ($PowerCDMetaBuild) {
     write-verbose "Detected this is a meta-build of PowerCD. Loading the module from source path"
-    Get-Module PowerCD | Remove-Module 4>$null
-    Import-Module -Name $PowerCDSourcePath -WarningAction SilentlyContinue -Scope Global 4>&1 | Where-Object {$_ -match '^Loading Module.*psm1.+\.$'} | Write-Verbose
+    Get-Module PowerCD | Remove-Module
+    Import-Module -Scope Global $PowerCDSourcePath
 } else {
     $bootstrapModuleParams = @{Name='PowerCD'}
     if ($PowerCDVersion) { $bootstrapModuleParams.RequiredVersion = $PowerCDVersion}
     BootstrapModule @bootstrapModuleParams
 }
 
-
-
-Write-Host -fore cyan "Done PowerCD.Bootstrap $($bootstrapTimer.elapsed)"
-
-#endregion Main
+#region EndHelperFunctions
