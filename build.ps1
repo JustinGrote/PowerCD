@@ -14,5 +14,11 @@ Starts Invoke-Build with the default parameters
 $ErrorActionPreference = 'Stop'
 . $PSScriptRoot/PowerCD.buildinit.ps1
 $SCRIPT:PowerCDBuildInit = $true
-Set-Location $PSScriptRoot
-Invoke-Build $args
+Push-Location $PSScriptRoot
+try {
+    & 'Invoke-Build' @args
+} catch {
+    throw $PSItem
+} finally {
+    Pop-Location
+}
