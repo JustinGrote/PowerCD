@@ -5,7 +5,12 @@ function Get-PowerCDVersion {
 
     #TODO: Potentially pin the GitVersion version, as pulling from multiple sources may have undesirable side effect of different version for different builds
     if (Get-Command dotnet -ErrorAction SilentlyContinue) {
-        & dotnet tool install -g gitversion.tool *>&1 | write-verbose
+        try {
+            & dotnet tool install -g gitversion.tool *>&1 | write-verbose
+        } catch {
+            if ($PSItem -notmatch 'is already installed') {throw $_}
+        }
+
         $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
         Write-Debug "GitVersion: Dotnet EXE detected, using .NET Global Tool"
     } elseif ($IsWindows -or $PSEdition -eq 'Desktop') {
