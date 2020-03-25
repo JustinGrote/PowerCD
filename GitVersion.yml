@@ -1,23 +1,25 @@
-#GitLab Flow Configuration
-#https://docs.gitlab.com/ee/workflow/gitlab_flow.html
-#With Gitlab Flow, all development happens in master, with feature branches created and PR'd into master. Master is the same as "staging" and all commits are built and deployed to the staging environment.
-#For releases, you create additional environments
-#For a library, "production" represents the stable package that will be published to Powershell Gallery,etc. and "master" represents beta/prerelease builds. You can also use the "preview" or "release/X.X" branches to denote previews or release candidates, which will also be pushed to prerelease in galleries by the CI
-#For a script, "production" represents the production deployment environment
+#This configures Gitversion for the Gitlab Flow Branching Style
+#Master - Always deployable, will deploy to staging for programs, or to prerelease for libraries
+#Production - Always deployable, will deploy to production. You should PR master to production
+#Feature/MyFeature - Do development here and PR to master. Should not be merged unless it passes all tests
+#Release/v0.x.0 - Prepare a release separate from master for stabilization
 
-#The CI will tag and deploy all releases pushed to a "support" branch denoted by the regex below to the appropriate environment
-#You can also create dedicated release branches for a particular stable or long-term support version (e.g. release/2.0.0) and then tag within that branch for LTS updates
+#Other recommendations
+#Fix forward by committing hotfixes to master and then merging or cherrypicking them to production
+#If you want to prepare a stable release
 
+mode: ContinuousDeployment
 branches:
   master:
-    mode: ContinuousDeployment
+    regex: ^prod(uction)?$
+  develop:
     tag: beta
-  support:
-    regex: ^(pre)?prod(uction)?$|^pre(view)?$|^test(ing)?$|^qa$|^support|environment[/-]
-    mode: ContinuousDeployment
+    regex: ^master$
+    increment: Inherit
+  release:
+    tag: rc
 
-#Custom commit messages to support Convential Commits
-#https://www.conventionalcommits.org/en/v1.0.0/
+#Custom commit messages to support Conventional Commit syntax
 major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
 minor-version-bump-message: (^(feat(ure)?|minor)(\(.*\))?:)|(\+semver:\s?(feat(ure)?|minor))
 patch-version-bump-message: (^((bug)?fix|patch|perf|refactor)(\(.*\))?:)|(\+semver:\s?((bug)?fix|patch))
