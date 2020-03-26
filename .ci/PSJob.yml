@@ -5,7 +5,6 @@ parameters:
   script: "$PSVersionTable | Out-String"
 jobs:
   - job:
-    condition: false
     displayName: "${{parameters.vmImage}} ${{parameters.psVersion}}"
     pool:
       vmImage: ${{ parameters.vmImage }}

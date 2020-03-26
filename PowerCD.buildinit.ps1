@@ -140,12 +140,15 @@ $PowerCDSourcePath = "$PSScriptRoot/PowerCD/PowerCD.psd1"
 $SCRIPT:PowerCDMetaBuild = Test-Path $PowerCDSourcePath
 if ($PowerCDMetaBuild) {
     write-verbose "Detected this is a meta-build of PowerCD. Loading the module from source path"
-    Get-Module PowerCD | Remove-Module
+    Get-Module PowerCD | Remove-Module -Force
     Import-Module -Scope Global $PowerCDSourcePath
-} else {
-    $bootstrapModuleParams = @{Name='PowerCD'}
-    if ($PowerCDVersion) { $bootstrapModuleParams.RequiredVersion = $PowerCDVersion}
-    BootstrapModule @bootstrapModuleParams
 }
+
+#Get Invoke-Build if not present
+if (-not (Get-Command Invoke-Build -ErrorAction SilentlyContinue)) {
+    Install-Module -Scope CurrentUser InvokeBuild -Force 4>$null
+}
+
+
 
 #region EndHelperFunctions

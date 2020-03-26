@@ -5,14 +5,14 @@ function Get-PowerCDVersion {
 
     #TODO: Potentially pin the GitVersion version, as pulling from multiple sources may have undesirable side effect of different version for different builds
     if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+        Write-Debug "GitVersion: Dotnet EXE detected, using .NET Global Tool"
         try {
             & dotnet tool install -g gitversion.tool *>&1 | write-verbose
         } catch {
             if ($PSItem -notmatch 'is already installed') {throw $_}
         }
-
         $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
-        Write-Debug "GitVersion: Dotnet EXE detected, using .NET Global Tool"
+
     } elseif ($IsWindows -or $PSEdition -eq 'Desktop') {
         Write-Debug "Gitversion: Dotnet not found but we are on Windows, using GitVersion.CommandLine package (faster than downloading dotnet)"
         $GitVersionPackagePath = Import-PowerCDRequirement GitVersion.CommandLine -Package
@@ -27,12 +27,12 @@ function Get-PowerCDVersion {
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
     #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
-    $currentTag = git tag --points-at HEAD
+    # $currentTag = git tag --points-at HEAD
 
-    if ($currentTag) {
-        write-verbose "Task $($task.name) - Git Tag $currentTag detected. Temporarily removing for GitVersion calculation."
-        git tag -d $currentTag
-    }
+    # if ($currentTag) {
+    #     write-verbose "Task $($task.name) - Git Tag $currentTag detected. Temporarily removing for GitVersion calculation."
+    #     git tag -d $currentTag
+    # }
 
     #Strip prerelease tags, GitVersion can't handle them with Mainline deployment with version 4.0
     #TODO: Restore these for local repositories, otherwise they just come down with git pulls
@@ -48,8 +48,8 @@ function Get-PowerCDVersion {
             #https://www.nuget.org/packages/Mono.Posix.NETStandard/1.0.0
             chmod +x $GitVersionEXE
         }
-
-        $GitVersionOutput = & $GitVersionEXE /nofetch
+        write-verbose (dotnet gitversion /nofetch /output json  /showvariable semver)
+        $GitVersionOutput = & $GitVersionEXE /diag
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output
