@@ -12,10 +12,10 @@ mode: ContinuousDeployment
 branches:
   master:
     regex: ^prod(uction)?$
-  # develop:
-  #   tag: beta
-  #   regex: ^master$
-  #   increment: Inherit
+  develop:
+    tag: beta
+    regex: ^master$
+    # increment: Inherit
   release:
     tag: rc
 
