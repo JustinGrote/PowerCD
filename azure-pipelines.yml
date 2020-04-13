@@ -19,7 +19,7 @@ trigger:
 
 steps:
   - pwsh: |
-      dotnet tool restore -v d
+      dotnet tool restore
       dotnet tool run dotnet-gitversion
   # - stage: Build
   #   jobs:
