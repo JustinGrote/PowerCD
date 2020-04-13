@@ -9,7 +9,7 @@
 #If you want to prepare a stable release
 
 mode: ContinuousDeployment
-branches:
+# branches:
   # master:
   #   regex: ^prod(uction)?$
   # develop:
