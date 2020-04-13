@@ -19,7 +19,7 @@ trigger:
 
 steps:
   - pwsh: |
-      $ENV:DOTNET_NOLOGO='true'
+      $ENV:DOTNET_NOLOGO=1
       dotnet tool restore
       dotnet tool run dotnet-gitversion
   # - stage: Build
