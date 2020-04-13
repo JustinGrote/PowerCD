@@ -15,7 +15,7 @@ branches:
   develop:
     tag: beta
     regex: ^master$
-    # increment: Inherit
+    increment: Patch
   release:
     tag: rc
 
