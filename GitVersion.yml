@@ -16,8 +16,8 @@ branches:
   #   tag: beta
   #   regex: ^master$
   #   increment: Inherit
-  # release:
-  #   tag: rc
+  release:
+    tag: rc
 
 #Custom commit messages to support Conventional Commit syntax
 major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
