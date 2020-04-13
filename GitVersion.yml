@@ -10,14 +10,14 @@
 
 mode: ContinuousDeployment
 branches:
-  master:
-    regex: ^prod(uction)?$
-  develop:
-    tag: beta
-    regex: ^master$
-    increment: Inherit
-  release:
-    tag: rc
+  # master:
+  #   regex: ^prod(uction)?$
+  # develop:
+  #   tag: beta
+  #   regex: ^master$
+  #   increment: Inherit
+  # release:
+  #   tag: rc
 
 #Custom commit messages to support Conventional Commit syntax
 major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
