@@ -18,7 +18,9 @@ trigger:
 #       - production
 
 steps:
-  - pwsh: "dotnet tool install -g gitversion.tool; test-path $HOME/.dotnet/tools/dotnet-gitversion.exe; & $HOME/.dotnet/tools/dotnet-gitversion.exe /nofetch"
+  - pwsh: |
+      dotnet tool restore -v d
+      dotnet tool run dotnet-gitversion
   # - stage: Build
   #   jobs:
   #   - template: .ci/PowerCD.yml
