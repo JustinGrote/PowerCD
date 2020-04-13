@@ -8,16 +8,16 @@
 #Fix forward by committing hotfixes to master and then merging or cherrypicking them to production
 #If you want to prepare a stable release
 
-# mode: ContinuousDeployment
-# branches:
-#   master:
-#     regex: ^prod(uction)?$
-#   develop:
-#     tag: beta
-#     regex: ^master$
-#     increment: Inherit
-#   release:
-#     tag: rc
+mode: ContinuousDeployment
+branches:
+  master:
+    regex: ^prod(uction)?$
+  develop:
+    tag: beta
+    regex: ^master$
+    increment: Inherit
+  release:
+    tag: rc
 
 #Custom commit messages to support Conventional Commit syntax
 # major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
