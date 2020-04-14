@@ -10,11 +10,15 @@ trigger:
       - production
       - ci
 
+pool:
+  vmImage: windows-latest
+
 steps:
   - pwsh: |
       try {./build.ps1} catch {
         Get-Error $PSItem
-        throw "##[error]This is my custom failure message"
+        "##[error]This is my custom failure message"
+        exit 5
       }
   # - stage: Build
   #   jobs:
