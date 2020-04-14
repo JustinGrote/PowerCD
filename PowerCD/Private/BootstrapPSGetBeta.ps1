@@ -7,7 +7,7 @@ function BootstrapPSGetBeta {
     #loading the builtin version of PowershellGet
 
     #This is a temporary "fast fetch" for latest version of PowershellGet
-    $moduleInfo = (irm -useb 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27PowershellGet%27%20and%20Version%20ge%20%273.0.0%27%20and%20IsPrerelease%20eq%20true&$orderby=Version%20desc&$top=1&$select=Id,Version,NormalizedVersion')
+    $moduleInfo = (Invoke-RestMethod -UseBasicParsing 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27PowershellGet%27%20and%20Version%20ge%20%273.0.0%27%20and%20IsPrerelease%20eq%20true&$orderby=Version%20desc&$top=1&$select=Id,Version,NormalizedVersion')
     $moduleVersion = $moduleInfo.properties.NormalizedVersion
     $moduleUri = $moduleInfo.content.src
     $psgetModulePath = Join-Path $powercdModulePath 'PowershellGet'
@@ -25,9 +25,16 @@ function BootstrapPSGetBeta {
         Import-Module -Force $moduleManifestPath -ErrorAction Stop
 
         #Register Powershell Gallery if not present
-        if (-not (Get-PSResourceRepository -Name psgallery)) {
-            Register-PSResourceRepository -PSGallery -Trusted
+        try {
+            if (-not (Get-PSResourceRepository -Name psgallery)) {
+                Register-PSResourceRepository -PSGallery -Trusted
+            }
+        } catch [ArgumentException] {
+            if ([String]$PSItem -match 'not able to successfully find xml') {
+                Register-PSResourceRepository -PSGallery -Trusted
+            }
         }
+
     }
 
     Write-Verbose "PowershellGet $moduleVersion found at $moduleManifestPath"
