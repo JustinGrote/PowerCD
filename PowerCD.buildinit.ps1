@@ -101,39 +101,39 @@ function Install-PSGalleryModule {
 
 #endregion Bootstrap
 
-function BootStrapModule {
-    #Tries to load a module and dynamically downloads it from the Powershell Gallery if not available.
-    [CmdletBinding()]
-    param(
-        [String]$Name,
-        [Alias('RequiredVersion')][String]$Version,
-        $Destination=([IO.Path]::Combine([System.Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
-    )
+# function BootStrapModule {
+#     #Tries to load a module and dynamically downloads it from the Powershell Gallery if not available.
+#     [CmdletBinding()]
+#     param(
+#         [String]$Name,
+#         [Alias('RequiredVersion')][String]$Version,
+#         $Destination=([IO.Path]::Combine([System.Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
+#     )
 
-    if (-not (Test-Path $Destination)) {
-        New-Item -ItemType Directory $Destination -ErrorAction Stop
-    }
+#     if (-not (Test-Path $Destination)) {
+#         New-Item -ItemType Directory $Destination -ErrorAction Stop
+#     }
 
-    $importModuleParams = @{
-        Name = $Name
-    }
-    if ($Version) { $importModuleParams.RequiredVersion = $Version.split('-')[0] }
+#     $importModuleParams = @{
+#         Name = $Name
+#     }
+#     if ($Version) { $importModuleParams.RequiredVersion = $Version.split('-')[0] }
 
-    #Attempt to load the module
-    try {
-        $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([io.path]::PathSeparator)
-        if ($destination -notin $psModulePaths) {
-            write-verbose "Adding Module Bootstrap $destination to PSModulePath"
-            $psmodulePaths.insert(0,$destination)
-            $env:PSModulePath = $psModulePaths -join [io.path]::PathSeparator
-        }
-        Import-Module @importModuleParams -ErrorAction Stop
-    } catch [IO.FileNotFoundException] {
-        #Install from Gallery and try again
-        Install-PSGalleryModule -Name $Name -Version $Version -Destination $Destination
-        Import-Module @importModuleParams -ErrorAction Stop
-    }
-}
+#     #Attempt to load the module
+#     try {
+#         $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([io.path]::PathSeparator)
+#         if ($destination -notin $psModulePaths) {
+#             write-verbose "Adding Module Bootstrap $destination to PSModulePath"
+#             $psmodulePaths.insert(0,$destination)
+#             $env:PSModulePath = $psModulePaths -join [io.path]::PathSeparator
+#         }
+#         Import-Module @importModuleParams -ErrorAction Stop
+#     } catch [IO.FileNotFoundException] {
+#         #Install from Gallery and try again
+#         Install-PSGalleryModule -Name $Name -Version $Version -Destination $Destination
+#         Import-Module @importModuleParams -ErrorAction Stop
+#     }
+# }
 
 $PowerCDSourcePath = "$PSScriptRoot/PowerCD/PowerCD.psd1"
 $SCRIPT:PowerCDMetaBuild = Test-Path $PowerCDSourcePath
