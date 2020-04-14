@@ -10,16 +10,23 @@ function Initialize-PowerCD {
         [Switch]$SkipSetBuildRoot
     )
 
-    #Fix a bug if powershell was started from pwsh
+    #Fix a module import bug if powershell was started from pwsh. This is fixed in PWSH7 and should do nothing
     Reset-WinPSModules
 
+    #Make sure that PSGet Beta is available
+    BootstrapPSGetBeta
+
     #Import Prerequisites
-    Import-PowerCDRequirement @(
-        'Pester'
-        'BuildHelpers'
-        'PSScriptAnalyzer'
+    Import-PowerCDRequirement -Verbose -ModuleInfo @(
+        'Pester',
+        'BuildHelpers',
+        'PSScriptAnalyzer',
+        @{ModuleName='PowerConfig__beta0009';RequiredVersion='0.1.1'}
     )
-    Import-PowerCDRequirement -ModuleName PowerConfig -Version '0.1.1-beta0001'
+
+    #Restore dotnet global tools
+    [String]$restoreResult = dotnet tool restore *>&1
+    if ($restoreResult -notmatch 'Restore was successful') {throw "Dotnet Tool Restore Failed: $restoreResult"}
 
     #Start a new PowerConfig, using PowerCDSetting as a base
     $PCDDefaultSetting = Get-PowerCDSetting

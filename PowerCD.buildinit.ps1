@@ -114,7 +114,6 @@ function BootStrapModule {
         New-Item -ItemType Directory $Destination -ErrorAction Stop
     }
 
-
     $importModuleParams = @{
         Name = $Name
     }

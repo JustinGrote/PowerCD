@@ -9,19 +9,10 @@ trigger:
       - master
       - production
       - ci
-      - AzurePipelines
-
-# pr:
-#   branches:
-#     include:
-#       - master
-#       - production
 
 steps:
   - pwsh: |
-      $ENV:DOTNET_NOLOGO=1
-      dotnet tool restore
-      dotnet tool run dotnet-gitversion
+      ./build.ps1
   # - stage: Build
   #   jobs:
   #   - template: .ci/PowerCD.yml

@@ -57,8 +57,6 @@ task PowerCD.Package.Zip {
     Compress-PowerCDModule @CompressArchiveParams
 }
 
-
-
 #region MetaTasks
 task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions,PowerCD.CopyBuildTasks
 task PowerCD.Package PowerCD.Package.Zip,PowerCD.Package.Nuget
