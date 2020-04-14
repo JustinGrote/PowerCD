@@ -20,8 +20,6 @@ function BootstrapPSGetBeta {
         New-Item -ItemType Directory -Path $powercdModulePath -Force > $null
         (New-Object Net.WebClient).DownloadFile($moduleURI, $psGetZipPath) > $null
         [ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
-        #FIXME: Remove Debug Item
-        Get-ChildItem (Split-Path $moduleManifestPath) | Write-Host
         Import-Module -Force $moduleManifestPath -ErrorAction Stop
 
         #Register Powershell Gallery if not present

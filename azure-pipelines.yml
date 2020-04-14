@@ -15,6 +15,7 @@ pool:
 
 steps:
   - pwsh: |
+      $verbosepreference = 'continue'
       try {./build.ps1} catch {
         Get-Error $PSItem
         "##[error]This is my custom failure message"
