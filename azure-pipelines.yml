@@ -12,7 +12,10 @@ trigger:
 
 steps:
   - pwsh: |
-      ./build.ps1
+      try {./build.ps1} catch {
+        "##[error]This is my custom failure message"
+        Get-Error $PSItem
+      }
   # - stage: Build
   #   jobs:
   #   - template: .ci/PowerCD.yml
