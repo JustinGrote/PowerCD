@@ -23,6 +23,11 @@ function BootstrapPSGetBeta {
         #FIXME: Remove Debug Item
         Get-ChildItem (Split-Path $moduleManifestPath) | Write-Host
         Import-Module -Force $moduleManifestPath -ErrorAction Stop
+
+        #Register Powershell Gallery if not present
+        if (-not (Get-PSResourceRepository -Name psgallery)) {
+            Register-PSResourceRepository -PSGallery -Trusted
+        }
     }
 
     Write-Verbose "PowershellGet $moduleVersion found at $moduleManifestPath"
