@@ -13,8 +13,8 @@ trigger:
 steps:
   - pwsh: |
       try {./build.ps1} catch {
-        "##[error]This is my custom failure message"
         Get-Error $PSItem
+        throw "##[error]This is my custom failure message"
       }
   # - stage: Build
   #   jobs:

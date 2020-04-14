@@ -17,6 +17,7 @@ function BootstrapPSGetBeta {
         Write-Verbose "Latest PowershellGet Not Found, Installing $moduleVersion..."
         if (Test-Path $psgetModulePath) {Remove-Item $psGetModulePath -recurse -force}
         $psGetZipPath = join-path $powercdModulePath "PowershellGet.zip"
+        New-Item -ItemType Directory -Path $powercdModulePath -Force > $null
         (New-Object Net.WebClient).DownloadFile($moduleURI, $psGetZipPath) > $null
         [ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
         Import-Module -Force $moduleManifestPath -ErrorAction Stop
