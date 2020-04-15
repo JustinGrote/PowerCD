@@ -10,6 +10,7 @@ function Initialize-PowerCD {
         [Switch]$SkipSetBuildRoot
     )
     Write-Host -fore cyan "Task PowerCD.Initialize"
+    $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 
     #Fix a module import bug if powershell was started from pwsh. This is fixed in PWSH7 and should do nothing
     Reset-WinPSModules
