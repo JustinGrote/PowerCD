@@ -14,7 +14,6 @@ function Import-PowerCDRequirement {
         $Path = (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD')
     )
     begin {
-        write-debug "DEBUG: Starting Import-PowerCDRequirement for $ModuleInfo to $Path"
         $modulesToInstall = [List[PSCustomObject]]@()
         #Make sure PSGet 3.0 is installed
         try {
@@ -54,6 +53,8 @@ function Import-PowerCDRequirement {
 
     process {
         foreach ($ModuleInfoItem in $ModuleInfo) {
+            #FIXME: Remove after debugging stack overflow issue
+            write-debug "***STACKOVERFLOWCHECKPOINT***"
             $PSResourceParams = [Ordered]@{
                 Name                = $ModuleInfoItem.Name.split('__')[0]
                 IncludeDependencies = $true
@@ -71,6 +72,8 @@ function Import-PowerCDRequirement {
             } catch [NullReferenceException] {
                 Write-Warning "Found nothing on the powershell gallery for $($PSResourceParams.Name) $($PSResourceParams.Version)"
             }
+            #FIXME: Remove after debugging stack overflow issue
+            write-debug "***STACKOVERFLOWCHECKPOINT2***"
         }
     }
 
