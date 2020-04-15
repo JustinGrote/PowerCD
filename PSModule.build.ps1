@@ -2,9 +2,7 @@
 
 #PowerCD Bootstrap
 . $PSScriptRoot\PowerCD.buildinit.ps1
-
 . PowerCD.Tasks
-
 
 #region Tasks
 

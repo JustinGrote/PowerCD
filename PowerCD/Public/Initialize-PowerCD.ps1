@@ -22,7 +22,12 @@ function Initialize-PowerCD {
         }
         if (-not $NewtonsoftJsonLoaded) {
             Write-Verbose "Bootstrapping Newtonsoft.Json for Windows Powershell"
-            Add-Type -Path $PSSCRIPTROOT/../lib/Newtonsoft.Json.dll
+            $jsonAssemblyPath = "$PSSCRIPTROOT/../lib/Newtonsoft.Json.dll"
+            if ($PowerCDMetaBuild) {
+                #Move the DLL to the localappdata folder to prevent an issue with zipping up the completed build
+                Move-Item $jsonAssemblyPath (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD/Newtonsoft.Json.dll')
+            }
+            Add-Type -Path $jsonAssemblyPath
 
             #Add a binding redirect to force any additional newtonsoft loads to this version
             # [Appdomain]::CurrentDomain.Add_AssemblyResolve({
