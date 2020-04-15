@@ -28,9 +28,10 @@ function BootstrapPSGetBeta {
         # Add-Type -assembly "System.IO.Compression"
         #Write-Verbose ([System.IO.Compression.ZipFile].assembly)
         #[System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
-        Expand-Archive -Path $psGetZipPath -DestinationPath $ModuleManifestPath
+        $progressPreference = 'SilentlyContinue'
+        Expand-Archive -Path $psGetZipPath -DestinationPath (Split-Path $ModuleManifestPath)
+        $progressPreference = 'Continue'
         Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
-
 
         #Register Powershell Gallery if not present
         try {
