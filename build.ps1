@@ -27,7 +27,7 @@ if (-not (Get-Command Invoke-Build -ErrorAction SilentlyContinue | where version
 #Passthrough Invoke-Build
 Push-Location $PSScriptRoot
 try {
-    & 'Invoke-Build' @args
+    Invoke-Expression "Invoke-Build $($args -join ' ')"
 } catch {
     throw $PSItem
 } finally {
