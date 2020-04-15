@@ -31,7 +31,7 @@ function BootstrapPSGetBeta {
         #Prefer 7zip if available as it is much faster for extraction, as well as issue for Github Actions windows powershell build
         try {
             if (Get-Command '7z' -ErrorAction Stop) {
-                & 7z x $psGetZipPath -y -o"$(Split-Path $ModuleManifestPath)"
+                & 7z x $psGetZipPath -y -o"$(Split-Path $ModuleManifestPath)" *>$null
             }
             if (-not (Test-Path $ModuleManifestPath)) {throw '7zip Extraction Failed'}
         } catch {
@@ -42,12 +42,12 @@ function BootstrapPSGetBeta {
         }
 
         $progressPreference = 'Continue'
-        write-host ($modulemanifestPath)
-        write-host (gci (Split-Path $modulemanifestPath) | out-string)
     }
 
     #Linux Quirk: Must be in same folder to load related module part
     Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop -Verbose
+
+    write-host "DEBUG: Module has been imported"
 
     #Register Powershell Gallery if not present
     try {
