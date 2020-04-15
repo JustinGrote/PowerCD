@@ -52,7 +52,7 @@ function Initialize-PowerCD {
     BootstrapPSGetBeta
 
     #Import Prerequisites
-    Import-PowerCDRequirement -Verbose -ModuleInfo @(
+    Import-PowerCDRequirement -ModuleInfo @(
         'Pester'
         'BuildHelpers'
         'PSScriptAnalyzer'

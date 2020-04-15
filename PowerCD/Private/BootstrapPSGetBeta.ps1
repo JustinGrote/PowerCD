@@ -45,7 +45,7 @@ function BootstrapPSGetBeta {
     }
 
     #Linux Quirk: Must be in same folder to load related module part
-    Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop -Verbose
+    Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
 
     #Register Powershell Gallery if not present
     try {
