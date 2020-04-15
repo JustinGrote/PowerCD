@@ -23,6 +23,7 @@ function BootstrapPSGetBeta {
         #Required due to a quirk in Windows Powershell 5.1: https://stackoverflow.com/questions/29007742/unable-to-use-system-io-compression-filesystem-dll/29022092
 
         #FIXME: Remove Debug
+        Add-Type -AssemblyName mscorlib
         Add-Type -assembly "System.IO.Compression.Filesystem"
         Add-Type -assembly "System.IO.Compression"
         Write-Verbose ([System.IO.Compression.ZipFile].assembly)
