@@ -23,5 +23,5 @@ function Update-PowerCDPublicFunctions {
         return
     }
 
-    Update-Metadata -Path $Path -PropertyName FunctionsToExport -Value $Functions
+    BuildHelpers\Update-Metadata -Path $Path -PropertyName FunctionsToExport -Value $Functions
 }

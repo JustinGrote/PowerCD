@@ -1,55 +1,15 @@
 using namespace System.IO
 function Get-PowerCDVersion {
-    [CmdletBinding()]
-    param()
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Version]$GitVersionVersion = '5.2.4'
+    )
 
-    #TODO: Potentially pin the GitVersion version, as pulling from multiple sources may have undesirable side effect of different version for different builds
-    if (Get-Command dotnet -ErrorAction SilentlyContinue) {
-        try {
-            & dotnet tool install -g gitversion.tool *>&1 | write-verbose
-        } catch {
-            if ($PSItem -notmatch 'is already installed') {throw $_}
-        }
-
-        $GitversionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
-        Write-Debug "GitVersion: Dotnet EXE detected, using .NET Global Tool"
-    } elseif ($IsWindows -or $PSEdition -eq 'Desktop') {
-        Write-Debug "Gitversion: Dotnet not found but we are on Windows, using GitVersion.CommandLine package (faster than downloading dotnet)"
-        $GitVersionPackagePath = Import-PowerCDRequirement GitVersion.CommandLine -Package
-        $GitVersionEXE = [IO.Path]::Combine($GitVersionPackagePath,'tools','GitVersion.exe')
-    } elseif ($MacOS) {
-        Write-Debug "Gitversion: Dotnet not found but we are on Mac, using gitversion package on brew (faster than downloading dotnet)"
-        & brew install GitVersion
-        $GitversionEXE = 'gitversion'
-    } else {
-        throw "The version task requires the dotnet SDK to be installed if not running on Windows or Mac. For ubuntu you can install with apt-get install dotnet-sdk-3.0"
-    }
-
-    #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
-    #Fixes a bug with GitVersion where tagged commits don't increment on non-master builds.
-    $currentTag = git tag --points-at HEAD
-
-    if ($currentTag) {
-        write-verbose "Task $($task.name) - Git Tag $currentTag detected. Temporarily removing for GitVersion calculation."
-        git tag -d $currentTag
-    }
-
-    #Strip prerelease tags, GitVersion can't handle them with Mainline deployment with version 4.0
-    #TODO: Restore these for local repositories, otherwise they just come down with git pulls
-    #FIXME: Remove this because
-    #git tag --list v*-* | % {git tag -d $PSItem}
-
+    $GitVersionExe = 'dotnet dotnet-gitversion /nofetch'
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
-
-        if ($isLinux -and -not $isAppveyor) {
-            #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
-            #https://www.nuget.org/packages/Mono.Posix.NETStandard/1.0.0
-            chmod +x $GitVersionEXE
-        }
-
-        $GitVersionOutput = & $GitVersionEXE /nofetch
+        $GitVersionOutput = Invoke-Expression $GitVersionEXE
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output
@@ -57,7 +17,7 @@ function Get-PowerCDVersion {
         $SCRIPT:GitVersionInfo = $GitVersionOutput | ConvertFrom-JSON -ErrorAction stop
 
         if ($PCDSetting.Debug) {
-            & $gitversionexe /nofetch /diag | write-debug
+            Invoke-Expression "$GitVersionExe /diag"  | write-debug
         }
 
         $GitVersionInfo | format-list | out-string | write-verbose
@@ -76,7 +36,8 @@ function Get-PowerCDVersion {
         }
     } catch {
         write-warning "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"
-        & $GitVersionexe
+        & $GitVersionexe /diag
+        throw 'Exiting due to failed Gitversion execution'
     } finally {
         #Restore the tag if it was present
         #TODO: Evaluate if this is still necessary

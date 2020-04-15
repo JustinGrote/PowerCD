@@ -117,6 +117,12 @@ function Build-PowerCDModule {
     #Output the (potentially) modified Root Module
     $SourceRootModule | Out-File -FilePath (join-path $DestinationDirectory $SourceManifest.RootModule)
 
+    #If there is a "lib" folder, copy that as-is
+    if (Test-Path "$SourceModuleDir/lib") {
+        Write-Verbose "lib folder detected, copying entire contents"
+        Copy-Item -Recurse -Force -Path "$SourceModuleDir/lib" -Destination $DestinationDirectory
+    }
+
     #Copy the Module Manifest
     [String]$PCDSetting.OutputModuleManifest = Copy-Item -PassThru -Path $PSModuleManifest -Destination $DestinationDirectory
     $ENV:PowerCDModuleManifest = $PCDSetting.OutputModuleManifest

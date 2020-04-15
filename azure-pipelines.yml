@@ -3,62 +3,118 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-strategy:
-  maxParallel: 10
-  matrix:
-    windows-latest-powershell:
-      os: windows-latest
-      psversion: powershell
-    windows-latest-pwsh:
-      os: windows-latest
-      psversion: pwsh
-    ubuntu-latest-pwsh:
-      os: ubuntu-latest
-      psversion: pwsh
-    macOS-latest-pwsh:
-      os: macOS-latest
-      psversion: pwsh
-    vs2017-win2016-powershell:
-      os: vs2017-win2016
-      psversion: powershell
-    vs2017-win2016-pwsh:
-      os: vs2017-win2016
-      psversion: pwsh
-pool:
-  vmImage: $(os)
-steps:
-- script: "$(psversion) -noninteractive -noprofile -f build.ps1"
-  displayName: 'Build and Test Powershell Module'
+trigger:
+  branches:
+    include:
+      - master
+      - production
+      - ci
 
-- task: PublishTestResults@2
-  displayName: 'Capture Pester Test Result'
-  inputs:
-    testRunner: 'NUnit'
-    testResultsFiles: '**/*TestResults*.xml'
-    testRunTitle: 'Pester $(os)-$(psversion)'
+stages:
+- stage: PSModule
+  jobs:
+  - template: .ci/PowerCD.yml
+    parameters:
+      vmImage:
+        - 'ubuntu-latest'
+        - 'windows-latest'
+        - 'macOS-latest'
+      psVersion:
+        - pwsh
+        - powershell
+      script: './build.ps1'
+      # linuxContainer: 'skip'
+      windowsContainer: 'skip'
+# pool:
+#   vmImage: windows-latest
 
-# - task: PublishCodeCoverageResults@2
-#   displayName: 'Capture Pester Code Coverage Result'
+# steps:
+#   - pwsh: |
+#       $verbosepreference = 'continue'
+#       try {./build.ps1} catch {
+#         Get-Error $PSItem
+#         "##[error]This is my custom failure message"
+#         exit 5
+#       }
+
+  # - stage: GitversionTest
+  #   jobs:
+
+  # - stage: Test
+  #   jobs:
+  #   - template: .ci/PowerCD.yml
+  #     parameters:
+  #       vmImage:
+  #         # - 'ubuntu-latest'
+  #         - 'windows-latest'
+  #         # - 'macOS-latest'
+  #       psVersion:
+  #         - pwsh
+  #         # - powershell
+  #       script: |
+  #         $verbosepreference = 'continue'
+  #         $debugpreference = 'continue'
+  #         ./build.ps1
+  #       linuxContainer: 'skip'
+  #       windowsContainer: 'skip'
+
+
+# strategy:
+#   maxParallel: 10
+#   matrix:
+#     windows-latest-powershell:
+#       os: windows-latest
+#       psversion: powershell
+#     windows-latest-pwsh:
+#       os: windows-latest
+#       psversion: pwsh
+#     ubuntu-latest-pwsh:
+#       os: ubuntu-latest
+#       psversion: pwsh
+#     macOS-latest-pwsh:
+#       os: macOS-latest
+#       psversion: pwsh
+#     vs2017-win2016-powershell:
+#       os: vs2017-win2016
+#       psversion: powershell
+#     vs2017-win2016-pwsh:
+#       os: vs2017-win2016
+#       psversion: pwsh
+# pool:
+#   vmImage: $(os)
+# steps:
+# - script: "$(psversion) -noninteractive -noprofile -f build.ps1"
+#   displayName: 'Build and Test Powershell Module'
+
+# - task: PublishTestResults@2
+#   displayName: 'Capture Pester Test Result'
 #   inputs:
-#     summaryFileLocation: '**/*CodeCoverage*.xml'
-    #failIfCoverageEmpty: false # Optional
+#     testRunner: 'NUnit'
+#     testResultsFiles: '**/*TestResults*.xml'
+#     testRunTitle: 'Pester $(os)-$(psversion)'
 
-- task: CopyFiles@2
-  displayName: 'Copy Completed Powershell Module Zip to Artifact Staging Area'
-  inputs:
-    sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
-    contents: '*.zip'
-    targetfolder: '$(Build.StagingDirectory)'
+# # - task: PublishCodeCoverageResults@2
+# #   displayName: 'Capture Pester Code Coverage Result'
+# #   inputs:
+# #     summaryFileLocation: '**/*CodeCoverage*.xml'
+#     #failIfCoverageEmpty: false # Optional
 
-- task: CopyFiles@2
-  displayName: 'Copy Completed Powershell Nuget Package to Artifact Staging Area'
-  inputs:
-    sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
-    contents: '*.nupkg'
-    targetfolder: '$(Build.StagingDirectory)'
+# - task: CopyFiles@2
+#   displayName: 'Copy Completed Powershell Module Zip to Artifact Staging Area'
+#   inputs:
+#     sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
+#     contents: '*.zip'
+#     targetfolder: '$(Build.StagingDirectory)'
 
-- task: PublishPipelineArtifact@1
-  displayName: 'Capture Powershell Module as Artifact'
-  inputs:
-    artifactName: '$(os)-$(psversion)'
-    targetPath: '$(Build.StagingDirectory)'
+# - task: CopyFiles@2
+#   displayName: 'Copy Completed Powershell Nuget Package to Artifact Staging Area'
+#   inputs:
+#     sourceFolder: '$(Build.SourcesDirectory)/BuildOutput'
+#     contents: '*.nupkg'
+#     targetfolder: '$(Build.StagingDirectory)'
+
+# - task: PublishPipelineArtifact@1
+#   displayName: 'Capture Powershell Module as Artifact'
+#   inputs:
+#     artifactName: '$(os)-$(psversion)'
+#     targetPath: '$(Build.StagingDirectory)'

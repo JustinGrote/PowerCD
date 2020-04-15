@@ -1,6 +1,9 @@
 task PowerCD.Clean {
     Invoke-PowerCDClean
 }
+task PowerCD.CleanPrerequisites {
+    Invoke-PowerCDClean -Prerequisites
+}
 
 task PowerCD.Version {
     . Get-PowerCDVersion > $null
@@ -56,8 +59,6 @@ task PowerCD.Package.Zip {
 
     Compress-PowerCDModule @CompressArchiveParams
 }
-
-
 
 #region MetaTasks
 task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions,PowerCD.CopyBuildTasks
