@@ -1,4 +1,3 @@
-using namespace System.IO.Compression
 function BootstrapPSGetBeta {
     #PowerCD Module Directory for builds
     $SCRIPT:powercdModulePath = Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD'
