@@ -10,31 +10,33 @@ trigger:
       - production
       - ci
 
-pool:
-  vmImage: windows-latest
+stages:
+- stage: Build
+  jobs:
+  - template: .ci/PowerCD.yml
+    parameters:
+      vmImage:
+        - 'ubuntu-latest'
+        - 'windows-latest'
+        - 'macOS-latest'
+      psVersion:
+        - pwsh
+        - powershell
+      script: './build.ps1 Build'
+      linuxContainer: 'skip'
+      windowsContainer: 'skip'
+# pool:
+#   vmImage: windows-latest
 
-steps:
-  - pwsh: |
-      $verbosepreference = 'continue'
-      try {./build.ps1} catch {
-        Get-Error $PSItem
-        "##[error]This is my custom failure message"
-        exit 5
-      }
-  # - stage: Build
-  #   jobs:
-  #   - template: .ci/PowerCD.yml
-  #     parameters:
-  #       vmImage:
-  #         - 'ubuntu-latest'
-  #         - 'windows-latest'
-  #         - 'macOS-latest'
-  #       psVersion:
-  #         - pwsh
-  #         - powershell
-  #       script: './build.ps1 Build'
-  #       linuxContainer: 'skip'
-  #       windowsContainer: 'skip'
+# steps:
+#   - pwsh: |
+#       $verbosepreference = 'continue'
+#       try {./build.ps1} catch {
+#         Get-Error $PSItem
+#         "##[error]This is my custom failure message"
+#         exit 5
+#       }
+
   # - stage: GitversionTest
   #   jobs:
 
