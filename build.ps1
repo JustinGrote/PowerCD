@@ -12,6 +12,7 @@ Starts Invoke-Build with the default parameters
 #>
 
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 
 #Add TLS 1.2 to potential security protocols on Windows Powershell. This is now required for powershell gallery
 if ($PSEdition -eq 'Desktop'){
