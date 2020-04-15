@@ -13,7 +13,10 @@ function Initialize-PowerCD {
     $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 
     #Fix a module import bug if powershell was started from pwsh. This is fixed in PWSH7 and should do nothing
-    Reset-WinPSModules
+    if ($PSEdition -eq 'Desktop') {
+        Reset-WinPSModules
+    }
+
 
     #PS5.1: Load a fairly new version of newtonsoft.json to maintain compatibility with other tools, if not present
     if ($PSEdition -eq 'Desktop') {
