@@ -11,6 +11,12 @@ If you already have Invoke-Build installed, just use Invoke-Build instead of thi
 Starts Invoke-Build with the default parameters
 #>
 
+#FIXME: Remove after debug
+$verbosepreference = 'continue'
+$debugpreference = 'continue'
+$GLOBAL:verbosepreference = 'continue'
+$GLOBAL:debugpreference = 'continue'
+
 #Force newer TLS. This is now required for powershell gallery
 [Net.ServicePointManager]::SecurityProtocol = 'tls13','tls12','tls11'
 
