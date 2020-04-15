@@ -28,7 +28,7 @@ function BootstrapPSGetBeta {
         #Write-Verbose ([System.IO.Compression.ZipFile].assembly)
         #[System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
         $progressPreference = 'SilentlyContinue'
-        #Prefer 7zip if available as it is much faster for extraction
+        #Prefer 7zip if available as it is much faster for extraction, as well as issue for Github Actions windows powershell build
         try {
             if (Get-Command '7z' -ErrorAction Stop) {
                 & 7z x $psGetZipPath -y -o"$(Split-Path $ModuleManifestPath)"
