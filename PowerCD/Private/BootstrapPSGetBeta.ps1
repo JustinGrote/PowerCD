@@ -47,8 +47,6 @@ function BootstrapPSGetBeta {
     #Linux Quirk: Must be in same folder to load related module part
     Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop -Verbose
 
-    write-host "DEBUG: Module has been imported"
-
     #Register Powershell Gallery if not present
     try {
         if (-not (Get-PSResourceRepository -Name psgallery)) {
@@ -59,8 +57,4 @@ function BootstrapPSGetBeta {
             Register-PSResourceRepository -PSGallery -Trusted
         }
     }
-
-    #FIXME: Remove after debugging
-    Write-Debug "***FIND-PSRESOURCETEST***"
-    find-psresource powershellget | Out-String | Write-Debug
 }

@@ -25,15 +25,16 @@ function Initialize-PowerCD {
             Add-Type -Path $PSSCRIPTROOT/../lib/Newtonsoft.Json.dll
 
             #Add a binding redirect to force any additional newtonsoft loads to this version
-            [Appdomain]::CurrentDomain.Add_AssemblyResolve({
-                param($sender,$assembly)
-                $assemblyName = $assembly.name
-                if ($assemblyName -match 'Newtonsoft') {
-                    return [newtonsoft.json.jsonconvert].assembly
-                } else {
-                    return [System.AppDomain]::CurrentDomain.GetAssemblies() | where fullname -match $assemblyName
-                }
-            })
+            # [Appdomain]::CurrentDomain.Add_AssemblyResolve({
+            #     param($sender,$assembly)
+            #     $assemblyName = $assembly.name
+            #     if ($assemblyName -match 'Newtonsoft') {
+            #         return [newtonsoft.json.jsonconvert].assembly
+            #     } else {
+            #         return [System.AppDomain]::CurrentDomain.GetAssemblies() | where fullname -match $assemblyName
+            #     }
+            # })
+
         }
     }
 
