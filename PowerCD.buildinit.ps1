@@ -136,7 +136,8 @@ $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 # }
 
 $PowerCDSourcePath = "$PSScriptRoot/PowerCD/PowerCD.psd1"
-$SCRIPT:PowerCDMetaBuild = Test-Path $PowerCDSourcePath
+#FIXME: Reduce this to an appropriate scope
+$GLOBAL:PowerCDMetaBuild = Test-Path $PowerCDSourcePath
 if ($PowerCDMetaBuild) {
     write-verbose "Detected this is a meta-build of PowerCD. Loading the module from source path"
     Get-Module PowerCD | Remove-Module -Force

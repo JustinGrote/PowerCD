@@ -24,6 +24,7 @@ function Initialize-PowerCD {
             Write-Verbose "Bootstrapping Newtonsoft.Json for Windows Powershell"
             $jsonAssemblyPath = "$PSSCRIPTROOT/../lib/Newtonsoft.Json.dll"
             if ($PowerCDMetaBuild) {
+                Write-Host "PowerCD Meta Build Detected, Moving Newtonsoft.Json to Temporary Location"
                 #Move the DLL to the localappdata folder to prevent an issue with zipping up the completed build
                 $tempJsonAssemblyPath = Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD/Newtonsoft.Json.dll'
                 New-Item -ItemType Directory -Force (Split-Path $tempJsonAssemblyPath) > $null
