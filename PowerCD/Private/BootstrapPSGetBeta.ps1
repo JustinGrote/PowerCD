@@ -59,6 +59,4 @@ function BootstrapPSGetBeta {
             Register-PSResourceRepository -PSGallery -Trusted
         }
     }
-
-    Write-Verbose "PowershellGet $moduleVersion found at $moduleManifestPath"
 }

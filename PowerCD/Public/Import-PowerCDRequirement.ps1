@@ -14,6 +14,7 @@ function Import-PowerCDRequirement {
         $Path = (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD')
     )
     begin {
+        write-debug "DEBUG: Starting Import-PowerCDRequirement for $ModuleInfo to $Path"
         $modulesToInstall = [List[PSCustomObject]]@()
         #Make sure PSGet 3.0 is installed
         try {
