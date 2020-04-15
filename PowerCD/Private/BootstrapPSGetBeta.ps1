@@ -28,8 +28,19 @@ function BootstrapPSGetBeta {
         #Write-Verbose ([System.IO.Compression.ZipFile].assembly)
         #[System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
         $progressPreference = 'SilentlyContinue'
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        Expand-Archive -Path $psGetZipPath -DestinationPath (Split-Path $ModuleManifestPath)
+        #Prefer 7zip if available as it is much faster for extraction
+        try {
+            if (Get-Command '7z' -ErrorAction Stop) {
+                & 7z x $psGetZipPath -y -o"$(Split-Path $ModuleManifestPath)"
+            }
+            if (-not (Test-Path $ModuleManifestPath)) {throw '7zip Extraction Failed'}
+        } catch {
+            Write-Debug "BootstrapPSGetBeta: 7z executable not found, falling back to Expand-Archive"
+            #Fall back to legacy powershell extraction
+            Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
+            Expand-Archive -Path $psGetZipPath -DestinationPath (Split-Path $ModuleManifestPath)
+        }
+
         $progressPreference = 'Continue'
         write-host ($modulemanifestPath)
         write-host (gci (Split-Path $modulemanifestPath) | out-string)
