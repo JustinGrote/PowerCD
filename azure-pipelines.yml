@@ -15,8 +15,6 @@ pool:
 
 steps:
   - powershell: |
-      'Powershell Zip Test'
-      [System.IO.Compression.zipfile].assembly
       'Try again adding compression'
       Add-Type -assembly "System.IO.Compression.Filesystem"
       Add-Type -assembly "System.IO.Compression"
