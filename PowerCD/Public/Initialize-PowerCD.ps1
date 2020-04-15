@@ -9,6 +9,7 @@ function Initialize-PowerCD {
         #Specify this if you don't want initialization to switch to the folder build root
         [Switch]$SkipSetBuildRoot
     )
+    Write-Host -fore cyan "Task PowerCD.Initialize"
 
     #Fix a module import bug if powershell was started from pwsh. This is fixed in PWSH7 and should do nothing
     Reset-WinPSModules
@@ -91,4 +92,6 @@ function Initialize-PowerCD {
         #Disabling Progress speeds up the build because Write-Progress can be slow and can also clutter some CI displays
         $ProgressPreference = "SilentlyContinue"
     }
+
+    Write-Host -fore cyan "Done PowerCD.Initialize $([string]$bootstrapTimer.elapsed)"
 }

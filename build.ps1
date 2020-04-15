@@ -11,12 +11,20 @@ If you already have Invoke-Build installed, just use Invoke-Build instead of thi
 Starts Invoke-Build with the default parameters
 #>
 
-#Force newer TLS. This is now required for powershell gallery
-[Net.ServicePointManager]::SecurityProtocol = 'tls13','tls12','tls11'
-
 $ErrorActionPreference = 'Stop'
-. $PSScriptRoot/PowerCD.buildinit.ps1
-$SCRIPT:PowerCDBuildInit = $true
+
+#Add TLS 1.2 to potential security protocols on Windows Powershell. This is now required for powershell gallery
+if ($PSEdition -eq 'Desktop'){
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
+}
+
+#Verify Invoke-Build Prerequisite
+if (-not (Get-Command Invoke-Build -ErrorAction SilentlyContinue | where version -ge '5.5.7')) {
+    write-verbose "Invoke-Build not found. Bootstrapping..."
+    Install-Module -Name InvokeBuild -MinimumVersion '5.5.7' -MaximumVersion '5.99.99' -Scope CurrentUser -Force 4>$null
+}
+
+#Passthrough Invoke-Build
 Push-Location $PSScriptRoot
 try {
     & 'Invoke-Build' @args
