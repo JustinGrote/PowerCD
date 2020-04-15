@@ -68,12 +68,13 @@ function Import-PowerCDRequirement {
             }
 
             try {
+                write-debug "***STACKOVERFLOWCHECKPOINT2***"
                 $modulesToInstall.Add((Find-PSResource @PSResourceParams -Prerelease:$IsPrerelease -ErrorAction Stop))
             } catch [NullReferenceException] {
                 Write-Warning "Found nothing on the powershell gallery for $($PSResourceParams.Name) $($PSResourceParams.Version)"
             }
             #FIXME: Remove after debugging stack overflow issue
-            write-debug "***STACKOVERFLOWCHECKPOINT2***"
+
         }
     }
 
