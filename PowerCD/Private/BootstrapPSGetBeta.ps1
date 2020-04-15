@@ -26,8 +26,9 @@ function BootstrapPSGetBeta {
         # Add-Type -AssemblyName mscorlib
         # Add-Type -assembly "System.IO.Compression.Filesystem"
         # Add-Type -assembly "System.IO.Compression"
-        Write-Verbose ([System.IO.Compression.ZipFile].assembly)
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
+        #Write-Verbose ([System.IO.Compression.ZipFile].assembly)
+        #[System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
+        Expand-Archive -Path $psGetZipPath -DestinationPath $ModuleManifestPath
         Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
 
 
