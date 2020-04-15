@@ -2,7 +2,7 @@
 version: '{build}-{branch}'
 image:
   - Visual Studio 2019
-  - Ubuntu
+  # - Ubuntu
   # You can enable newer builds by uncommenting these lines
   # - Visual Studio 2017
   # - Ubuntu1804
