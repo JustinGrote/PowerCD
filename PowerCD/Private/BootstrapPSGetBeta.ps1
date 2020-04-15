@@ -59,4 +59,8 @@ function BootstrapPSGetBeta {
             Register-PSResourceRepository -PSGallery -Trusted
         }
     }
+
+    #FIXME: Remove after debugging
+    Write-Debug "***FIND-PSRESOURCETEST***"
+    find-psresource powershellget | Out-String | Write-Debug
 }
