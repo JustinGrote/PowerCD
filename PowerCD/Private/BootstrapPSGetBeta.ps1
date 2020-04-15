@@ -31,6 +31,8 @@ function BootstrapPSGetBeta {
         $progressPreference = 'SilentlyContinue'
         Expand-Archive -Path $psGetZipPath -DestinationPath (Split-Path $ModuleManifestPath)
         $progressPreference = 'Continue'
+        write-host ($modulemanifestPath)
+        write-host (gci (Split-Path $modulemanifestPath) | out-string)
         Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
 
         #Register Powershell Gallery if not present
