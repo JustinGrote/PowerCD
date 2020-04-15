@@ -100,7 +100,7 @@ function Import-PowerCDRequirement {
                     }
                 }
             }
-            Import-Module -ErrorAction Stop $ModuleManifestPath
+            Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop
         }
     }
     #Use this for Save-Module
