@@ -8,9 +8,9 @@ parameters:
     - 'macOS-10.14'
     - 'macOS-10.15'
   linuxContainer:
-    - 'mcr.microsoft.com/powershell:lts-ubuntu-18.04'
-    - 'mcr.microsoft.com/powershell:ubuntu-18.04'
-    - 'mcr.microsoft.com/powershell:preview-ubuntu-18.04'
+    # - 'mcr.microsoft.com/powershell:lts-ubuntu-18.04' - Need dotnet to build here
+    # - 'mcr.microsoft.com/powershell:ubuntu-18.04'
+    # - 'mcr.microsoft.com/powershell:preview-ubuntu-18.04'
     - 'mcr.microsoft.com/dotnet/core/sdk:3.1-bionic'
     #Alpine containers don't meet the minimum Azure Devops requirements: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops#requirements
   windowsContainer:

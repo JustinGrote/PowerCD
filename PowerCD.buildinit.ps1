@@ -149,6 +149,6 @@ if (-not (Get-Command Invoke-Build -ErrorAction SilentlyContinue)) {
     Install-Module -Scope CurrentUser InvokeBuild -Force 4>$null
 }
 
-write-verbose "Completed PowerCD Bootstrap in $([int]$bootstrapTimer.elapsed.totalseconds) seconds"
+write-host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
 
 #region EndHelperFunctions
