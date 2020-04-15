@@ -44,8 +44,7 @@ function BootstrapPSGetBeta {
         $progressPreference = 'Continue'
     }
 
-    #Linux Quirk: Must be in same folder to load related module part
-    Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
+    Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop 4>$null
 
     #Register Powershell Gallery if not present
     try {

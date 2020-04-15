@@ -105,7 +105,7 @@ function Import-PowerCDRequirement {
                     }
                 }
             }
-            Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop
+            Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop -Verbose:$false > $null
         }
     }
     #Use this for Save-Module

@@ -10,23 +10,32 @@ $ErrorActionPreference = 'Stop'
 
 Write-Host -fore cyan "Task PowerCD.Bootstrap"
 $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
+
 @("$PSSCRIPTROOT/PowerCD/PowerCD.psd1","./PowerCD/PowerCD.psd1").foreach{
     if (-not $GLOBAL:PowerCDMetaBuild -and (Test-Path $PSItem)) {
         Write-Verbose "PowerCD: Detected meta-build. Loading the module from source path"
         $GLOBAL:PowerCDMetaBuild = $PSItem
     }
 }
+
+$pcdModuleParams = @{
+    Name = 'PowerCD'
+    Global = $true
+    Force = $true
+    WarningAction = 'SilentlyContinue'
+}
+
 if ($GLOBAL:PowerCDMetaBuild) {
-    Get-Module 'PowerCD' | Remove-Module -Force
-    Import-Module -Global -Name $GLOBAL:PowerCDMetaBuild -Force
+    Get-Module 'PowerCD' | Remove-Module -Force 4>$null
+    Import-Module @pcdModuleParams 4>$null
 } else {
     $candidateModules = Get-Module -Name PowerCD -ListAvailable
     if ($PowerCDVersion) {
         if ($PowerCDVersion -in $candidateModules.Version) {
-            Import-Module -Name 'PowerCD' -RequiredVersion $PowerCDVersion
+            Import-Module @pcdModuleParams -RequiredVersion $PowerCDVersion 4>$null
         }
     } else {
-        Import-Module -Name 'PowerCD'
+        Import-Module @pcdModuleParams 4>$null
     }
 }
 
@@ -38,7 +47,7 @@ if (-not (Get-Module -Name 'PowerCD')) {
         Scope = 'CurrentUser'
     }
     if ($PowerCDVersion) {$InstallModuleParams.RequiredVersion = $PowerCDVersion}
-    Install-Module @InstallModuleParams -PassThru | Import-Module
+    Install-Module @InstallModuleParams -PassThru 4>$null | Import-Module @pcdModuleParams 4>$null
 }
 
 Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
