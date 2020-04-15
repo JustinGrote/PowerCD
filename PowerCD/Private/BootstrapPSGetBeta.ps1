@@ -25,10 +25,10 @@ function BootstrapPSGetBeta {
         #FIXME: Remove Debug
         Add-Type -assembly "System.IO.Compression.Filesystem"
         Add-Type -assembly "System.IO.Compression"
-        Write-Verbose ($PSVersiontable | Out-String) -verbose
-        Write-Verbose ([System.IO.Compression.ZipFile].assembly) -verbose
+        Write-Verbose ([System.IO.Compression.ZipFile].assembly)
         [System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
         Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
+
 
         #Register Powershell Gallery if not present
         try {

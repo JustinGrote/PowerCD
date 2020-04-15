@@ -14,11 +14,6 @@ pool:
   vmImage: windows-latest
 
 steps:
-  - powershell: |
-      'Try again adding compression'
-      Add-Type -assembly "System.IO.Compression.Filesystem"
-      Add-Type -assembly "System.IO.Compression"
-      [System.IO.Compression.ZipFile].assembly
   - pwsh: |
       $verbosepreference = 'continue'
       try {./build.ps1} catch {

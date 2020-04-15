@@ -13,15 +13,40 @@ function Initialize-PowerCD {
     #Fix a module import bug if powershell was started from pwsh. This is fixed in PWSH7 and should do nothing
     Reset-WinPSModules
 
+    #PS5.1: Load a fairly new version of newtonsoft.json to maintain compatibility with other tools, if not present
+    if ($PSEdition -eq 'Desktop') {
+        [bool]$newtonsoftJsonLoaded = try {
+            [bool]([newtonsoft.json.jsonconvert].assembly)
+        } catch {
+            $false
+        }
+        if (-not $NewtonsoftJsonLoaded) {
+            Write-Verbose "Bootstrapping Newtonsoft.Json for Windows Powershell"
+            Add-Type -Path $PSSCRIPTROOT/../lib/Newtonsoft.Json.dll
+
+            #Add a binding redirect to force any additional newtonsoft loads to this version
+            [Appdomain]::CurrentDomain.Add_AssemblyResolve({
+                param($sender,$assembly)
+                $assemblyName = $assembly.name
+                if ($assemblyName -match 'Newtonsoft') {
+                    return [newtonsoft.json.jsonconvert].assembly
+                } else {
+                    return [System.AppDomain]::CurrentDomain.GetAssemblies() | where fullname -match $assemblyName
+                }
+            })
+        }
+    }
+
     #Make sure that PSGet Beta is available
     BootstrapPSGetBeta
 
     #Import Prerequisites
     Import-PowerCDRequirement -Verbose -ModuleInfo @(
-        'Pester',
-        'BuildHelpers',
-        'PSScriptAnalyzer',
-        @{ModuleName='PowerConfig__beta0009';RequiredVersion='0.1.1'}
+        'Pester'
+        'BuildHelpers'
+        'PSScriptAnalyzer'
+        #FIXME: Powwerconfig doesn't work on Windows Powershell due to assembly differences
+        #@{ModuleName='PowerConfig__beta0010';RequiredVersion='0.1.1'}
     )
 
     #Restore dotnet global tools
@@ -30,12 +55,14 @@ function Initialize-PowerCD {
 
     #Start a new PowerConfig, using PowerCDSetting as a base
     $PCDDefaultSetting = Get-PowerCDSetting
-    $PCDConfig = New-PowerConfig | Add-PowerConfigObject -Object $PCDDefaultSetting
-    $null = $PCDConfig | Add-PowerConfigYamlSource -Path (Join-Path $PCDDefaultSetting.BuildEnvironment.ProjectPath 'PSModule.build.settings.yml')
-    $null = $PCDConfig | Add-PowerConfigEnvironmentVariableSource -Prefix 'POWERCD_'
+
+    # FIXME: Powerconfig doesn't work on Windows Powershell due to assembly differences
+    # $PCDConfig = New-PowerConfig | Add-PowerConfigObject -Object $PCDDefaultSetting
+    # $null = $PCDConfig | Add-PowerConfigYamlSource -Path (Join-Path $PCDDefaultSetting.BuildEnvironment.ProjectPath 'PSModule.build.settings.yml')
+    # $null = $PCDConfig | Add-PowerConfigEnvironmentVariableSource -Prefix 'POWERCD_'
 
     #. $PSScriptRoot\Get-PowerCDSetting.ps1
-    Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value ($PCDConfig | Get-PowerConfig)
+    Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value $PCDDefaultSetting
 
     #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
     if ($ENV:CI -or $CI -or ($PCDSetting.BuildEnvironment.buildsystem -and $PCDSetting.BuildEnvironment.buildsystem -ne 'Unknown')) {
