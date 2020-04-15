@@ -53,8 +53,6 @@ function Import-PowerCDRequirement {
 
     process {
         foreach ($ModuleInfoItem in $ModuleInfo) {
-            #FIXME: Remove after debugging stack overflow issue
-            write-debug "***STACKOVERFLOWCHECKPOINT***"
             $PSResourceParams = [Ordered]@{
                 Name                = $ModuleInfoItem.Name.split('__')[0]
                 IncludeDependencies = $true
@@ -68,14 +66,10 @@ function Import-PowerCDRequirement {
             }
 
             try {
-                write-debug "***STACKOVERFLOWCHECKPOINT2***"
                 $modulesToInstall.Add((Find-PSResource @PSResourceParams -Prerelease:$IsPrerelease -ErrorAction Stop))
-                write-debug "***STACKOVERFLOWCHECKPOINT3***"
             } catch [NullReferenceException] {
                 Write-Warning "Found nothing on the powershell gallery for $($PSResourceParams.Name) $($PSResourceParams.Version)"
             }
-            #FIXME: Remove after debugging stack overflow issue
-
         }
     }
 

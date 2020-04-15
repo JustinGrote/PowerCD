@@ -8,13 +8,13 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          # - ubuntu-latest
-          # - ubuntu-16.04
+          - ubuntu-latest
+          - ubuntu-16.04
           - windows-latest
           - windows-2016
-          # - macOS-latest
+          - macOS-latest
         psversion:
-          # - pwsh
+          - pwsh
           - powershell
         exclude:
           - os: ubuntu-latest
