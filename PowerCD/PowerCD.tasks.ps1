@@ -1,6 +1,9 @@
 task PowerCD.Clean {
     Invoke-PowerCDClean
 }
+task PowerCD.CleanPrerequisites {
+    Invoke-PowerCDClean -Prerequisites
+}
 
 task PowerCD.Version {
     . Get-PowerCDVersion > $null

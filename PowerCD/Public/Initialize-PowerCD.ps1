@@ -49,7 +49,14 @@ function Initialize-PowerCD {
         #@{ModuleName='PowerConfig__beta0010';RequiredVersion='0.1.1'}
     )
 
-    #Restore dotnet global tools
+    #Test if dotnet is installed
+    try {
+        [Version]$dotnetVersion = (dotnet --info | where {$_ -match 'Version:'} | select -first 1).trim() -split (' +') | select -last 1
+            } catch {
+        throw 'PowerCD requires dotnet 3.0 or greater to be installed. Hint: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script'
+    }
+    if ($dotnetVersion -lt '3.0.0') {throw "PowerCD detected dotnet $dotnetVersion but 3.0 or greater is required. Hint: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script'"}
+
     [String]$restoreResult = dotnet tool restore *>&1
     if ($restoreResult -notmatch 'Restore was successful') {throw "Dotnet Tool Restore Failed: $restoreResult"}
 

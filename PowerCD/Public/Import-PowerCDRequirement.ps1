@@ -11,7 +11,7 @@ function Import-PowerCDRequirement {
         #Specify which modules to install. If a module needs to be a prerelease, specify the prerelease tag with __ after the module name e.g. PowershellGet__beta1
         [Parameter(Mandatory, ValueFromPipeline)][ModuleSpecification[]]$ModuleInfo,
         #Where to import the PowerCD Requirement. Defaults to the PowerCD folder in LocalAppData
-        $Path = (Join-Path ([io.path]::GetTempPath()) 'PowerCD')
+        $Path = (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD')
     )
     begin {
         $modulesToInstall = [List[PSCustomObject]]@()
@@ -90,7 +90,12 @@ function Import-PowerCDRequirement {
             } else {
                 if ($PSCmdlet.ShouldProcess($Path,"Installing PowerCD Requirement $($ModuleItem.Name) $($ModuleItem.Version)")) {
                     try {
-                        Save-PSResource -Path $Path -Name $ModuleItem.Name -Version $ModuleItem.Version -Prerelease:$isPrerelease -ErrorAction Stop
+                        if ($isLinux) {
+                            #FIXME: Remove after https://github.com/PowerShell/PowerShellGet/issues/123 is closed
+                            Save-Module -RequiredVersion $ModuleItem.Version -Name $ModuleItem.Name -Path $Path -Force -AllowPrerelease:$isPrerelease -ErrorAction Stop
+                        } else {
+                            Save-PSResource -Path $Path -Name $ModuleItem.Name -Version $ModuleItem.Version -Prerelease:$isPrerelease -ErrorAction Stop
+                        }
                     } catch [IO.IOException] {
                         if ([string]$PSItem -match 'Cannot create a file when that file already exists') {
                             Write-Warning "Module $($ModuleItem.Name) $($ModuleItem.Version) already exists. This is probably a bug because the manifest wasn't detected. Skipping..."

@@ -3,7 +3,8 @@ function Invoke-PowerCDClean {
     param (
         $buildProjectPath = $PCDSetting.BuildEnvironment.ProjectPath,
         $buildOutputPath  = $PCDSetting.BuildEnvironment.BuildOutput,
-        $buildProjectName = $PCDSetting.BuildEnvironment.ProjectName
+        $buildProjectName = $PCDSetting.BuildEnvironment.ProjectName,
+        [Switch]$Prerequisites
     )
 
     #Taken from Invoke-Build because it does not preserve the command in the scope this function normally runs
@@ -31,9 +32,14 @@ function Invoke-PowerCDClean {
         Remove-BuildItem $buildOutputPath 4>$null
     }
 
+    if ($Prerequisites) {
+        $PrerequisitePath = (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD')
+        Write-Verbose "Removing and resetting PowerCD Prerequisites: $PrerequisitePath"
+        Remove-BuildItem $buildOutputPath 4>$null
+    }
+
     New-Item -Type Directory $BuildOutputPath > $null
 
     #Unmount any modules named the same as our module
     Remove-Module $buildProjectName -erroraction silentlycontinue
 }
-

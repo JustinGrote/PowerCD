@@ -1,7 +1,7 @@
 using namespace System.IO.Compression
 function BootstrapPSGetBeta {
     #PowerCD Module Directory for builds
-    $SCRIPT:powercdModulePath = Join-Path ([io.path]::GetTempPath()) 'PowerCD'
+    $SCRIPT:powercdModulePath = Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD'
 
     #Fetch PowerShellGet 3.0+ if not already present. We use this instead of Save-Module to avoid
     #loading the builtin version of PowershellGet
@@ -10,13 +10,13 @@ function BootstrapPSGetBeta {
     $moduleInfo = (Invoke-RestMethod -UseBasicParsing 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27PowershellGet%27%20and%20Version%20ge%20%273.0.0%27%20and%20IsPrerelease%20eq%20true&$orderby=Version%20desc&$top=1&$select=Id,Version,NormalizedVersion')
     $moduleVersion = $moduleInfo.properties.NormalizedVersion
     $moduleUri = $moduleInfo.content.src
-    $psgetModulePath = Join-Path $powercdModulePath 'PowershellGet'
-    $moduleManifestPath = [IO.Path]::Combine($psGetModulePath, $moduleVersion, 'PowershellGet.psd1')
+    $psgetModulePath = Join-Path $powercdModulePath 'PowerShellGet'
+    $moduleManifestPath = [IO.Path]::Combine($psGetModulePath, $moduleVersion, 'PowerShellGet.psd1')
 
     if (-not (Test-Path $ModuleManifestPath)) {
         Write-Verbose "Latest PowershellGet Not Found, Installing $moduleVersion..."
         if (Test-Path $psgetModulePath) {Remove-Item $psGetModulePath -recurse -force}
-        $psGetZipPath = join-path $powercdModulePath "PowershellGet.zip"
+        $psGetZipPath = join-path $powercdModulePath "PowerShellGet.zip"
         New-Item -ItemType Directory -Path $powercdModulePath -Force > $null
         (New-Object Net.WebClient).DownloadFile($moduleURI, $psGetZipPath) > $null
 
@@ -33,19 +33,20 @@ function BootstrapPSGetBeta {
         $progressPreference = 'Continue'
         write-host ($modulemanifestPath)
         write-host (gci (Split-Path $modulemanifestPath) | out-string)
-        Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
+    }
 
-        #Register Powershell Gallery if not present
-        try {
-            if (-not (Get-PSResourceRepository -Name psgallery)) {
-                Register-PSResourceRepository -PSGallery -Trusted
-            }
-        } catch [ArgumentException] {
-            if ([String]$PSItem -match 'not able to successfully find xml') {
-                Register-PSResourceRepository -PSGallery -Trusted
-            }
+    #Linux Quirk: Must be in same folder to load related module part
+    Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop -Verbose
+
+    #Register Powershell Gallery if not present
+    try {
+        if (-not (Get-PSResourceRepository -Name psgallery)) {
+            Register-PSResourceRepository -PSGallery -Trusted
         }
-
+    } catch [ArgumentException] {
+        if ([String]$PSItem -match 'not able to successfully find xml') {
+            Register-PSResourceRepository -PSGallery -Trusted
+        }
     }
 
     Write-Verbose "PowershellGet $moduleVersion found at $moduleManifestPath"
