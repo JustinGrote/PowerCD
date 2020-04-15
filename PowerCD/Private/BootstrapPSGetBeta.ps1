@@ -28,6 +28,7 @@ function BootstrapPSGetBeta {
         #Write-Verbose ([System.IO.Compression.ZipFile].assembly)
         #[System.IO.Compression.ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
         $progressPreference = 'SilentlyContinue'
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
         Expand-Archive -Path $psGetZipPath -DestinationPath (Split-Path $ModuleManifestPath)
         $progressPreference = 'Continue'
         write-host ($modulemanifestPath)
