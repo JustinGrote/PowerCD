@@ -70,6 +70,7 @@ function Import-PowerCDRequirement {
             try {
                 write-debug "***STACKOVERFLOWCHECKPOINT2***"
                 $modulesToInstall.Add((Find-PSResource @PSResourceParams -Prerelease:$IsPrerelease -ErrorAction Stop))
+                write-debug "***STACKOVERFLOWCHECKPOINT3***"
             } catch [NullReferenceException] {
                 Write-Warning "Found nothing on the powershell gallery for $($PSResourceParams.Name) $($PSResourceParams.Version)"
             }
