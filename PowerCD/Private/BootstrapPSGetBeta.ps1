@@ -19,6 +19,10 @@ function BootstrapPSGetBeta {
         $psGetZipPath = join-path $powercdModulePath "PowershellGet.zip"
         New-Item -ItemType Directory -Path $powercdModulePath -Force > $null
         (New-Object Net.WebClient).DownloadFile($moduleURI, $psGetZipPath) > $null
+
+        #Required due to a quirk in Windows Powershell 5.1: https://stackoverflow.com/questions/29007742/unable-to-use-system-io-compression-filesystem-dll/29022092
+        Add-Type -assembly "System.IO.Compression.Filesystem"
+        Add-Type -assembly "System.IO.Compression"
         [ZipFile]::ExtractToDirectory($psGetZipPath, (Split-Path $ModuleManifestPath)) > $null
         Import-Module -Force $moduleManifestPath -Scope Global -ErrorAction Stop
 
