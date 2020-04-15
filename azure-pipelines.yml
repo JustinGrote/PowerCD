@@ -11,7 +11,7 @@ trigger:
       - ci
 
 stages:
-- stage: Build
+- stage: PSModule
   jobs:
   - template: .ci/PowerCD.yml
     parameters:
@@ -22,8 +22,8 @@ stages:
       psVersion:
         - pwsh
         - powershell
-      script: './build.ps1 Build'
-      linuxContainer: 'skip'
+      script: './build.ps1'
+      # linuxContainer: 'skip'
       windowsContainer: 'skip'
 # pool:
 #   vmImage: windows-latest

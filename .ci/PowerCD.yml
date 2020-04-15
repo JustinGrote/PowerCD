@@ -8,20 +8,20 @@ parameters:
     - 'macOS-10.14'
     - 'macOS-10.15'
   linuxContainer:
-    # - 'mcr.microsoft.com/powershell:lts-ubuntu-18.04'
-    # - 'mcr.microsoft.com/powershell:ubuntu-18.04'
-    # - 'mcr.microsoft.com/powershell:preview-ubuntu-18.04'
-    # - 'mcr.microsoft.com/dotnet/core/sdk:3.1-bionic'
+    - 'mcr.microsoft.com/powershell:lts-ubuntu-18.04'
+    - 'mcr.microsoft.com/powershell:ubuntu-18.04'
+    - 'mcr.microsoft.com/powershell:preview-ubuntu-18.04'
+    - 'mcr.microsoft.com/dotnet/core/sdk:3.1-bionic'
     #Alpine containers don't meet the minimum Azure Devops requirements: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops#requirements
   windowsContainer:
-    # - 'mcr.microsoft.com/powershell:windowsservercore-1809'
-    # - 'mcr.microsoft.com/powershell:preview-windowsservercore-1809'
+    - 'mcr.microsoft.com/powershell:windowsservercore-1809'
+    - 'mcr.microsoft.com/powershell:preview-windowsservercore-1809'
     #TODO: Figure out a way to track these so they are always using the underlying cached image
-    # - 'mcr.microsoft.com/dotnet/framework/runtime@sha256:85433707a809232402827a359c80d0aa08226e7833aa2914be2113e694d2b6ae'
-    # - 'mcr.microsoft.com/powershell:lts-windowsservercore-1809'
+    - 'mcr.microsoft.com/dotnet/framework/runtime@sha256:85433707a809232402827a359c80d0aa08226e7833aa2914be2113e694d2b6ae'
+    - 'mcr.microsoft.com/powershell:lts-windowsservercore-1809'
     #Nano Requires https://github.com/microsoft/azure-pipelines-tasks/issues/11448 to be fixed first
-    # - 'mcr.microsoft.com/powershell:nanoserver-1809'
-    # - 'mcr.microsoft.com/powershell:preview-nanoserver-1809'
+    - 'mcr.microsoft.com/powershell:nanoserver-1809'
+    - 'mcr.microsoft.com/powershell:preview-nanoserver-1809'
   psVersion:
     - pwsh
     - powershell
