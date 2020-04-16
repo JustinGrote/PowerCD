@@ -12,10 +12,10 @@ function Initialize-PowerCD {
     Write-Host -fore cyan "Task PowerCD.Initialize"
     $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 
-    #Fix a module import bug if powershell was started from pwsh. This is fixed in PWSH7 and should do nothing
-    if ($PSEdition -eq 'Desktop') {
-        Reset-WinPSModules
-    }
+    #Fix a module import bug if powershell was started from pwsh. This is now fixed in PWSH7
+    # if ($PSEdition -eq 'Desktop') {
+    #     Reset-WinPSModules
+    # }
 
 
     #PS5.1: Load a fairly new version of newtonsoft.json to maintain compatibility with other tools, if not present
@@ -26,16 +26,17 @@ function Initialize-PowerCD {
             $false
         }
         if (-not $NewtonsoftJsonLoaded) {
-            Write-Verbose "Bootstrapping Newtonsoft.Json for Windows Powershell"
-            $jsonAssemblyPath = "$PSSCRIPTROOT/../lib/Newtonsoft.Json.dll"
+            #TODO: Remove this when PSGetv3 properly supports Powershell 5.1 - https://github.com/PowerShell/PowerShellGet/issues/122
+            Write-Verbose "PowerCD: Newtonsoft.Json not loaded, bootstrapping for Windows Powershell and PSGetV3"
+
+            $jsonAssemblyPath = Join-Path (Split-Path (Get-Module powercd).path) 'lib/Newtonsoft.Json.dll'
             if ($PowerCDMetaBuild) {
-                Write-Host "PowerCD Meta Build Detected, Moving Newtonsoft.Json to Temporary Location"
+                $jsonAssemblyPath = "$PowerCDMetaBuild/lib/Newtonsoft.Json.dll"
+                Write-Verbose "PowerCD: Meta Build Detected, Moving Newtonsoft.Json to Temporary Location"
                 #Move the DLL to the localappdata folder to prevent an issue with zipping up the completed build
                 $tempJsonAssemblyPath = Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD/Newtonsoft.Json.dll'
                 New-Item -ItemType Directory -Force (Split-Path $tempJsonAssemblyPath) > $null
-                Move-Item $jsonAssemblyPath $tempJsonAssemblyPath -force > $null
-                #FIXME: Remove temporary debug
-                write-debug "JSON Test: $jsonAssemblyPath $tempJsonAssemblyPath"
+                Copy-Item $jsonAssemblyPath $tempJsonAssemblyPath -force > $null
                 $jsonAssemblyPath = $tempJsonAssemblyPath
             }
             Add-Type -Path $jsonAssemblyPath

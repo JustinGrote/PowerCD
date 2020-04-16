@@ -12,9 +12,9 @@ Write-Host -fore cyan "Task PowerCD.Bootstrap"
 $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 
 @("$PSSCRIPTROOT/PowerCD/PowerCD.psd1","./PowerCD/PowerCD.psd1").foreach{
-    if (-not $GLOBAL:PowerCDMetaBuild -and (Test-Path $PSItem)) {
+    if (-not $PowerCDMetaBuild -and (Test-Path $PSItem)) {
         Write-Verbose "PowerCD: Detected meta-build. Loading the module from source path"
-        $GLOBAL:PowerCDMetaBuild = $PSItem
+        Set-Variable -Scope 2 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PSItem)
     }
 }
 
@@ -25,8 +25,9 @@ $pcdModuleParams = @{
     WarningAction = 'SilentlyContinue'
 }
 
-if ($GLOBAL:PowerCDMetaBuild) {
+if ($PowerCDMetaBuild) {
     Get-Module 'PowerCD' | Remove-Module -Force 4>$null
+    $pcdModuleParams.Name = $PowerCDMetaBuild
     Import-Module @pcdModuleParams 4>$null
 } else {
     $candidateModules = Get-Module -Name PowerCD -ListAvailable
