@@ -4,7 +4,7 @@
 $GLOBAL:ProgressPreference = 'SilentlyContinue'
 $ProgressPreference = 'SilentlyContinue'
 
-. $PSScriptRoot\PowerCD.buildinit.ps1
+. $PSScriptRoot\PowerCD.bootstrap.ps1
 
 task Clean PowerCD.Clean
 task Build PowerCD.Build
