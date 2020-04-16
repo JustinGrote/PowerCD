@@ -31,7 +31,7 @@ function Initialize-PowerCD {
 
             $jsonAssemblyPath = Join-Path (Split-Path (Get-Module powercd).path) 'lib/Newtonsoft.Json.dll'
             if ($PowerCDMetaBuild) {
-                $jsonAssemblyPath = "$PowerCDMetaBuild/lib/Newtonsoft.Json.dll"
+                $jsonAssemblyPath = Join-Path (Split-Path $PowerCDMetaBuild) 'lib/Newtonsoft.Json.dll'
                 Write-Verbose "PowerCD: Meta Build Detected, Moving Newtonsoft.Json to Temporary Location"
                 #Move the DLL to the localappdata folder to prevent an issue with zipping up the completed build
                 $tempJsonAssemblyPath = Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD/Newtonsoft.Json.dll'
