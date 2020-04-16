@@ -2,8 +2,6 @@
 
 #PowerCD Bootstrap
 $GLOBAL:ProgressPreference = 'SilentlyContinue'
-$ProgressPreference = 'SilentlyContinue'
-
 . $PSScriptRoot\PowerCD.bootstrap.ps1
 
 task Clean PowerCD.Clean
