@@ -14,7 +14,11 @@ $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 @("$PSSCRIPTROOT/PowerCD/PowerCD.psd1","./PowerCD/PowerCD.psd1").foreach{
     if (-not $PowerCDMetaBuild -and (Test-Path $PSItem)) {
         Write-Verbose "PowerCD: Detected meta-build. Loading the module from source path"
-        Set-Variable -Scope 2 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PSItem)
+        try {
+            Set-Variable -Scope 2 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PSItem) -ErrorAction Stop
+        } catch {
+            Set-Variable -Scope 1 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PSItem) -ErrorAction Stop
+        }
     }
 }
 
