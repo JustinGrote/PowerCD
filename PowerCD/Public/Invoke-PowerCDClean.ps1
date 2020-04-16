@@ -29,17 +29,17 @@ function Invoke-PowerCDClean {
     #Reset the BuildOutput Directory
     if (test-path $buildProjectPath) {
         Write-Verbose "Removing and resetting Build Output Path: $buildProjectPath"
-        Remove-BuildItem $buildOutputPath 4>$null
+        Remove-BuildItem $buildOutputPath -Verbose:$false
     }
 
     if ($Prerequisites) {
         $PrerequisitePath = (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD')
         Write-Verbose "Removing and resetting PowerCD Prerequisites: $PrerequisitePath"
-        Remove-BuildItem $buildOutputPath 4>$null
+        Remove-BuildItem $buildOutputPath -Verbose:$false
     }
 
     New-Item -Type Directory $BuildOutputPath > $null
 
     #Unmount any modules named the same as our module
-    Remove-Module $buildProjectName -erroraction silentlycontinue
+    Remove-Module $buildProjectName -Verbose:$false -erroraction silentlycontinue
 }

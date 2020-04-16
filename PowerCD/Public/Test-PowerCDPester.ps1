@@ -25,7 +25,6 @@ function Test-PowerCDPester {
 
     #TODO: Update for new logging method
     #write-verboseheader "Starting Pester Tests..."
-    Write-Verbose "Task $($task.name)` -  Testing $moduleManifestPath"
 
     $PesterParams = @{
         #TODO: Fix for source vs built object
@@ -63,7 +62,7 @@ function Test-PowerCDPester {
             #Prepare the Destination Module Directory Environment
             $ENV:PowerCDModuleManifest = $USING:ModuleManifestPath
             #Bring in relevant environment
-            $USING:PowerCDModules | Import-Module 4>&1 | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'}
+            $USING:PowerCDModules | Import-Module -Verbose:$false | Where-Object {$_ -match '^Loading Module.+psd1.+\.$'}
             $PesterParams = $USING:PesterParams
             Invoke-Pester @PesterParams
         }

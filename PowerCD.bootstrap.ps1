@@ -4,15 +4,62 @@ using namespace System.IO
 #This bootstraps the invoke-build environment for PowerCD
 param (
     #Specify the version of PowerCD to use. By default it will use the latest available either on this system or on Powershell Gallery
-    [String]$PowerCDVersion,
-    #Where bootstrapped modules are saved
-    [IO.DirectoryInfo]$BootstrapModulePath
+    [Version]$PowerCDVersion
 )
 $ErrorActionPreference = 'Stop'
-if ($PowerCDBuildInit) {return}
 
 Write-Host -fore cyan "Task PowerCD.Bootstrap"
 $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
+
+@(
+    "$PSSCRIPTROOT/PowerCD/PowerCD.psd1"
+    "./PowerCD/PowerCD.psd1"
+).foreach{
+    $PowerCDMetaBuildPath = $PSItem
+    if (-not $PowerCDMetaBuild -and (Test-Path $PowerCDMetaBuildPath)) {
+        Write-Verbose "PowerCD: Detected meta-build. Loading the module from source path"
+        try {
+            Set-Variable -Scope 2 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PowerCDMetaBuildPath) -ErrorAction Stop
+        } catch {
+            Set-Variable -Scope 1 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PowerCDMetaBuildPath) -ErrorAction Stop
+        }
+    }
+}
+
+$pcdModuleParams = @{
+    Name = 'PowerCD'
+    Global = $true
+    Force = $true
+    WarningAction = 'SilentlyContinue'
+}
+
+if ($PowerCDMetaBuild) {
+    Get-Module 'PowerCD' | Remove-Module -Force 4>$null
+    $pcdModuleParams.Name = $PowerCDMetaBuild
+    Import-Module @pcdModuleParams 4>$null
+} else {
+    $candidateModules = Get-Module -Name PowerCD -ListAvailable
+    if ($PowerCDVersion) {
+        if ($PowerCDVersion -in $candidateModules.Version) {
+            Import-Module @pcdModuleParams -RequiredVersion $PowerCDVersion 4>$null
+        }
+    } else {
+        Import-Module @pcdModuleParams 4>$null
+    }
+}
+
+#Install the Module if not found
+if (-not (Get-Module -Name 'PowerCD')) {
+    Write-Verbose "PowerCD: Module not installed locally. Bootstrapping..."
+    $InstallModuleParams = @{
+        Name = 'PowerCD'
+        Scope = 'CurrentUser'
+    }
+    if ($PowerCDVersion) {$InstallModuleParams.RequiredVersion = $PowerCDVersion}
+    Install-Module @InstallModuleParams -PassThru 4>$null | Import-Module @pcdModuleParams 4>$null
+}
+
+Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
 
 # function DetectNestedPowershell {
 #     #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
@@ -73,82 +120,8 @@ $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 #     }
 # }
 
-
-#Bootstrap package management in a new process. If you try to do it same-process you can't import it because the DLL from the old version is already loaded
-#YOU MUST DO THIS IN A NEW SESSION PRIOR TO RUNNING ANY PACKAGEMANGEMENT OR POWERSHELLGET COMMANDS
-#NOTES: Tried using a runspace but install-module would crap out on older PS5.x versions.
-
-# function BootstrapPSGet {
-#     $psGetVersionMinimum = '2.2.1'
-#     $PowershellGetModules = get-module PowershellGet -listavailable | where version -ge $psGetVersionMinimum
-#     if ($PowershellGetModules) {
-#         write-verbose "PowershellGet $psGetVersionMinimum found. Skipping bootstrap..."
-#         return
-#     }
-
-#     write-verbose "PowershellGet $psGetVersionMinimum not detected. Bootstrapping..."
-#     Start-Job -Verbose -Name "BootStrapPSGet" {
-#         $psGetVersionMinimum = '2.2.1'
-#         $progresspreference = 'silentlycontinue'
-#         Install-Module PowershellGet -MinimumVersion $psGetVersionMinimum -Scope CurrentUser -AllowClobber -SkipPublisherCheck -Force
-#     } | Receive-Job -Wait -Verbose
-#     Remove-Job -Name "BootStrapPSGet"
-#     Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
-# }
-# BootStrapPSGet
-
-# Import-Module PowershellGet -Scope Global -Force -MinimumVersion 2.2 -ErrorAction Stop
-
-#endregion Bootstrap
-
-# function BootStrapModule {
-#     #Tries to load a module and dynamically downloads it from the Powershell Gallery if not available.
-#     [CmdletBinding()]
-#     param(
-#         [String]$Name,
-#         [Alias('RequiredVersion')][String]$Version,
-#         $Destination=([IO.Path]::Combine([System.Environment]::GetFolderPath('LocalApplicationData'),'PowerCD',$PSScriptRoot.Parent.Name))
-#     )
-
-#     if (-not (Test-Path $Destination)) {
-#         New-Item -ItemType Directory $Destination -ErrorAction Stop
-#     }
-
-#     $importModuleParams = @{
-#         Name = $Name
-#     }
-#     if ($Version) { $importModuleParams.RequiredVersion = $Version.split('-')[0] }
-
-#     #Attempt to load the module
-#     try {
-#         $psModulePaths = [Collections.Generic.List[String]]$env:PSModulePath.split([io.path]::PathSeparator)
-#         if ($destination -notin $psModulePaths) {
-#             write-verbose "Adding Module Bootstrap $destination to PSModulePath"
-#             $psmodulePaths.insert(0,$destination)
-#             $env:PSModulePath = $psModulePaths -join [io.path]::PathSeparator
-#         }
-#         Import-Module @importModuleParams -ErrorAction Stop
-#     } catch [IO.FileNotFoundException] {
-#         #Install from Gallery and try again
-#         Install-PSGalleryModule -Name $Name -Version $Version -Destination $Destination
-#         Import-Module @importModuleParams -ErrorAction Stop
-#     }
-# }
-
-$PowerCDSourcePath = "$PSScriptRoot/PowerCD/PowerCD.psd1"
-#FIXME: Reduce this to an appropriate scope
-$GLOBAL:PowerCDMetaBuild = Test-Path $PowerCDSourcePath
-if ($PowerCDMetaBuild) {
-    write-verbose "Detected this is a meta-build of PowerCD. Loading the module from source path"
-    Get-Module PowerCD | Remove-Module -Force
-    Import-Module -Scope Global $PowerCDSourcePath
+Enter-Build {
+    Initialize-PowerCD
 }
 
-#Get Invoke-Build if not present
-if (-not (Get-Command Invoke-Build -ErrorAction SilentlyContinue)) {
-    Install-Module -Scope CurrentUser InvokeBuild -Force 4>$null
-}
-
-write-host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
-
-#region EndHelperFunctions
+. PowerCD.Tasks
