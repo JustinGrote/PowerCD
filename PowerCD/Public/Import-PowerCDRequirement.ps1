@@ -37,7 +37,7 @@ function Import-PowerCDRequirement {
                 }
 
                 ($ModuleSpecification.Version -and $ModuleSpecification.MaximumVersion) {
-                    return "[$(ModuleSpecification.Version),$($ModuleSpecification.RequiredVersion)]"
+                    return "[$(ModuleSpecification.Version),$($ModuleSpecification.MaximumVersion)]"
                 }
 
                 ($ModuleSpecification.Version -and -not $ModuleSpecification.MaximumVersion) {
@@ -45,7 +45,7 @@ function Import-PowerCDRequirement {
                 }
 
                 ($ModuleSpecification.MaximumVersion -and -not $ModuleSpecification.Version) {
-                    return "(,$($ModuleSpecification.Version)]"
+                    return "(,$($ModuleSpecification.MaximumVersion)]"
                 }
             }
         }
