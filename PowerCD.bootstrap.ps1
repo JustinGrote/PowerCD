@@ -11,19 +11,16 @@ $ErrorActionPreference = 'Stop'
 Write-Host -fore cyan "Task PowerCD.Bootstrap"
 $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 
-@(
+Write-Debug "Detecting PowerCD MetaBuild in $pwd"
+
+foreach ($MetaBuildPathItem in @(
+    "$PSSCRIPTROOT/../PowerCD/PowerCD.psd1"
     "$PSSCRIPTROOT/PowerCD/PowerCD.psd1"
-    "./PowerCD/PowerCD.psd1"
-).foreach{
-    $PowerCDMetaBuildPath = $PSItem
-    if (-not $PowerCDMetaBuild -and (Test-Path $PowerCDMetaBuildPath)) {
-        Write-Verbose "PowerCD: Detected meta-build. Loading the module from source path"
-        try {
-            Set-Variable -Scope 2 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PowerCDMetaBuildPath) -ErrorAction Stop
-        } catch {
-            Set-Variable -Scope 1 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PowerCDMetaBuildPath) -ErrorAction Stop
-        }
+)) {
+    if (Test-Path $MetaBuildPathItem) {
+        $PowerCDMetaBuild = $MetaBuildPathItem
     }
+    break
 }
 
 $pcdModuleParams = @{
@@ -32,7 +29,6 @@ $pcdModuleParams = @{
     Force = $true
     WarningAction = 'SilentlyContinue'
 }
-
 if ($PowerCDMetaBuild) {
     Get-Module 'PowerCD' | Remove-Module -Force 4>$null
     $pcdModuleParams.Name = $PowerCDMetaBuild

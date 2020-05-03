@@ -60,7 +60,7 @@ function Initialize-PowerCD {
 
     #Import Prerequisites
     Import-PowerCDRequirement -ModuleInfo @(
-        'Pester'
+        @{ModuleName='Pester__rc5';MaximumVersion='5.99.99'}
         'BuildHelpers'
         'PSScriptAnalyzer'
         #FIXME: Powwerconfig doesn't work on Windows Powershell due to assembly differences
