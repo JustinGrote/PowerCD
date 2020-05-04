@@ -46,7 +46,15 @@ task PowerCD.Package.Nuget {
         )
         Destination = $PCDSetting.BuildEnvironment.BuildOutput
     }
+    if ($MetaBuildPath) {
+        #Import the Compress-PowerCDModule Command
+        . ([IO.Path]::Combine($MetaBuildPath.Directory,'Public','New-PowerCDNugetPackage.ps1'))
+    }
+
     New-PowerCDNugetPackage @TaskParams
+
+    #Meta Build Cleanup
+    if ($MetaBuildPath) {Remove-Item Function:/New-PowerCDNugetPackage}
 }
 
 task PowerCD.Package.Zip {
@@ -56,8 +64,15 @@ task PowerCD.Package.Zip {
         Path = $PCDSetting.BuildEnvironment.ModulePath
         Destination = join-path $PCDSetting.BuildEnvironment.BuildOutput $ZipFileName
     }
+    if ($MetaBuildPath) {
+        #Import the Compress-PowerCDModule Command
+        . ([IO.Path]::Combine($MetaBuildPath.Directory,'Public','Compress-PowerCDModule.ps1'))
+    }
 
     Compress-PowerCDModule @CompressArchiveParams
+
+    #Meta Build Cleanup
+    if ($MetaBuildPath) {Remove-Item Function:/Compress-PowerCDModule}
 }
 
 #region MetaTasks

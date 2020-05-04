@@ -4,9 +4,6 @@
 <#
 .SYNOPSIS
 This is a set of standard tests to ensure a powershell module is valid
-.NOTES
-This is designed to autodetect the powershell module, and follows the following discovery order:
-1. If pester was invoked
 #>
 [CmdletBinding(DefaultParameterSetName='Search')]
 param (
@@ -23,10 +20,16 @@ param (
 
 #Automatic Manifest Detection if not specified
 if (-not $ModuleManifestPath) {
-    [IO.FileInfo]$SCRIPT:moduleManifestPath = switch ($true) {
-        ($null -ne $GLOBAL:MetaBuildPath) {
+    [IO.FileInfo]$SCRIPT:ModuleManifestPath = switch ($true) {
+        #InvokeBuildDetection
+        ($null -ne $BuildRoot) {
+            Write-Debug "Detected Invoke-Build, Assuming we built a module at: $($pcdsetting.outputmodulemanifest)"
+            ($pcdsetting.outputmodulemanifest)
+            break
+        }
+        ($null -ne $SCRIPT:MetaBuildPath) {
             Write-Debug "Detected PowerCDModuleManifest MetaBuildPath Global Variable: $BHDetectedManifest"
-            $GLOBAL:MetaBuildPath
+            $SCRIPT:MetaBuildPath
             break
         }
         ($ENV:PowerCDModuleManifest -and (Test-Path $ENV:PowerCDModuleManifest)) {
@@ -48,36 +51,18 @@ if (-not $ModuleManifestPath) {
         }
     }
 }
+#The parameter and scriptscope variable are separate entities so we use this to sync them
+if ($SCRIPT:ModuleManifestPath) {$ModuleManifestPath = $SCRIPT:ModuleManifestPath}
 
 #Detect if we are testing source vs. a "compiled" module. For now the logic for this is if the folder is versioned
 #We skip some irrelevant tests such as the manifest exported functions, etc.
-if ($ModuleManifestPath.basename -eq 'src' -or -not ($ModuleManifestPath.Basename -as [Version])) {
+if ($ModuleManifestPath.basename -eq 'src' -or -not ($ModuleManifestPath.Directory.Basename -as [Version])) {
     $isSourceModule = $true
 }
-write-debug "Module Manifest Path = $ModuleManifestPath"
+write-debug "Module Manifest Path = $SCRIPT:ModuleManifestPath"
 
 #endregion TestSetup
-Describe 'Powershell Module' {
-
-    # if ) {
-    #     $ModuleManifestPath =
-    # } elseif
-    # elseif ($GetPSModuleManifestWarning) {
-    #     Write-Error ([String]$GetPSModuleManifestWarning)
-    # }
-
-    #     if (-not $ModuleManifestPath) {throw "No powershell module manifest was detected. Please set your working directory to the Powershell Module Folder before starting this test. You may specify one explicitly to this Pester test with the -ModuleManifestPath option"}
-
-    #     #If an alternate module root was specified, set that to our running directory.
-    #     $ModuleDirectory = Split-Path $ModuleManifestPath
-
-    #     #Set our path to the detected module directory, if required
-    #     if ($ModuleDirectory -and $ModuleDirectory -ne $pwd.path) {Push-Location $ModuleDirectory}
-
-    #     #Getting a FileInfo object because it has more metadata then a simple string path.
-    #     $SCRIPT:ModuleManifestPath = Get-Item $ModuleManifestPath -ErrorAction Stop
-    #BeforeAll
-
+Describe 'Powershell Module' -Tag PSModule {
     Context 'Manifest' {
         BeforeAll {
             if ($PSEdition -eq 'Core') {
@@ -88,8 +73,6 @@ Describe 'Powershell Module' {
                 $Manifest = Test-ModuleManifest $TempModuleManifestPath -Verbose:$false
                 Remove-Item $TempModuleManifestPath -verbose:$false
             }
-
-
         }
         It 'Has a valid Module Manifest' {
             $Manifest | Should -Not -BeNullOrEmpty
@@ -112,46 +95,31 @@ Describe 'Powershell Module' {
 
         }
         #TODO: Problematic with compiled modules, need a new logic
-        #
-        It 'Exports all public functions' -Skip:$isSourceModule {
-            if ($isSourceModule) {
-                #Set-ItResult is Broken in Pester5
-                #TODO: Pester 5.1 fix when released
-                #Set-ItResult -Pending -Because 'detection and approval of src style modules is pending'
-                Write-Host -fore Yellow "SKIPPED: detection and approval of src style modules is pending"
-                return
-            }
-            #TODO: Try PowerCD AST-based method
-            $FunctionFiles = Get-ChildItem Public -Filter *.ps1
-            $FunctionNames = $FunctionFiles.basename | ForEach-Object {$_ -replace '-', "-$($Manifest.Prefix)"}
-            $ExFunctions = $Manifest.ExportedFunctions.Values.Name
-            if ($ExFunctions -eq '*') {write-warning "Manifest has * for functions. You should individually specify your public functions prior to deployment for better discoverability"}
-            if ($functionNames) {
-                foreach ($FunctionName in $FunctionNames) {
-                    $ExFunctions -contains $FunctionName | Should Be $true
-                }
-            }
-        }
+        # It 'Exports all public functions' -Skip:$isSourceModule {
+        #     if ($isSourceModule) {
+        #         #Set-ItResult is Broken in Pester5
+        #         #TODO: Pester 5.1 fix when released
+        #         #Set-ItResult -Pending -Because 'detection and approval of src style modules is pending'
+        #         Write-Host -fore Yellow "SKIPPED: detection and approval of src style modules is pending"
+        #         return
+        #     }
+        #     #TODO: Try PowerCD AST-based method
+        #     $FunctionFiles = Get-ChildItem Public -Filter *.ps1
+        #     $FunctionNames = $FunctionFiles.basename | ForEach-Object {$_ -replace '-', "-$($Manifest.Prefix)"}
+        #     $ExFunctions = $Manifest.ExportedFunctions.Values.Name
+        #     if ($ExFunctions -eq '*') {write-warning "Manifest has * for functions. You should individually specify your public functions prior to deployment for better discoverability"}
+        #     if ($functionNames) {
+        #         foreach ($FunctionName in $FunctionNames) {
+        #             $ExFunctions -contains $FunctionName | Should Be $true
+        #         }
+        #     }
+        # }
 
         It 'Has at least 1 exported command' -Skip:$isSourceModule {
-            if ($isSourceModule) {
-                #Set-ItResult is Broken in Pester5
-                #TODO: Pester 5.1 fix when released
-                #Set-ItResult -Pending -Because 'detection and approval of src style modules is pending'
-                Write-Host -fore Yellow "SKIPPED: detection and approval of src style modules is pending"
-                return
-            }
-            $Script:Manifest.exportedcommands.count | Should BeGreaterThan 0
+            $Manifest.exportedcommands.count | Should -BeGreaterThan 0
         }
 
         It 'Has a valid Powershell module folder structure' -Skip:$isSourceModule {
-            if ($isSourceModule) {
-                #Set-ItResult is Broken in Pester5
-                #TODO: Pester 5.1 fix when released
-                #Set-ItResult -Pending -Because 'detection and approval of src style modules is pending'
-                Write-Host -fore Yellow "SKIPPED: detection and approval of src style modules is pending"
-                return
-            }
             $ModuleName = $Manifest.Name
             $moduleDirectoryErrorMessage = "Module directory structure doesn't match either $ModuleName or $moduleName\$($Manifest.Version)"
             $ModuleManifestDirectory = $ModuleManifestPath.directory
@@ -163,33 +131,26 @@ Describe 'Powershell Module' {
                 default {throw $moduleDirectoryErrorMessage}
             }
         }
-    #     It 'Can be imported as a module successfully' {
-    #         #Make sure an existing module isn't present
-    #         Remove-Module $ModuleManifestPath.basename -ErrorAction SilentlyContinue
-    #         #TODO: Make WarningAction a configurable parameter
-    #         $SCRIPT:BuildOutputModule = Import-Module $ModuleManifestPath -PassThru -verbose:$false -warningaction SilentlyContinue -erroraction stop 4>$null
-    #         $BuildOutputModule.Name | Should -Be $ModuleName
-    #         $BuildOutputModule | Should -BeOfType System.Management.Automation.PSModuleInfo
-    #     }
-    #     It 'Can be removed as a module' {
-    #         $BuildOutputModule | Remove-Module -erroraction stop -verbose:$false | Should -BeNullOrEmpty
-    #     }
-
-    # }
+        It 'Can be imported as a module successfully' {
+            #Make sure an existing module isn't present
+            Remove-Module $ModuleManifestPath.basename -ErrorAction SilentlyContinue
+            #TODO: Make WarningAction a configurable parameter
+            $ImportModuleTestJob = {
+                Import-Module $USING:ModuleManifestPath -PassThru -Verbose:$false -WarningAction SilentlyContinue
+            }
+            #Run the import test in an isolated job to avoid potential assembly locking
+            $SCRIPT:BuildOutputModule = Start-Job -ScriptBlock $ImportModuleTestJob | Wait-Job | Receive-Job
+            $ModuleName = $Manifest.Name
+            $BuildOutputModule.Name | Should -Be $ModuleName
+        }
     } #Context
 
-    # Context 'Powershell Gallery Readiness (PSScriptAnalyzer)' {
-    #     $results = Invoke-ScriptAnalyzer -Path $ModuleManifestPath.directory -Recurse -Setting PSGallery -Severity Error -Verbose:$false
-    #     It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
-    #         if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
-    #         $results.Count | Should -Be 0
-    #     }
-    # }
+    Context 'PSScriptAnalyzer - Powershell Gallery Readiness' {
+        It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
+            $results = Invoke-ScriptAnalyzer -Path $ModuleManifestPath.Directory -Recurse -Settings PSGallery -Severity Error -Verbose:$false
+
+            if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
+            $results.Count | Should -Be 0
+        }
+    }
 } #Describe
-
-
-
-
-
-# #Return to where we started
-# Pop-Location

@@ -11,13 +11,13 @@ function Import-PowerCDRequirement {
         #Specify which modules to install. If a module needs to be a prerelease, specify the prerelease tag with __ after the module name e.g. PowershellGet__beta1
         [Parameter(Mandatory, ValueFromPipeline)][ModuleSpecification[]]$ModuleInfo,
         #Where to import the PowerCD Requirement. Defaults to the PowerCD folder in LocalAppData
-        $Path = (Join-Path ([Environment]::GetFolderpath('LocalApplicationData')) 'PowerCD')
+        $Path = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD')
     )
     begin {
         $modulesToInstall = [List[PSCustomObject]]@()
         #Make sure PSGet 3.0 is installed
         try {
-            Get-Command 'save-psresource' -ErrorAction Stop > $null
+            Get-Command 'Save-PSResource' -ErrorAction Stop > $null
         } catch {
             throw 'You need PowershellGet 3.0 or greater to use this command. Hint: BootstrapPSGetBeta'
         }
@@ -59,6 +59,10 @@ function Import-PowerCDRequirement {
             }
             $moduleVersion = ConvertTo-NugetVersionRange $ModuleInfoItem
             if ($ModuleVersion) { $PSResourceParams.Version = $ModuleVersion }
+
+            #This is just used as a way to load the nuget assemblies to get the NugetVersion type
+            [Void](Get-PSResource PowershellGet)
+
             [Bool]$IsPrerelease = try {
                 [Bool](([NugetVersion]($ModuleVersion -replace '[\[\]]','')).IsPrerelease)
             } catch {
@@ -94,7 +98,7 @@ function Import-PowerCDRequirement {
                             #FIXME: Remove after https://github.com/PowerShell/PowerShellGet/issues/123 is closed
                             Save-Module -RequiredVersion $ModuleItem.Version -Name $ModuleItem.Name -Path $Path -Force -AllowPrerelease:$isPrerelease -ErrorAction Stop
                         } else {
-                            Save-PSResource -Path $Path -Name $ModuleItem.Name -Version $ModuleItem.Version -Prerelease:$isPrerelease -ErrorAction Stop
+                            Save-PSResource -Path $Path -Name $ModuleItem.Name -Version "[$($ModuleItem.Version)]" -Prerelease:$($ModuleItem.isPrerelease) -ErrorAction Stop
                         }
                     } catch [IO.IOException] {
                         if ([string]$PSItem -match 'Cannot create a file when that file already exists') {

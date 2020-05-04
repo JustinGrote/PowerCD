@@ -68,7 +68,6 @@
             "request": "launch",
             "name": "Run Invoke-Build",
             "script": "Invoke-Build",
-            "args": [],
             "cwd": "${workspaceRoot}"
         },
         {

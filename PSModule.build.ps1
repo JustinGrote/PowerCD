@@ -11,8 +11,12 @@ Enter-Build {
 
 . PowerCD.Tasks
 
+task PowerCD.Test.Pester {
+    Invoke-Pester
+}
 
 task Clean PowerCD.Clean
 task Build PowerCD.Build
+task Test PowerCD.Test
 task Package PowerCD.Package
 task . PowerCD.Default
