@@ -61,7 +61,7 @@ task PowerCD.Package.Zip {
     [String]$ZipFileName = $PCDSetting.BuildEnvironment.ProjectName + '-' + $PCDSetting.VersionLabel + '.zip'
 
     $CompressArchiveParams = @{
-        Path = $PCDSetting.BuildEnvironment.ModulePath
+        Path = $PCDSetting.BuildModuleOutput
         Destination = join-path $PCDSetting.BuildEnvironment.BuildOutput $ZipFileName
     }
     if ($MetaBuildPath) {

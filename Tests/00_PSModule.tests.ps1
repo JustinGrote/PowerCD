@@ -139,7 +139,9 @@ Describe 'Powershell Module' -Tag PSModule {
                 Import-Module $USING:ModuleManifestPath -PassThru -Verbose:$false -WarningAction SilentlyContinue
             }
             #Run the import test in an isolated job to avoid potential assembly locking
-            $SCRIPT:BuildOutputModule = Start-Job -ScriptBlock $ImportModuleTestJob | Wait-Job | Receive-Job
+            $ImportModuleJob = Start-Job -ScriptBlock $ImportModuleTestJob
+            $SCRIPT:BuildOutputModule = $ImportModuleJob | Wait-Job | Receive-Job
+            Remove-Job $ImportModuleJob
             $ModuleName = $Manifest.Name
             $BuildOutputModule.Name | Should -Be $ModuleName
         }

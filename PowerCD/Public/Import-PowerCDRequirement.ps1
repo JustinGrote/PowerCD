@@ -62,7 +62,6 @@ function Import-PowerCDRequirement {
 
             #This is just used as a way to load the nuget assemblies to get the NugetVersion type
             [Void](Get-PSResource PowershellGet)
-
             [Bool]$IsPrerelease = try {
                 [Bool](([NugetVersion]($ModuleVersion -replace '[\[\]]','')).IsPrerelease)
             } catch {
@@ -80,10 +79,10 @@ function Import-PowerCDRequirement {
     end {
         foreach ($moduleItem in ($modulesToInstall | Sort-Object -Property Name,Version -Unique)) {
             $ModuleManifestPath = [IO.Path]::Combine($Path, $moduleItem.Name, $ModuleItem.Version, "$($ModuleItem.Name).psd1")
-
+            $IsPrerelease = $moduleItem.Version.IsPrerelease
             #Check for the module existence in an efficient manner
             $moduleExists = if (Test-Path $ModuleManifestPath) {
-                if ($moduleItem.Version.IsPrerelease) {
+                if ($IsPrerelease) {
                     ((Import-PowershellDataFile $ModuleManifestPath).privatedata.psdata.prerelease -eq $moduleItem.Version.Release)
                 } else {
                     $true
@@ -96,9 +95,12 @@ function Import-PowerCDRequirement {
                     try {
                         if ($isLinux) {
                             #FIXME: Remove after https://github.com/PowerShell/PowerShellGet/issues/123 is closed
-                            Save-Module -RequiredVersion $ModuleItem.Version -Name $ModuleItem.Name -Path $Path -Force -AllowPrerelease:$isPrerelease -ErrorAction Stop
+                            $verbosepreference = 'contine'
+                            Save-Module -RequiredVersion $ModuleItem.Version -Name $ModuleItem.Name -Path $Path -Force -AllowPrerelease:$IsPrerelease -ErrorAction Stop -Verbose
+                            #Save-Module doesn't save with the prelease tag name, so we need to import via the non-prerelease version folder instead
+                            $ModuleManifestPath = [IO.Path]::Combine($Path, $moduleItem.Name, $ModuleItem.Version.Version.ToString(3), "$($ModuleItem.Name).psd1")
                         } else {
-                            Save-PSResource -Path $Path -Name $ModuleItem.Name -Version "[$($ModuleItem.Version)]" -Prerelease:$($ModuleItem.isPrerelease) -ErrorAction Stop
+                            Save-PSResource -Path $Path -Name $ModuleItem.Name -Version "[$($ModuleItem.Version)]" -Prerelease:$IsPrerelease -ErrorAction Stop
                         }
                     } catch [IO.IOException] {
                         if ([string]$PSItem -match 'Cannot create a file when that file already exists') {
@@ -110,6 +112,7 @@ function Import-PowerCDRequirement {
                 }
             }
             Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop -Verbose:$false > $null
+
         }
     }
     #Use this for Save-Module
