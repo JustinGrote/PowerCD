@@ -7,7 +7,7 @@
             "extensions": ["BuildOutput","Output"],
             "format"    : "svg",
             "extends" : "dist"
-        }
+        },
         {
             "icon"      : "helper",
             "extensions": ["BuildHelpers"],

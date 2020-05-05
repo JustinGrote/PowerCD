@@ -59,8 +59,9 @@ function Initialize-PowerCD {
     BootstrapPSGetBeta
 
     #Import Prerequisites
+    #To specify prerelease, you must use requiredversion and the prefix added to the modulename with '__'
     Import-PowerCDRequirement -ModuleInfo @(
-        'Pester'
+        @{ModuleName='Pester__rc5';RequiredVersion='5.0.0'}
         'BuildHelpers'
         'PSScriptAnalyzer'
         #FIXME: Powwerconfig doesn't work on Windows Powershell due to assembly differences

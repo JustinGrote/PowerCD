@@ -8,58 +8,90 @@ param (
 )
 $ErrorActionPreference = 'Stop'
 
-Write-Host -fore cyan "Task PowerCD.Bootstrap"
-$bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
+#Invoke-Build Report style
+if ($BuildRoot) {
+    Write-Host -fore cyan "Task PowerCD.Bootstrap"
+    $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
+}
 
-@(
+Write-Debug "Searching for PowerCD MetaBuild in $pwd"
+#Test if this is a MetaBuild
+foreach ($MetaBuildPathItem in @(
+    "$PSSCRIPTROOT/../PowerCD/PowerCD.psd1"
     "$PSSCRIPTROOT/PowerCD/PowerCD.psd1"
-    "./PowerCD/PowerCD.psd1"
-).foreach{
-    $PowerCDMetaBuildPath = $PSItem
-    if (-not $PowerCDMetaBuild -and (Test-Path $PowerCDMetaBuildPath)) {
-        Write-Verbose "PowerCD: Detected meta-build. Loading the module from source path"
-        try {
-            Set-Variable -Scope 2 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PowerCDMetaBuildPath) -ErrorAction Stop
-        } catch {
-            Set-Variable -Scope 1 -Name 'PowerCDMetaBuild' -Value (Resolve-Path $PowerCDMetaBuildPath) -ErrorAction Stop
-        }
+)) {
+    if (Test-Path $MetaBuildPathItem) {
+        #Cannot cast pathinfo output directly to fileinfo, but can use string as an intermediate
+        [IO.FileInfo]$GLOBAL:MetaBuildPath = [String](Resolve-Path $MetaBuildPathItem)
+        Write-Debug "PowerCD Metabuild Detected: $MetaBuildPath"
+        Import-Module $MetaBuildPath -Force
+        break
     }
 }
 
-$pcdModuleParams = @{
-    Name = 'PowerCD'
-    Global = $true
-    Force = $true
-    WarningAction = 'SilentlyContinue'
-}
-
-if ($PowerCDMetaBuild) {
-    Get-Module 'PowerCD' | Remove-Module -Force 4>$null
-    $pcdModuleParams.Name = $PowerCDMetaBuild
-    Import-Module @pcdModuleParams 4>$null
-} else {
-    $candidateModules = Get-Module -Name PowerCD -ListAvailable
+#Test if PowerCD is loaded already
+$CandidateModule = Get-Module PowerCD
+if ($CandidateModule) {
+    if ($MetaBuildPath -and (Split-Path $CandidateModule.Path) -ne (Split-Path $MetaBuildPath)) {
+        Write-Warning "Detected we are in PowerCD source folder $MetaBuildPath but PowerCD is currently loaded from $($LoadModule.Path). Reloading to current source module"
+        Import-Module -Name $MetaBuildPath -Force
+        return
+    }
     if ($PowerCDVersion) {
-        if ($PowerCDVersion -in $candidateModules.Version) {
-            Import-Module @pcdModuleParams -RequiredVersion $PowerCDVersion 4>$null
+        if ($CandidateModule.Version -eq $PowerCDVersion) {
+            Write-Debug "Loaded PowerCD version matches PowerCDVersion"
+            return
+        } else {
+            throw [NotImplementedException]"The loaded PowerCD Module Version $($CandidateModule.Version) is not the same as the requested $PowerCDVersion. Please load the requested module. In the future this will autodetect and download the correct version"
         }
     } else {
-        Import-Module @pcdModuleParams 4>$null
+        #Module is loaded but no version specified, use existing
+        #TODO: Check for latest powercd version
+        Write-Debug "No PowerCDVersion specified, using existing loaded module"
+        return
     }
 }
 
-#Install the Module if not found
-if (-not (Get-Module -Name 'PowerCD')) {
-    Write-Verbose "PowerCD: Module not installed locally. Bootstrapping..."
-    $InstallModuleParams = @{
-        Name = 'PowerCD'
-        Scope = 'CurrentUser'
-    }
-    if ($PowerCDVersion) {$InstallModuleParams.RequiredVersion = $PowerCDVersion}
-    Install-Module @InstallModuleParams -PassThru 4>$null | Import-Module @pcdModuleParams 4>$null
+Write-Verbose "PowerCD: Module not installed locally. Bootstrapping..."
+$InstallModuleParams = @{
+    Name = 'PowerCD'
+    Scope = 'CurrentUser'
+}
+if ($PowerCDVersion) {$InstallModuleParams.RequiredVersion = $PowerCDVersion}
+Install-Module @InstallModuleParams -PassThru 4>$null | Import-Module @pcdModuleParams 4>$null
+return
+
+
+# $pcdModuleParams = @{
+#     Global = $true
+#     Force = $true
+#     WarningAction = 'SilentlyContinue'
+# }
+# if ($PowerCDMetaBuild) {
+#     #Reinitialize
+# }
+
+# if ($PowerCDVersion) {
+#     $candidateModules = Get-Module -Name PowerCD -ListAvailable
+#     if ($PowerCDVersion) {
+#         if ($PowerCDVersion -in $candidateModules.Version) {
+#             Get-Module 'PowerCD' | Remove-Module -Force -ErrorAction Stop 4>$null
+#             Import-Module @pcdModuleParams -RequiredVersion $PowerCDVersion 4>$null
+#             return
+#         }
+#     }
+# } else {
+#     #Try loading native module if PowerCDVersion was not specified
+#     $CandidateModule = Import-Module @pcdModuleParams -Name PowerCD -ErrorAction SilentlyContinue -PassThru
+#     if ($CandidateModule) {return}
+# }
+
+
+
+if ($BuildRoot) {
+    Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
 }
 
-Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
 
 # function DetectNestedPowershell {
 #     #Fix a bug in case powershell was started in pwsh and it cluttered PSModulePath: https://github.com/PowerShell/PowerShell/issues/9957
@@ -119,9 +151,3 @@ Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)
 #         if (Test-Path $tempdir) {Remove-Item -Recurse -Force $tempdir}
 #     }
 # }
-
-Enter-Build {
-    Initialize-PowerCD
-}
-
-. PowerCD.Tasks
