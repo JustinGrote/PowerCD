@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - ci
       - production
   pull_request:
     branches:
