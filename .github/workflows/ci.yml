@@ -60,18 +60,6 @@ jobs:
           path: ${{ env.powercdpath }}
           key: powercdprerequisites
 
-      - shell: pwsh
-        run: |
-          $verbosepreference = 'Continue'
-          $debugpreference = 'Continue'
-          "output"
-          write-verbose "Verbose"
-          write-debug "Debug"
-          write-host "Host"
-          write-information "Information"
-          gci $env:powercdpath | Out-String | Write-Host
-          gci $env:modulespath | Out-String | Write-Host
-
       - name: Powershell Build
         env:
           PSBUILDEXE: ${{ matrix.psversion }}
@@ -79,7 +67,7 @@ jobs:
         run: |
           $verbosepreference = 'continue'
           $debugpreference = 'continue'
-          & $env:PSBUILDEXE -noninteractive -noprofile -f ./build.ps1
+          & $env:PSBUILDEXE -noninteractive -noprofile -c "verbosepreference='continue';$debugpreference='continue';./build.ps1"
           $myexit = $LASTEXITCODE
           if ($myexit) {exit $myexit}
 
