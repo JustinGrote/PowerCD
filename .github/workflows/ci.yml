@@ -34,11 +34,25 @@ jobs:
             psversion: powershell
     steps:
       - uses: actions/checkout@v1
+
       - name: Determine PowerCD Cache Folder
         shell: pwsh
         run: |
           $powerCDPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD'
+          $pwshVersion = $IsCoreCLR ? 'powershell' : 'WindowsPowershell'
+          $basePath = $IsWindows ?
+            [Environment]::GetFolderPath('MyDocuments') :
+            [Environment]::GetFolderPath('LocalApplicationData')
+          $modulesPath = Join-Path $basePath $pwshVersion 'Modules'
+
           "::set-env name={0}::{1}" -f 'powercdpath',$powerCDPath
+          "::set-env name={0}::{1}" -f 'modulespath',$modulesPath
+
+      - name: Restore Powershell Modules Folder
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.modulespath }}
+          key: powershellmodules
 
       - name: Restore PowerCD Cache Folder
         uses: actions/cache@v1
@@ -58,6 +72,7 @@ jobs:
           & $env:PSBUILDEXE -noninteractive -noprofile -f ./build.ps1
           $myexit = $LASTEXITCODE
           if ($myexit) {exit $myexit}
+
       - uses: actions/upload-artifact@master
         with:
           name: PSModule Zip
