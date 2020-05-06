@@ -34,6 +34,17 @@ jobs:
             psversion: powershell
     steps:
       - uses: actions/checkout@v1
+      - name: Determine PowerCD Cache Folder
+        shell: pwsh
+        run: |
+          "::set-output name={0}::{1}" -f 'powercdpath',[environment]::GetFolderPath('LocalApplicationData')
+
+      - name: Restore PowerCD Cache Folder
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.powercdpath }}
+          key: powercdpath
+
       - name: Powershell Build
         env:
           PSBUILDEXE: ${{ matrix.psversion }}
