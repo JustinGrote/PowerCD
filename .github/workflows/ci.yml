@@ -37,7 +37,8 @@ jobs:
       - name: Determine PowerCD Cache Folder
         shell: pwsh
         run: |
-          "::set-env name={0}::{1}" -f 'powercdpath',[environment]::GetFolderPath('LocalApplicationData')
+          $powerCDPath = Join-Path [environment]::GetFolderPath('LocalApplicationData') 'PowerCD'
+          "::set-env name={0}::{1}" -f 'powercdpath',$powerCDPath
 
       - name: Restore PowerCD Cache Folder
         uses: actions/cache@v1
