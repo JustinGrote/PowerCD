@@ -70,6 +70,8 @@ jobs:
           PSBUILDEXE: ${{ matrix.psversion }}
         shell: pwsh
         run: |
+          $verbosepreference = 'continue'
+          $debugpreference = 'continue'
           & $env:PSBUILDEXE -noninteractive -noprofile -f ./build.ps1
           $myexit = $LASTEXITCODE
           if ($myexit) {exit $myexit}
