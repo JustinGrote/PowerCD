@@ -63,6 +63,7 @@ jobs:
       - shell: pwsh
         run: |
           gci $env:powercdpath | Out-String | Write-Host
+          gci $env:powershellmodules | Out-String | Write-Host
 
       - name: Powershell Build
         env:
