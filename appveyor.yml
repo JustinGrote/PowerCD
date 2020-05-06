@@ -4,6 +4,7 @@ branches:
   only:
     - master
     - production
+    - ci
 
 image:
   - Visual Studio 2019
