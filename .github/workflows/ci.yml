@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.powercdpath }}
-          key: powercdpath-${{ hashfiles( env.powercdpath )}}
+          key: powercdprerequisites
 
       - name: Powershell Build
         env:
