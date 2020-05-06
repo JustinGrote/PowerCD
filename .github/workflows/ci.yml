@@ -46,6 +46,10 @@ jobs:
           path: ${{ env.powercdpath }}
           key: powercdprerequisites
 
+      - shell: pwsh
+        run: |
+          gci $env:powercdPath
+
       - name: Powershell Build
         env:
           PSBUILDEXE: ${{ matrix.psversion }}
