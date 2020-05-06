@@ -1,5 +1,13 @@
 name: PowerCD Build
-on: push
+on:
+  push:
+    branches:
+      - master
+      - production
+  pull_request:
+    branches:
+      - master
+      - production
 jobs:
   build:
     name: Build
