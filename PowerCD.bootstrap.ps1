@@ -25,7 +25,7 @@ try {
             #Cannot cast pathinfo output directly to fileinfo, but can use string as an intermediate
             [IO.FileInfo]$GLOBAL:MetaBuildPath = [String](Resolve-Path $MetaBuildPathItem)
             Write-Debug "PowerCD Metabuild Detected: $MetaBuildPath"
-            Import-Module $MetaBuildPath -Force
+            Import-Module $MetaBuildPath -Force -WarningAction SilentlyContinue
             break
         }
     }
