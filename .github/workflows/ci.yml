@@ -67,7 +67,7 @@ jobs:
         run: |
           $verbosepreference = 'continue'
           $debugpreference = 'continue'
-          & $env:PSBUILDEXE -noninteractive -noprofile -c "verbosepreference='continue';$debugpreference='continue';./build.ps1"
+          & $env:PSBUILDEXE -noninteractive -noprofile -c "$verbosepreference='continue';$debugpreference='continue';./build.ps1"
           $myexit = $LASTEXITCODE
           if ($myexit) {exit $myexit}
 
