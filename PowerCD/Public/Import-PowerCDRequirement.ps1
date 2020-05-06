@@ -95,8 +95,7 @@ function Import-PowerCDRequirement {
                     try {
                         if ($isLinux) {
                             #FIXME: Remove after https://github.com/PowerShell/PowerShellGet/issues/123 is closed
-                            $verbosepreference = 'contine'
-                            Save-Module -RequiredVersion $ModuleItem.Version -Name $ModuleItem.Name -Path $Path -Force -AllowPrerelease:$IsPrerelease -ErrorAction Stop -Verbose
+                            Save-Module -RequiredVersion $ModuleItem.Version -Name $ModuleItem.Name -Path $Path -Force -AllowPrerelease:$IsPrerelease -ErrorAction Stop
                             #Save-Module doesn't save with the prelease tag name, so we need to import via the non-prerelease version folder instead
                             $ModuleManifestPath = [IO.Path]::Combine($Path, $moduleItem.Name, $ModuleItem.Version.Version.ToString(3), "$($ModuleItem.Name).psd1")
                         } else {
