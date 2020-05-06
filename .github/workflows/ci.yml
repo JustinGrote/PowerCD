@@ -62,6 +62,13 @@ jobs:
 
       - shell: pwsh
         run: |
+          $verbosepreference = 'Continue'
+          $debugpreference = 'Continue'
+          "output"
+          write-verbose "Verbose"
+          write-debug "Debug"
+          write-host "Host"
+          write-information "Information"
           gci $env:powercdpath | Out-String | Write-Host
           gci $env:modulespath | Out-String | Write-Host
 
