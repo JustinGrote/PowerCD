@@ -110,8 +110,29 @@ function Import-PowerCDRequirement {
                     }
                 }
             }
-            Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop -Verbose:$false > $null
 
+            #Pester 5 check
+            $LoadedPesterVersion = (Get-Module -Name Pester).version.major
+            if ($LoadedPesterVersion -and $LoadedPesterVersion -lt 5) {throw 'A loaded Pester version less than 5.0 was detected. Please restart your Powershell session'}
+
+            try {
+                Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop -Force -Verbose:$false > $null
+            } catch {
+                #Catch common issues
+                switch -regex ([String]$PSItem) {
+                    'Error in TypeData "Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.RuleInfo"' {
+                        throw [InvalidOperationException]'Detected an incompatible PSScriptAnalyzer was already loaded. Please restart your Powershell session.'
+                    }
+                    'assertion operator .+ has been added multiple times' {
+                        write-host 'OK'
+                        throw [InvalidOperationException]'Detected an incompatible Pester was already loaded. Please restart your Powershell session.'
+                    }
+                    default {
+                        throw $PSItem.Exception
+                    }
+                }
+
+            }
         }
     }
     #Use this for Save-Module
