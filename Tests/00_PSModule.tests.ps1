@@ -15,7 +15,7 @@ param (
 
 #region TestSetup
 if (-not (Get-Module PowerCD)) {
-    . $PowerCDBootStrap
+    . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
 }
 #From PowerCD.bootstrap.ps1
 
