@@ -10,10 +10,11 @@
 		"eamodio.gitlens",
 		"wwm.better-align",
 		"oderwat.indent-rainbow",
-		"gruntfuggly.todo-tree"
+		"gruntfuggly.todo-tree",
+		"redhat.vscode-yaml"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
-
+		"ms-vscode.powershell"
 	]
 }
