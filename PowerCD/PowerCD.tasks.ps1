@@ -13,6 +13,10 @@ task PowerCD.BuildPSModule {
     Build-PowerCDModule
 }
 
+Enter-Build {
+    Initialize-PowerCD
+}
+
 #region PowerCDSpecific
 
 #TODO: Make PowerCD-Specific task for this
@@ -79,5 +83,13 @@ task PowerCD.Package.Zip {
 task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions,PowerCD.CopyBuildTasks
 task PowerCD.Package PowerCD.Package.Zip,PowerCD.Package.Nuget
 task PowerCD.Test PowerCD.Test.Pester
-task PowerCD.Default PowerCD.Clean,PowerCD.Build,PowerCD.Test,PowerCD.Package
+task PowerCD.Default PowerCD.Clean,PowerCD.Build,PowerCD.Test
 #endregion MetaTasks
+
+#region Defaults
+task Clean PowerCD.Clean
+task Build PowerCD.Build
+task Test PowerCD.Test
+task Package PowerCD.Package
+task . PowerCD.Default
+#endregion Defaults

@@ -14,8 +14,9 @@ param (
 )
 
 #region TestSetup
-
-. $PSScriptRoot/../PowerCD.bootstrap.ps1
+if (-not (Get-Module PowerCD)) {
+    . $PowerCDBootStrap
+}
 #From PowerCD.bootstrap.ps1
 
 #Automatic Manifest Detection if not specified

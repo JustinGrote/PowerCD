@@ -4,17 +4,17 @@
 
 	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
-		"ms-vscode.powershell",
+		"ms-vscode.powershell-preview",
 		"vscode-icons-team.vscode-icons",
-		// "coenraads.bracket-pair-colorizer",
-		// "vector-of-bool.gitflow",
-		// "eamodio.gitlens",
-		// "yzhang.markdown-all-in-one",
-		// "redhat.vscode-yaml",
-		// "ms-azure-devops.azure-pipelines"
+		"coenraads.bracket-pair-colorizer-2",
+		"eamodio.gitlens",
+		"wwm.better-align",
+		"oderwat.indent-rainbow",
+		"gruntfuggly.todo-tree",
+		"redhat.vscode-yaml"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
-
+		"ms-vscode.powershell"
 	]
 }

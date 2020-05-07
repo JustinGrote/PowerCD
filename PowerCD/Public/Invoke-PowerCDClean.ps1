@@ -27,8 +27,8 @@ function Invoke-PowerCDClean {
     }
 
     #Reset the BuildOutput Directory
-    if (test-path $buildProjectPath) {
-        Write-Verbose "Removing and resetting Build Output Path: $buildProjectPath"
+    if (test-path $buildOutputPath) {
+        Write-Verbose "Removing and resetting Build Output Path: $buildOutputPath"
         Remove-BuildItem $buildOutputPath -Verbose:$false
     }
 

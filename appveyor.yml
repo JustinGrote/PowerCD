@@ -1,5 +1,11 @@
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
 version: '{build}-{branch}'
+branches:
+  only:
+    - master
+    - production
+    - ci
+
 image:
   - Visual Studio 2019
   # - Ubuntu

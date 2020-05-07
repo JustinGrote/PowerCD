@@ -1,22 +1,10 @@
 #requires -version 5.1
 
-#PowerCD Bootstrap
-$GLOBAL:ProgressPreference = 'SilentlyContinue'
-. $PSScriptRoot\PowerCD.bootstrap.ps1
-
-
-Enter-Build {
-    Initialize-PowerCD
-}
-
-. PowerCD.Tasks
+#region PowerCDBootstrap
+$SCRIPT:PowerCDBootstrap = [scriptblock]::Create((iwr -useb 'https://gist.githubusercontent.com/JustinGrote/2d3fdbac302847be33de8021add524ad/raw/PowerCDBootstrap.ps1'))
+. $PowerCDBootstrap
+#endregion PowerCDBootstrap
 
 task PowerCD.Test.Pester {
     Invoke-Pester
 }
-
-task Clean PowerCD.Clean
-task Build PowerCD.Build
-task Test PowerCD.Test
-task Package PowerCD.Package
-task . PowerCD.Default
