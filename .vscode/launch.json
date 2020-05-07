@@ -2,7 +2,7 @@
     // These launch configurations are specific to this project
     // It is recommended to configure generic Powershell debug configurations in your user settings.json
     // https://code.visualstudio.com/docs/editor/debugging#_global-launch-configuration
-    // Example:
+    // Example: https://git.io/VSCodePSLaunch
     "version": "0.2.0",
     "configurations": [
         {
