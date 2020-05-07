@@ -29,5 +29,6 @@ RUN apt-get update && apt-get -y install git openssh-client less iproute2 procps
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# install dotnet core 3.0
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin
+# install dotnet core 3.0 for binary module development and packaging
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin
+RUN ln -s /root/.dotnet/dotnet /usr/local/bin/dotnet
