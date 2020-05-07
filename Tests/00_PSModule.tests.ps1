@@ -23,8 +23,8 @@ if (-not (Get-Module PowerCD)) {
 if (-not $ModuleManifestPath) {
     [IO.FileInfo]$SCRIPT:ModuleManifestPath = switch ($true) {
         #InvokeBuildDetection
-        ($null -ne $BuildRoot) {
-            Write-Debug "Detected Invoke-Build, Assuming we built a module at: $($pcdsetting.outputmodulemanifest)"
+        ($null -ne $BuildRoot -and $pcdsetting.outputmodulemanifest -and (Test-Path $pcdsetting.outputmodulemanifest)) {
+            Write-Debug "Detected Invoke-Build and found a module built at: $($pcdsetting.outputmodulemanifest)"
             ($pcdsetting.outputmodulemanifest)
             break
         }
