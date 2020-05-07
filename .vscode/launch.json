@@ -9,7 +9,7 @@
             "name": "PowerCD: Build",
             "type": "PowerShell",
             "request": "launch",
-            "script": "Invoke-Build",
+            "script": "./build.ps1",
             "cwd": "${workspaceRoot}"
         },
         {
