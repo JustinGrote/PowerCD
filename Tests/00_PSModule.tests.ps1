@@ -12,11 +12,11 @@ param (
     #How far up the directory tree to recursively search for module manifests.
     [Parameter(ParameterSetName='Search')][int]$Depth=0
 )
-
 #region TestSetup
 if (-not (Get-Module PowerCD)) {
     . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
 }
+
 #From PowerCD.bootstrap.ps1
 
 #Automatic Manifest Detection if not specified
@@ -133,6 +133,8 @@ Describe 'Powershell Module' -Tag PSModule {
             }
         }
         It 'Can be imported as a module successfully' {
+            #TODO: #30 Start-Job doesn't work within a linux container
+
             #Make sure an existing module isn't present
             Remove-Module $ModuleManifestPath.basename -ErrorAction SilentlyContinue
             #TODO: Make WarningAction a configurable parameter
@@ -141,7 +143,7 @@ Describe 'Powershell Module' -Tag PSModule {
             }
             #Run the import test in an isolated job to avoid potential assembly locking
             $ImportModuleJob = Start-Job -ScriptBlock $ImportModuleTestJob
-            $SCRIPT:BuildOutputModule = $ImportModuleJob | Wait-Job | Receive-Job
+            $SCRIPT:BuildOutputModule =  $ImportModuleJob | Wait-Job | Receive-Job
             Remove-Job $ImportModuleJob
             $ModuleName = $Manifest.Name
             $BuildOutputModule.Name | Should -Be $ModuleName
@@ -152,7 +154,7 @@ Describe 'Powershell Module' -Tag PSModule {
         It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
             $results = Invoke-ScriptAnalyzer -Path $ModuleManifestPath.Directory -Recurse -Settings PSGallery -Severity Error -Verbose:$false
 
-            if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
+            if ($results) {Write-Warning ($results | Format-Table -autosize | Out-String)}
             $results.Count | Should -Be 0
         }
     }

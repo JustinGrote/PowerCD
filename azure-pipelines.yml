@@ -23,7 +23,7 @@ stages:
         - pwsh
         - powershell
       script: './build.ps1'
-      # linuxContainer: 'skip'
+      linuxContainer: 'skip'
       windowsContainer: 'skip'
 # pool:
 #   vmImage: windows-latest
