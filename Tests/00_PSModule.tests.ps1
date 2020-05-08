@@ -12,13 +12,11 @@ param (
     #How far up the directory tree to recursively search for module manifests.
     [Parameter(ParameterSetName='Search')][int]$Depth=0
 )
-
 #region TestSetup
-BeforeAll {
-    if (-not (Get-Module PowerCD)) {
-        . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
-    }
+if (-not (Get-Module PowerCD)) {
+    . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
 }
+
 #From PowerCD.bootstrap.ps1
 
 #Automatic Manifest Detection if not specified
@@ -154,7 +152,7 @@ Describe 'Powershell Module' -Tag PSModule {
         It 'PSScriptAnalyzer returns zero errors (warnings OK) using the Powershell Gallery ruleset' {
             $results = Invoke-ScriptAnalyzer -Path $ModuleManifestPath.Directory -Recurse -Settings PSGallery -Severity Error -Verbose:$false
 
-            if ($results) {write-warning ($results | Format-Table -autosize | out-string)}
+            if ($results) {Write-Warning ($results | Format-Table -autosize | Out-String)}
             $results.Count | Should -Be 0
         }
     }
