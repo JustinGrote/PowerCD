@@ -148,10 +148,6 @@ Describe 'Powershell Module' -Tag PSModule {
             $ModuleName = $Manifest.Name
             $BuildOutputModule.Name | Should -Be $ModuleName
         }
-
-        It '===REMOVEME=== Force Fail' {
-            $false | Should -Be $true
-        }
     } #Context
 
     Context 'PSScriptAnalyzer - Powershell Gallery Readiness' {
