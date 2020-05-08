@@ -10,8 +10,8 @@ jobs:
       vmImage: ${{ parameters.vmImage }}
     steps:
     - ${{parameters.psVersion}}: ${{parameters.script}}
-    - task: PublishCodeCoverageResults@2
-      displayName: 'Capture Pester Code Coverage Result'
+    # - task: PublishCodeCoverageResults@2
+    #   displayName: 'Capture Pester Code Coverage Result'
       # inputs:
       #   summaryFileLocation: '**/*CodeCoverage*.xml'
       #   failIfCoverageEmpty: false
