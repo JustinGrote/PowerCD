@@ -86,18 +86,8 @@ stages:
 # - script: "$(psversion) -noninteractive -noprofile -f build.ps1"
 #   displayName: 'Build and Test Powershell Module'
 
-# - task: PublishTestResults@2
-#   displayName: 'Capture Pester Test Result'
-#   inputs:
-#     testRunner: 'NUnit'
-#     testResultsFiles: '**/*TestResults*.xml'
-#     testRunTitle: 'Pester $(os)-$(psversion)'
 
-# # - task: PublishCodeCoverageResults@2
-# #   displayName: 'Capture Pester Code Coverage Result'
-# #   inputs:
-# #     summaryFileLocation: '**/*CodeCoverage*.xml'
-#     #failIfCoverageEmpty: false # Optional
+
 
 # - task: CopyFiles@2
 #   displayName: 'Copy Completed Powershell Module Zip to Artifact Staging Area'
