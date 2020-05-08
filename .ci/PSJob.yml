@@ -10,15 +10,15 @@ jobs:
       vmImage: ${{ parameters.vmImage }}
     steps:
     - ${{parameters.psVersion}}: ${{parameters.script}}
-    # - task: PublishCodeCoverageResults@2
-    #   displayName: 'Capture Pester Code Coverage Result'
-      # inputs:
-      #   summaryFileLocation: '**/*CodeCoverage*.xml'
-      #   failIfCoverageEmpty: false
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Capture Pester Code Coverage Result'
+      inputs:
+        summaryFileLocation: '**/CodeCoverage.xml'
+        failIfCoverageEmpty: false
     - task: PublishTestResults@2
       displayName: 'Capture Pester Test Result'
-      # inputs:
-      #   testRunner: 'NUnit'
-      #   testResultsFiles: '**/TestResults.xml'
-      #   testRunTitle: 'Pester $(vmImage)-$(psversion)'
-      #   failTaskOnFailedTests: true
+      inputs:
+        testRunner: 'NUnit'
+        testRunTitle: 'Pester $(vmImage)-$(psversion)'
+        failTaskOnFailedTests: true
+        #testResultsFiles: '**/TestResults.xml'
