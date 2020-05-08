@@ -14,8 +14,10 @@ param (
 )
 
 #region TestSetup
-if (-not (Get-Module PowerCD)) {
-    . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
+BeforeAll {
+    if (-not (Get-Module PowerCD)) {
+        . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
+    }
 }
 #From PowerCD.bootstrap.ps1
 
@@ -140,9 +142,9 @@ Describe 'Powershell Module' -Tag PSModule {
                 Import-Module $USING:ModuleManifestPath -PassThru -Verbose:$false -WarningAction SilentlyContinue
             }
             #Run the import test in an isolated job to avoid potential assembly locking
-            $ImportModuleJob = Start-Job -ScriptBlock $ImportModuleTestJob
-            $SCRIPT:BuildOutputModule = $ImportModuleJob | Wait-Job | Receive-Job
-            Remove-Job $ImportModuleJob
+            $SCRIPT:BuildOutputModule = Start-Job -ScriptBlock $ImportModuleTestJob | Wait-Job | Receive-Job
+            #$SCRIPT:BuildOutputModule = $ImportModuleJob | Wait-Job | Receive-Job
+            #Remove-Job $ImportModuleJob
             $ModuleName = $Manifest.Name
             $BuildOutputModule.Name | Should -Be $ModuleName
         }
