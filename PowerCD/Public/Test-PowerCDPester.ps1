@@ -24,7 +24,7 @@ function Test-PowerCDPester {
         $Configuration.CodeCoverage.Enabled = $true
         $Configuration.CodeCoverage.OutputPath = "$OutputPath/CodeCoverage.xml"
         $Configuration.TestResult.Enabled = $true
-        $Configuration.TestResult.OutputPath = "$OutputPath/TestResults.xml"
+        $Configuration.TestResult.OutputPath = "$OutputPath/TEST-Results.xml"
         $GLOBAL:TestResults = Invoke-Pester -Configuration $Configuration
     }
 
