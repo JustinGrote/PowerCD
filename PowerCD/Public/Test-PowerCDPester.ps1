@@ -9,6 +9,7 @@ function Test-PowerCDPester {
     [PesterConfiguration]$Configuration = [PesterConfiguration]::Default
     #Temporary workaround for -CI not saving to variable
     #TODO: Remove when https://github.com/pester/Pester/issues/1527 is closed
+    $Configuration.Output.Verbosity = 'Normal'
     $Configuration.Run.PassThru = $true
     $Configuration.Run.Path = $Path
     $Configuration.CodeCoverage.Enabled = $true
