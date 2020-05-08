@@ -133,6 +133,8 @@ Describe 'Powershell Module' -Tag PSModule {
             }
         }
         It 'Can be imported as a module successfully' {
+            #TODO: #30 Start-Job doesn't work within a linux container
+
             #Make sure an existing module isn't present
             Remove-Module $ModuleManifestPath.basename -ErrorAction SilentlyContinue
             #TODO: Make WarningAction a configurable parameter
@@ -140,9 +142,9 @@ Describe 'Powershell Module' -Tag PSModule {
                 Import-Module $USING:ModuleManifestPath -PassThru -Verbose:$false -WarningAction SilentlyContinue
             }
             #Run the import test in an isolated job to avoid potential assembly locking
-            $SCRIPT:BuildOutputModule = Start-Job -ScriptBlock $ImportModuleTestJob | Wait-Job | Receive-Job
-            #$SCRIPT:BuildOutputModule = $ImportModuleJob | Wait-Job | Receive-Job
-            #Remove-Job $ImportModuleJob
+            $ImportModuleJob = Start-Job -ScriptBlock $ImportModuleTestJob
+            $SCRIPT:BuildOutputModule =  $ImportModuleJob | Wait-Job | Receive-Job
+            Remove-Job $ImportModuleJob
             $ModuleName = $Manifest.Name
             $BuildOutputModule.Name | Should -Be $ModuleName
         }
