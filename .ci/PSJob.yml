@@ -19,6 +19,6 @@ jobs:
       displayName: 'Capture Pester Test Result'
       inputs:
         testRunner: 'NUnit'
-        testRunTitle: 'Pester $(vmImage)-$(psversion)'
+        testRunTitle: 'Pester ${{parameters.vmImage)-${{parameters.psVersion}}'
         failTaskOnFailedTests: true
         #testResultsFiles: '**/TestResults.xml'
