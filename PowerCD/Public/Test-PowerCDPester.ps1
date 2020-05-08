@@ -1,17 +1,48 @@
-
-#Pester Testing
 function Test-PowerCDPester {
-    [CmdletBinding()]
     param (
-        [Parameter(Mandatory)]$ModuleManifestPath,
-        $PesterResultFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-TestResults_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
-        $CodeCoverageOutputFile = ([IO.Path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,"$($PCDSetting.BuildEnvironment.ProjectName)-$($PCDSetting.VersionLabel)-CodeCoverage_PS$($psversiontable.psversion)`_$(get-date -format yyyyMMdd-HHmmss).xml")),
-        [String[]]$Exclude = 'PowerCD.tasks.ps1',
-        $CodeCoverage = (Get-ChildItem -Path (Join-Path $ModuleDirectory '*') -Include *.ps1,*.psm1 -Exclude $Exclude -Recurse),
-        $Show = 'None',
-        [Switch]$UseJob
+        #Path where the Pester tests are located
+        [String]$Path = [String]$pwd,
+        #Path where the coverage files should be output. Defaults to the build output path.
+        [String]$OutputPath = [String]$pwd
     )
 
+    [PesterConfiguration]$Configuration = [PesterConfiguration]::Default
+    #Temporary workaround for -CI not saving to variable
+    #TODO: Remove when https://github.com/pester/Pester/issues/1527 is closed
+    $Configuration.Run.PassThru = $true
+    $Configuration.Run.Path = $Path
+    $Configuration.CodeCoverage.Enabled = $true
+    $Configuration.CodeCoverage.OutputPath = "$OutputPath/CodeCoverage.xml"
+    $Configuration.TestResult.Enabled = $true
+    $Configuration.TestResult.OutputPath = "$OutputPath/TestResults.xml"
+    $GLOBAL:TestResults = Invoke-Pester -Configuration $Configuration
+
+    if ($TestResults.failedcount -isnot [int] -or $TestResults.FailedCount -gt 0) {
+        $testFailedMessage = "Failed '$($TestResults.FailedCount)' tests, build failed"
+        throw $testFailedMessage
+        #TODO: Rewrite to use BuildHelpers
+        # if ($isAzureDevOps) {
+        #     Write-Host "##vso[task.logissue type=error;]$testFailedMessage"
+        # }
+        $SCRIPT:SkipPublish = $true
+    }
+
+    return
+
+    # #Pester Configuration Setup
+    # if (-not $Configuration) {
+    #     $Configuration = [PesterConfiguration]::Default
+    # }
+    # $Configuration.OutputPath = $PesterResultFile
+
+    # $Configuration.PesterResultFile = $Configuration
+    # $Configuration.PesterResultFile = $Configuration
+    # Invoke-Pester -Configuration $Configuration
+
+    # [String[]]$Exclude = 'PowerCD.tasks.ps1',
+    # $CodeCoverage = (Get-ChildItem -Path (Join-Path $ModuleDirectory '*') -Include *.ps1,*.psm1 -Exclude $Exclude -Recurse),
+    # $Show = 'None',
+    # [Switch]$UseJob
     #Try autodetecting the "furthest out module manifest"
     # if (-not $ModuleManifestPath) {
     #     try {

@@ -1,6 +1,11 @@
+Enter-Build {
+    Initialize-PowerCD
+}
+
 task PowerCD.Clean {
     Invoke-PowerCDClean
 }
+
 task PowerCD.CleanPrerequisites {
     Invoke-PowerCDClean -Prerequisites
 }
@@ -11,10 +16,6 @@ task PowerCD.Version {
 
 task PowerCD.BuildPSModule {
     Build-PowerCDModule
-}
-
-Enter-Build {
-    Initialize-PowerCD
 }
 
 #region PowerCDSpecific
@@ -38,7 +39,7 @@ task PowerCD.UpdatePublicFunctions {
 }
 
 task PowerCD.Test.Pester {
-    Test-PowerCDPester -CodeCoverage $null -Show All -ModuleManifestPath $PCDSetting.OutputModuleManifest
+    Test-PowerCDPester -OutputPath $PCDSetting.buildenvironment.buildoutput
 }
 
 task PowerCD.Package.Nuget {
