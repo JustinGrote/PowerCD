@@ -57,7 +57,7 @@ stages:
           - download: current
             artifact: ubuntu-latest-pwsh
           - pwsh: |
-              Publish-Module -Path PowerCD -NugetAPIKey $ENV:PSGALLERYAPIKEY -Repository PSGallery -WhatIf -Verbose
+              Publish-Module -Path PowerCD -NugetAPIKey $ENV:PSGALLERYAPIKEY -Repository PSGallery -Verbose
             displayName: Publish to PSGallery
             workingDirectory: $(Pipeline.Workspace)/ubuntu-latest-pwsh
             env:
