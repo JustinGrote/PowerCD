@@ -10,6 +10,9 @@ jobs:
       vmImage: ${{ parameters.vmImage }}
     steps:
     - ${{parameters.psVersion}}: ${{parameters.script}}
+    - publish: BuildOutput
+      displayName: 'Capture Powershell Module as Artifact'
+      artifact: '${{parameters.vmImage}}-${{parameters.psVersion}}'
     - task: PublishCodeCoverageResults@1
       displayName: 'Capture Pester Code Coverage Result'
       inputs:

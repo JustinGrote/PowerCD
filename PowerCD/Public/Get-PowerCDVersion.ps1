@@ -32,7 +32,10 @@ function Get-PowerCDVersion {
         [String]$PCDSetting.VersionLabel = $PCDSetting.Version,$PCDSetting.PreRelease -join '-'
 
         if ($PCDSetting.BuildEnvironment.BuildOutput) {
-            $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,$PCDSetting.BuildEnvironment.ProjectName,$PCDSetting.Version)
+            #Dont use versioned folder
+            #TODO: Potentially put this back
+            # $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,$PCDSetting.BuildEnvironment.ProjectName,$PCDSetting.Version)
+            $PCDSetting.BuildModuleOutput = [io.path]::Combine($PCDSetting.BuildEnvironment.BuildOutput,$PCDSetting.BuildEnvironment.ProjectName)
         }
     } catch {
         write-warning "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is below...`r`n$GitVersionOutput"
