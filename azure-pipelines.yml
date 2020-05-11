@@ -31,9 +31,11 @@ stages:
     and(
       succeeded(),
       and(
-        eq(
+        in(
           variables['Build.SourceBranch'],
           'refs/heads/ci'
+          'refs/heads/master'
+          'refs/heads/production'
         ),
         ne(
           '$(PSGALLERYAPIKEY)',
