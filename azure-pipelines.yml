@@ -11,7 +11,8 @@ trigger:
       - ci
 
 stages:
-- stage: PSModule
+- stage: build
+  displayName: Build Powershell Module
   jobs:
   - template: .ci/PowerCD.yml
     parameters:
@@ -25,6 +26,41 @@ stages:
       script: './build.ps1'
       linuxContainer: 'skip'
       windowsContainer: 'skip'
+- stage: deploy
+  condition: |
+    and(
+      succeeded(),
+      and(
+        eq(
+          variables['Build.SourceBranch'],
+          'refs/heads/ci'
+        ),
+        ne(
+          '$(PSGALLERYAPIKEY)',
+          ''
+        )
+      )
+    )
+  displayName: Deploy Powershell Module
+  jobs:
+  - deployment: psgallery
+    environment: 'psgallery-prerelease'
+    displayName: "[Master] Publish Prerelease to Powershell Gallery"
+    strategy:
+      runOnce:
+        deploy:
+          pool:
+            vmimage: windows-latest
+          steps:
+          - download: current
+            artifact: ubuntu-latest-pwsh
+          - pwsh: |
+              Publish-Module -Path PowerCD -NugetAPIKey $ENV:PSGALLERYAPIKEY -Repository PSGallery -WhatIf -Verbose
+            displayName: Publish to PSGallery
+            workingDirectory: $(Pipeline.Workspace)/ubuntu-latest-pwsh
+            env:
+              PSGALLERYAPIKEY: $(PSGALLERYAPIKEY)
+
 # pool:
 #   vmImage: windows-latest
 
