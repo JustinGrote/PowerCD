@@ -11,10 +11,7 @@
 mode: ContinuousDeployment
 branches:
   master:
-    regex: ^prod(uction)?$
-  develop:
     tag: beta
-    regex: ^master$
     increment: Patch
   release:
     tag: rc
@@ -28,6 +25,6 @@ no-bump-message: (^(none|skip|build|ci|docs|style|test)(\(.*\))?:)|(\+semver:\s?
 #Set the build numbers to be xxx, example 0.1.0-myfeature001 or 0.2.1-beta001. This allows for longer feature branch names, and can be increased for more active projects
 #You should set this to the number of commits you expect to have for a given branch before merging.
 #For instance, if vNext is never going to contain more than 99 commits before you push it to master as a new version, you can set this to 2. 3 is good for all but the largest projects.
-# legacy-semver-padding: 3
-# build-metadata-padding: 3
-# commits-since-version-source-padding: 3
+legacy-semver-padding: 3
+build-metadata-padding: 3
+commits-since-version-source-padding: 3
