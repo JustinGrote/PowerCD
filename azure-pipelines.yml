@@ -63,7 +63,10 @@ stages:
                 Repository = 'PSGallery'
                 Verbose = $true
               }
-              if ($ENV:BUILD_SOURCEBRANCH -eq 'refs/heads/ci') {$PublishModuleParams.Whatif = $true }
+              if ($ENV:BUILD_SOURCEBRANCH -eq 'refs/heads/ci') {
+                Write-Host 'CI Development Branch Detected, performing Publish-Module -WhatIf'
+                $PublishModuleParams.Whatif = $true
+              }
               Publish-Module @publishModuleParams
             displayName: Publish to PSGallery
             workingDirectory: $(Pipeline.Workspace)/ubuntu-latest-pwsh
