@@ -10,7 +10,8 @@ foreach ($ScriptPathItem in 'Private','Public') {
 #endregion SourceInit
 
 #Module Startup
-Set-Alias PowerCD.Tasks $PSScriptRoot/PowerCD.tasks.ps1
+#PowerCD.Tasks may be in different folders, hence why we do the search here
+Set-Alias PowerCD.Tasks ([String](Get-ChildItem -recurse $PSScriptRoot -include PowerCD.tasks.ps1)[0])
 
 if (-not $PublicFunctions) {
     $ModuleManifest = Join-Path $PSScriptRoot 'PowerCD.psd1'
