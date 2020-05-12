@@ -92,7 +92,7 @@ function Initialize-PowerCD {
         $manifestPath = Get-ChildItem -Recurse -Path (Split-Path (Get-Module -Name 'PowerCD').path) -Include 'dotnet-tools.json'
     }
     if ($manifestPath) {
-        $manifestPath = "--tool-manifest",$manifestPath
+        $manifestPath = '--tool-manifest',$manifestPath
     }
     [String]$restoreResult = dotnet tool restore $manifestPath *>&1
     if ($restoreResult -notmatch 'Restore was successful') {throw "Dotnet Tool Restore Failed: $restoreResult"}
@@ -103,7 +103,7 @@ function Initialize-PowerCD {
         $SCRIPT:CI = $true
         $ConfirmPreference = 'None'
         #Disabling Progress speeds up the build because Write-Progress can be slow and can also clutter some CI displays
-        $ProgressPreference = "SilentlyContinue"
+        $ProgressPreference = 'SilentlyContinue'
     }
 
     Write-Host -fore cyan "Done PowerCD.Initialize $([string]$bootstrapTimer.elapsed)"
