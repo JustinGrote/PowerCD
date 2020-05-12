@@ -22,8 +22,15 @@ task PowerCD.BuildPSModule {
 
 #TODO: Make PowerCD-Specific task for this
 task PowerCD.CopyBuildTasks {
-    if (Test-Path "$BuildRoot\PowerCD\PowerCD.tasks.ps1") {
-        Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
+    @(
+        ".config\dotnet-tools.json",
+        "PowerCD\PowerCD.bootstrap.ps1",
+        "PowerCD\PowerCD.tasks.ps1"
+    ).foreach{
+        $sourceItem = Join-Path $BuildRoot $PSItem
+        if (Test-Path $sourceItem) {
+            Copy-Item $sourceItem -Destination (Get-Item $BuildRoot\BuildOutput\PowerCD)
+        }
     }
 }
 
