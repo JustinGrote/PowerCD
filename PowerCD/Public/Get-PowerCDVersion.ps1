@@ -5,7 +5,7 @@ function Get-PowerCDVersion {
         [Version]$GitVersionVersion = '5.2.4'
     )
 
-    $GitVersionExe = 'dotnet dotnet-gitversion /nofetch'
+    $GitVersionExe = 'dotnet gitversion /nofetch'
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info"
