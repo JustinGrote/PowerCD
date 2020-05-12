@@ -68,16 +68,6 @@ function Initialize-PowerCD {
         #@{ModuleName='PowerConfig__beta0010';RequiredVersion='0.1.1'}
     )
 
-    #Test if dotnet is installed
-    try {
-        [Version]$dotnetVersion = (dotnet --info | where {$_ -match 'Version:'} | select -first 1).trim() -split (' +') | select -last 1
-            } catch {
-        throw 'PowerCD requires dotnet 3.0 or greater to be installed. Hint: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script'
-    }
-    if ($dotnetVersion -lt '3.0.0') {throw "PowerCD detected dotnet $dotnetVersion but 3.0 or greater is required. Hint: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script'"}
-
-    [String]$restoreResult = dotnet tool restore *>&1
-    if ($restoreResult -notmatch 'Restore was successful') {throw "Dotnet Tool Restore Failed: $restoreResult"}
 
     #Start a new PowerConfig, using PowerCDSetting as a base
     $PCDDefaultSetting = Get-PowerCDSetting
@@ -89,6 +79,23 @@ function Initialize-PowerCD {
 
     #. $PSScriptRoot\Get-PowerCDSetting.ps1
     Set-Variable -Name PCDSetting -Scope Global -Option ReadOnly -Force -Value $PCDDefaultSetting
+
+    #Test if dotnet is installed
+    try {
+        [Version]$dotnetVersion = (dotnet --info | where {$_ -match 'Version:'} | select -first 1).trim() -split (' +') | select -last 1
+            } catch {
+        throw 'PowerCD requires dotnet 3.0 or greater to be installed. Hint: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script'
+    }
+    if ($dotnetVersion -lt '3.0.0') {throw "PowerCD detected dotnet $dotnetVersion but 3.0 or greater is required. Hint: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script'"}
+    $defaultToolsFilePath = (Join-Path $pcdsetting.general.projectroot '.config/dotnet-tools.json')
+    if (-not (Test-Path $defaultToolsFilePath)) {
+        $manifestPath = Get-ChildItem -Recurse -Path (Split-Path (Get-Module -Name 'PowerCD').path) -Include 'dotnet-tools.json'
+    }
+    if ($manifestPath) {
+        $manifestPath = "--tool-manifest",$manifestPath
+    }
+    [String]$restoreResult = dotnet tool restore $manifestPath *>&1
+    if ($restoreResult -notmatch 'Restore was successful') {throw "Dotnet Tool Restore Failed: $restoreResult"}
 
     #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
     if ($ENV:CI -or $CI -or ($PCDSetting.BuildEnvironment.buildsystem -and $PCDSetting.BuildEnvironment.buildsystem -ne 'Unknown')) {
