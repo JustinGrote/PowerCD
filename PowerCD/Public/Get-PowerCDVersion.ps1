@@ -5,10 +5,15 @@ function Get-PowerCDVersion {
         [Version]$GitVersionVersion = '5.2.4'
     )
 
-    $GitVersionExe = 'dotnet dotnet-gitversion /nofetch'
+    $GitVersionExe = 'dotnet gitversion /nofetch'
+    if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
+        #Use the PowerCD Builtin
+        $GitVersionConfigPath = Resolve-Path (Join-Path (Split-Path (Get-Module PowerCD).Path) '.\GitVersion.yml')
+        $GitVersionExe += " /config $GitVersionConfigPath"
+    }
     try {
         #Calculate the GitVersion
-        write-verbose "Executing GitVersion to determine version info"
+        write-verbose "Executing GitVersion to determine version info: $GitVersionExe"
         $GitVersionOutput = Invoke-Expression $GitVersionEXE
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 

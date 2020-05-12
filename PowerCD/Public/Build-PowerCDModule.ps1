@@ -131,6 +131,4 @@ function Build-PowerCDModule {
     if ($PCDSetting.PreRelease) {
         "This is a prerelease build and not meant for deployment!" > (Join-Path $DestinationDirectory "PRERELEASE-$($PCDSetting.VersionLabel)")
     }
-
-
 }

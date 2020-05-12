@@ -18,17 +18,6 @@ task PowerCD.BuildPSModule {
     Build-PowerCDModule
 }
 
-#region PowerCDSpecific
-
-#TODO: Make PowerCD-Specific task for this
-task PowerCD.CopyBuildTasks {
-    if (Test-Path "$BuildRoot\PowerCD\PowerCD.tasks.ps1") {
-        Copy-Item $BuildRoot\PowerCD\PowerCD.tasks.ps1 -Destination (get-item $BuildRoot\BuildOutput\PowerCD\*\)[0]
-    }
-}
-
-#endRegion PowerCDSpecific
-
 
 task PowerCD.UpdateVersion {
     Set-PowerCDVersion
@@ -81,7 +70,7 @@ task PowerCD.Package.Zip {
 }
 
 #region MetaTasks
-task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions,PowerCD.CopyBuildTasks
+task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions
 task PowerCD.Package PowerCD.Package.Zip,PowerCD.Package.Nuget
 task PowerCD.Test PowerCD.Test.Pester
 task PowerCD.Default PowerCD.Clean,PowerCD.Build,PowerCD.Test
