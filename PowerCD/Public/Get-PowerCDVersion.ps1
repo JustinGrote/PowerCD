@@ -4,8 +4,8 @@ function Get-PowerCDVersion {
     param(
         [Version]$GitVersionVersion = '5.2.4'
     )
-    $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
-    $ENV:DOTNET_NOLOGO = $true
+    # $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
+    # $ENV:DOTNET_NOLOGO = $true
     #Try Skipping first run experience
     [void](dotnet help *>&1)
 
