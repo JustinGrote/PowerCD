@@ -23,7 +23,7 @@ function Get-PowerCDVersion {
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info: $GitVersionExe"
-        $GitVersionOutput = Invoke-Expression [String]$GitVersionEXE
+        $GitVersionOutput = Invoke-Expression $GitVersionEXE
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output
