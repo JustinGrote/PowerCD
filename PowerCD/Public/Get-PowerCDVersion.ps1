@@ -5,6 +5,11 @@ function Get-PowerCDVersion {
         [Version]$GitVersionVersion = '5.2.4'
     )
 
+    $gitVersionStatus = dotnet tool install -g gitversion.tool --version 5.3.3 *>&1
+    if ($GitversionStatus -notmatch 'is already installed|was successfully installed') {
+        throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
+    }
+
     $GitVersionExe = 'dotnet gitversion /nofetch'
     if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
         #Use the PowerCD Builtin
