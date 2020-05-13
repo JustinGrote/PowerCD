@@ -14,11 +14,11 @@ function Get-PowerCDVersion {
         throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
     }
 
-    $GitVersionExe = 'dotnet gitversion /nofetch'
+    [String]$GitVersionExe = 'dotnet gitversion /nofetch'
     if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
         #Use the PowerCD Builtin
         $GitVersionConfigPath = Resolve-Path (Join-Path (Split-Path (Get-Module PowerCD).Path) '.\GitVersion.yml')
-        $GitVersionExe += " /config $GitVersionConfigPath"
+        [String]$GitVersionExe += " /config $GitVersionConfigPath"
     }
     try {
         #Calculate the GitVersion
