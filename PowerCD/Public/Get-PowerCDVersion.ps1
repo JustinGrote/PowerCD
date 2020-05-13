@@ -13,8 +13,6 @@ function Get-PowerCDVersion {
     if ($GitversionStatus -notmatch 'is already installed|was successfully installed') {
         throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
     }
-    write-host "DEBUG TOOL LIST OUTPUT"
-    write-host $(dotnet tool list --global)
 
     $GitVersionExe = 'dotnet gitversion /nofetch'
     if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
@@ -25,7 +23,7 @@ function Get-PowerCDVersion {
     try {
         #Calculate the GitVersion
         write-verbose "Executing GitVersion to determine version info: $GitVersionExe"
-        $GitVersionOutput = Invoke-Expression $GitVersionEXE
+        $GitVersionOutput = Invoke-Expression [String]$GitVersionEXE
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output
