@@ -124,7 +124,6 @@ function Import-PowerCDRequirement {
                         throw [InvalidOperationException]'Detected an incompatible PSScriptAnalyzer was already loaded. Please restart your Powershell session.'
                     }
                     'assertion operator .+ has been added multiple times' {
-                        write-host 'OK'
                         throw [InvalidOperationException]'Detected an incompatible Pester was already loaded. Please restart your Powershell session.'
                     }
                     default {
