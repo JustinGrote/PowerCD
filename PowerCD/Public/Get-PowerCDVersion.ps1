@@ -13,6 +13,8 @@ function Get-PowerCDVersion {
     if ($GitversionStatus -notmatch 'is already installed|was successfully installed') {
         throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
     }
+    write-host "DEBUG TOOL LIST OUTPUT"
+    write-host $(dotnet tool list --global)
 
     $GitVersionExe = 'dotnet gitversion /nofetch'
     if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
