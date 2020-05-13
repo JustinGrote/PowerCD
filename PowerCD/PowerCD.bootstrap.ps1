@@ -84,7 +84,7 @@ try {
     if ($PowerCDVersion) {
         $pcdModuleSpec.RequiredVersion = $PowerCDVersion
     } else {
-        $pcdModuleSpec.ModuleVersion = '0.8.0'
+        $pcdModuleSpec.ModuleVersion = '0.8.1'
     }
     BootstrapModule $pcdModuleSpec
 
