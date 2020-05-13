@@ -14,7 +14,11 @@ function Get-PowerCDVersion {
         throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
     }
 
-    [String[]]$GitVersionParams = 'gitversion','/nofetch'
+    #Reference Dotnet Local Tool directly rather than trying to go through .NET EXE
+    #This appears to be an issue where dotnet is installed but the tools aren't added to the path for Linux
+    $GitVersionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
+
+    [String[]]$GitVersionParams += '/nofetch'
     if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
         #Use the PowerCD Builtin
         $GitVersionConfigPath = Resolve-Path (Join-Path (Split-Path (Get-Module PowerCD).Path) '.\GitVersion.yml')
@@ -25,7 +29,7 @@ function Get-PowerCDVersion {
         #Calculate the GitVersion
         write-host -fore green $GitVersionParams
 
-        $GitVersionOutput = & dotnet $GitVersionParams
+        $GitVersionOutput = & $GitVersionExe $GitVersionParams
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output
