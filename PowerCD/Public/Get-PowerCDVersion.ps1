@@ -4,7 +4,8 @@ function Get-PowerCDVersion {
     param(
         [Version]$GitVersionVersion = '5.2.4'
     )
-
+    $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
+    $ENV:DOTNET_NOLOGO = $true
     $gitVersionStatus = dotnet tool install -g gitversion.tool --version 5.3.3 *>&1
     if ($GitversionStatus -notmatch 'is already installed|was successfully installed') {
         throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
