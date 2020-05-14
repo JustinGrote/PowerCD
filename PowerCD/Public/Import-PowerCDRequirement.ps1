@@ -60,8 +60,9 @@ function Import-PowerCDRequirement {
             $moduleVersion = ConvertTo-NugetVersionRange $ModuleInfoItem
             if ($ModuleVersion) { $PSResourceParams.Version = $ModuleVersion }
 
-            #This is just used as a way to load the nuget assemblies to get the NugetVersion type
+            #This is an indirect way to load the nuget assemblies to get the NugetVersion type added to the session
             [Void](Get-PSResource PowershellGet)
+
             [Bool]$IsPrerelease = try {
                 [Bool](([NugetVersion]($ModuleVersion -replace '[\[\]]','')).IsPrerelease)
             } catch {
@@ -116,7 +117,7 @@ function Import-PowerCDRequirement {
             if ($LoadedPesterVersion -and $LoadedPesterVersion -lt 5) {throw 'A loaded Pester version less than 5.0 was detected. Please restart your Powershell session'}
 
             try {
-                Import-Module $ModuleManifestPath -Scope Global -ErrorAction Stop -Force -Verbose:$false > $null
+                Import-Module $ModuleManifestPath -Global -ErrorAction Stop -Verbose:$false > $null
             } catch {
                 #Catch common issues
                 switch -regex ([String]$PSItem) {
@@ -130,7 +131,6 @@ function Import-PowerCDRequirement {
                         throw $PSItem.Exception
                     }
                 }
-
             }
         }
     }
