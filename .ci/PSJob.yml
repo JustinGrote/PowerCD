@@ -13,8 +13,8 @@ jobs:
       [Environment]::GetFolderPath('LocalApplicationData')
     $modulesPath = Join-Path $basePath $pwshVersion 'Modules'
 
-    "##vso[task.setvariable variable=powercdpath]$powerCDPath
-    "##vso[task.setvariable variable=modulespath]$modulesPath
+    "##vso[task.setvariable variable=powercdpath]$powerCDPath"
+    "##vso[task.setvariable variable=modulespath]$modulesPath"
 - task: Cache@2
   displayName: PowerCD Cache
   inputs:
