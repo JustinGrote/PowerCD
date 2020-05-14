@@ -4,28 +4,27 @@ parameters:
   psVersion: 'pwsh'
   script: "$PSVersionTable | Out-String"
 jobs:
-- pwsh: |
-    $powerCDPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD'
-    $pwshVersion = $IsCoreCLR ? 'powershell' : 'WindowsPowershell'
-    $basePath = $IsWindows ?
-      [Environment]::GetFolderPath('MyDocuments') :
-      [Environment]::GetFolderPath('LocalApplicationData')
-    $modulesPath = Join-Path $basePath $pwshVersion 'Modules'
-
-    "##vso[task.setvariable variable=powercdpath]$powerCDPath"
-    "##vso[task.setvariable variable=modulespath]$modulesPath
-  displayName: Determine PowerCD Cache Folder
-
-- task: Cache@2
-  displayName: PowerCD Cache
-  inputs:
-    key: 'modules | $(Agent.OS)'
-    path: $(powerCDPath)
 - job:
   displayName: "${{parameters.vmImage}} ${{parameters.psVersion}}"
   pool:
     vmImage: ${{ parameters.vmImage }}
   steps:
+  - pwsh: |
+      $powerCDPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD'
+      $pwshVersion = $IsCoreCLR ? 'powershell' : 'WindowsPowershell'
+      $basePath = $IsWindows ?
+        [Environment]::GetFolderPath('MyDocuments') :
+        [Environment]::GetFolderPath('LocalApplicationData')
+      $modulesPath = Join-Path $basePath $pwshVersion 'Modules'
+      "##vso[task.setvariable variable=powercdpath]$powerCDPath"
+      "##vso[task.setvariable variable=modulespath]$modulesPath"
+    displayName: Determine PowerCD Cache Folder
+
+  - task: Cache@2
+    displayName: PowerCD Cache
+    inputs:
+      key: 'modules | $(Agent.OS)'
+      path: $(powerCDPath)
   - ${{parameters.psVersion}}: ${{parameters.script}}
   - publish: BuildOutput
     displayName: 'Capture Powershell Module as Artifact'
