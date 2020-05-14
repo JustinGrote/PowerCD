@@ -45,7 +45,7 @@ stages:
   jobs:
   - deployment: psgallery
     #TODO: Different environments for master vs. tag vs. production
-    environment: 'psgallery-prerelease'
+    environment: 'Powershell Gallery'
     displayName: "[Master] Publish to Powershell Gallery"
     strategy:
       runOnce:
@@ -67,6 +67,7 @@ stages:
                 $PublishModuleParams.Whatif = $true
               }
               Publish-Module @publishModuleParams
+
             displayName: Publish to PSGallery
             workingDirectory: $(Pipeline.Workspace)/ubuntu-latest-pwsh
             env:
