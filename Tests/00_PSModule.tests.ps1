@@ -75,23 +75,23 @@ Describe 'Powershell Module' -Tag PSModule {
                 Remove-Item $TempModuleManifestPath -verbose:$false
             }
         }
-        It 'Has a valid Module Manifest' {
+        It 'Has a valid Module Manifest' -Tag Unit {
             $Manifest | Should -Not -BeNullOrEmpty
         }
-        It 'Has a valid root module' {
+        It 'Has a valid root module' -Tag Unit {
             #Test for the root module path relative to the module manifest
             Test-Path (Join-Path $ModuleManifestPath.directory $Manifest.RootModule) -Type Leaf | Should -BeTrue
         }
 
-        It 'Has a valid Description' {
+        It 'Has a valid Description' -Tag Unit {
             $Manifest.Description | Should -Not -BeNullOrEmpty
         }
 
-        It 'Has a valid GUID' {
+        It 'Has a valid GUID' -Tag Unit {
             [Guid]$Manifest.Guid | Should -BeOfType [Guid]
         }
 
-        It 'Has a valid Copyright' {
+        It 'Has a valid Copyright' -Tag Unit {
             $Manifest.Copyright | Should -Not -BeNullOrEmpty
 
         }
@@ -116,11 +116,11 @@ Describe 'Powershell Module' -Tag PSModule {
         #     }
         # }
 
-        It 'Has at least 1 exported command' -Skip:$isSourceModule {
+        It 'Has at least 1 exported command' -Skip:$isSourceModule -Tag Integration {
             $Manifest.exportedcommands.count | Should -BeGreaterThan 0
         }
 
-        It 'Has a valid Powershell module folder structure' -Skip:$isSourceModule {
+        It 'Has a valid Powershell module folder structure' -Skip:$isSourceModule -Tag Integration {
             $ModuleName = $Manifest.Name
             $moduleDirectoryErrorMessage = "Module directory structure doesn't match either $ModuleName or $moduleName\$($Manifest.Version)"
             $ModuleManifestDirectory = $ModuleManifestPath.directory
@@ -132,7 +132,7 @@ Describe 'Powershell Module' -Tag PSModule {
                 default {throw $moduleDirectoryErrorMessage}
             }
         }
-        It 'Can be imported as a module successfully' {
+        It 'Can be imported as a module successfully' -Tag Integration {
             #TODO: #30 Start-Job doesn't work within a linux container
 
             #Make sure an existing module isn't present
