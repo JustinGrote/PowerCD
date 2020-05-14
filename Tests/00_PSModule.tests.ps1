@@ -55,9 +55,8 @@ if (-not $ModuleManifestPath) {
 #The parameter and scriptscope variable are separate entities so we use this to sync them
 if ($SCRIPT:ModuleManifestPath) {$ModuleManifestPath = $SCRIPT:ModuleManifestPath}
 
-#Detect if we are testing source vs. a "compiled" module. For now the logic for this is if the folder is versioned
-#We skip some irrelevant tests such as the manifest exported functions, etc.
-if ($ModuleManifestPath.basename -eq 'src' -or -not ($ModuleManifestPath.Directory.Basename -as [Version])) {
+#TODO: Better Source Module Detection
+if ($ModuleManifestPath.basename -eq 'src' -or -not ($ModuleManifestPath.Directory.Directory.Basename -ne 'BuildOutput')) {
     $isSourceModule = $true
 }
 write-debug "Module Manifest Path = $SCRIPT:ModuleManifestPath"
