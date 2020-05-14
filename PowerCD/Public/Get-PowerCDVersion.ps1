@@ -20,7 +20,7 @@ function Get-PowerCDVersion {
     #Reference Dotnet Local Tool directly rather than trying to go through .NET EXE
     #This appears to be an issue where dotnet is installed but the tools aren't added to the path for Linux
     $GitVersionExe = "$HOME/.dotnet/tools/dotnet-gitversion"
-
+    $GitVersionParams = $null
     [String[]]$GitVersionParams += '/nofetch'
     if (-not (Test-Path (Join-Path $PCDSetting.BuildEnvironment.Projectpath 'GitVersion.yml' ))) {
         #Use the PowerCD Builtin
