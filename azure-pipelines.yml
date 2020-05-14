@@ -11,21 +11,19 @@ trigger:
       - ci
 
 stages:
-- stage: build
-  displayName: Build Powershell Module
-  jobs:
-  - template: .ci/PowerCD.yml
-    parameters:
-      vmImage:
-        - 'ubuntu-latest'
-        - 'windows-latest'
-        - 'macOS-latest'
-      psVersion:
-        - pwsh
-        - powershell
-      script: './build.ps1'
-      linuxContainer: 'skip'
-      windowsContainer: 'skip'
+- template: .ci/PowerCD.yml
+  parameters:
+    vmImage:
+      - 'ubuntu-latest'
+      - 'windows-latest'
+      - 'macOS-latest'
+    psVersion:
+      - pwsh
+      - powershell
+    script: './build.ps1'
+    linuxContainer: 'skip'
+    windowsContainer: 'skip'
+
 - stage: deploy
   condition: |
     and(
