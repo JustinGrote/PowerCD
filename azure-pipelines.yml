@@ -44,8 +44,9 @@ stages:
   displayName: Deploy Powershell Module
   jobs:
   - deployment: psgallery
+    #TODO: Different environments for master vs. tag vs. production
     environment: 'psgallery-prerelease'
-    displayName: "[Master] Publish Prerelease to Powershell Gallery"
+    displayName: "[Master] Publish to Powershell Gallery"
     strategy:
       runOnce:
         deploy:
