@@ -26,9 +26,6 @@ function Get-PowerCDVersion {
         $GitVersionParams += $GitVersionConfigPath
     }
     try {
-        #Calculate the GitVersion
-        write-host -fore green $GitVersionParams
-
         $GitVersionOutput = & $GitVersionExe $GitVersionParams
         if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
 
@@ -42,12 +39,13 @@ function Get-PowerCDVersion {
 
         $GitVersionInfo | format-list | out-string | write-verbose
 
-        [Version]$PCDSetting.Version     = $GitVersionInfo.MajorMinorPatch
+
 
         #TODO: Older packagemanagement don't support hyphens in Nuget name for some reason. Restore when fixed
         #[String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
         #[String]$PCDSetting.VersionLabel = $GitVersionInfo.NuGetVersionV2
         #Remove separator characters for now, for instance in branch names
+        [Version]$PCDSetting.Version     = $GitVersionInfo.MajorMinorPatch
         [String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2 -replace '[\/\\\-]',''
         [String]$PCDSetting.VersionLabel = $PCDSetting.Version,$PCDSetting.PreRelease -join '-'
 
