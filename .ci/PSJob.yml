@@ -4,8 +4,7 @@ parameters:
   psVersion: 'pwsh'
   script: "$PSVersionTable | Out-String"
 jobs:
-- name: Determine PowerCD Cache Folder
-  pwsh: |
+- pwsh: |
     $powerCDPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD'
     $pwshVersion = $IsCoreCLR ? 'powershell' : 'WindowsPowershell'
     $basePath = $IsWindows ?
@@ -14,7 +13,9 @@ jobs:
     $modulesPath = Join-Path $basePath $pwshVersion 'Modules'
 
     "##vso[task.setvariable variable=powercdpath]$powerCDPath"
-    "##vso[task.setvariable variable=modulespath]$modulesPath"
+    "##vso[task.setvariable variable=modulespath]$modulesPath
+  displayName: Determine PowerCD Cache Folder
+
 - task: Cache@2
   displayName: PowerCD Cache
   inputs:
