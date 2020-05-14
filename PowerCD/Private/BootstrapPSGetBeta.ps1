@@ -6,6 +6,10 @@ function BootstrapPSGetBeta {
     #loading the builtin version of PowershellGet
 
     #This is a temporary "fast fetch" for latest version of PowershellGet
+    if (Get-Module -FullyQualifiedName @{ModuleName='PowershellGet';ModuleVersion='2.999'}) {
+        Write-Verbose 'PowershellGet 3.0 Detected, skipping bootstrap'
+        return
+    }
     $moduleInfo = (Invoke-RestMethod -UseBasicParsing 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27PowershellGet%27%20and%20Version%20ge%20%273.0.0%27%20and%20IsPrerelease%20eq%20true&$orderby=Version%20desc&$top=1&$select=Id,Version,NormalizedVersion')
     $moduleVersion = $moduleInfo.properties.NormalizedVersion
     $moduleUri = $moduleInfo.content.src

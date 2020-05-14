@@ -15,9 +15,11 @@ function Import-PowerCDRequirement {
     )
     begin {
         $modulesToInstall = [List[PSCustomObject]]@()
+
         #Make sure PSGet 3.0 is installed
         try {
-            Get-Command 'Save-PSResource' -ErrorAction Stop > $null
+            #This is an indirect way to load the nuget assemblies to get the NugetVersion type added to the session
+            [Void](Get-PSResource -Name 'DummyModule')
         } catch {
             throw 'You need PowershellGet 3.0 or greater to use this command. Hint: BootstrapPSGetBeta'
         }
@@ -57,11 +59,12 @@ function Import-PowerCDRequirement {
                 Name                = $ModuleInfoItem.Name.split('__')[0]
                 IncludeDependencies = $true
             }
+            if (Get-Module -FullyQualifiedName $ModuleInfoItem) {
+                Write-Verbose "Module $(($ModuleInfoItem.Name,$ModuleInfoItem.Version -join ' ').trim()) is currently loaded. Skipping..."
+                continue
+            }
             $moduleVersion = ConvertTo-NugetVersionRange $ModuleInfoItem
             if ($ModuleVersion) { $PSResourceParams.Version = $ModuleVersion }
-
-            #This is an indirect way to load the nuget assemblies to get the NugetVersion type added to the session
-            [Void](Get-PSResource PowershellGet)
 
             [Bool]$IsPrerelease = try {
                 [Bool](([NugetVersion]($ModuleVersion -replace '[\[\]]','')).IsPrerelease)
@@ -70,6 +73,7 @@ function Import-PowerCDRequirement {
             }
 
             try {
+                #TODO: Once PSGetv3 Folders are more stable, do a local check for the resource with PSModulePath first
                 $modulesToInstall.Add((Find-PSResource @PSResourceParams -Prerelease:$IsPrerelease -ErrorAction Stop))
             } catch [NullReferenceException] {
                 Write-Warning "Found nothing on the powershell gallery for $($PSResourceParams.Name) $($PSResourceParams.Version)"
@@ -112,12 +116,11 @@ function Import-PowerCDRequirement {
                 }
             }
 
-            #Pester 5 check
-            $LoadedPesterVersion = (Get-Module -Name Pester).version.major
-            if ($LoadedPesterVersion -and $LoadedPesterVersion -lt 5) {throw 'A loaded Pester version less than 5.0 was detected. Please restart your Powershell session'}
-
             try {
-                Import-Module $ModuleManifestPath -Global -ErrorAction Stop -Verbose:$false > $null
+                #Only try to import if not already loaded, speeds up repeat attempts
+                if (-not (Get-Module $ModuleItem.Name).Path -eq ($ModuleManifestPath -replace 'psd1$','psm1')) {
+                    Import-Module $ModuleManifestPath -Global -ErrorAction Stop -Verbose:$false > $null
+                }
             } catch {
                 #Catch common issues
                 switch -regex ([String]$PSItem) {
@@ -132,6 +135,10 @@ function Import-PowerCDRequirement {
                     }
                 }
             }
+        }
+        #Pester 5 check
+        if (-not (Get-Module -FullyQualifiedName @{ModuleName='Pester';ModuleVersion='4.9999'})) {
+            throw 'A loaded Pester version less than 5.0 was detected. Please restart your Powershell session'
         }
     }
     #Use this for Save-Module
