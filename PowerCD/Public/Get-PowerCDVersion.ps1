@@ -9,9 +9,12 @@ function Get-PowerCDVersion {
     #Try Skipping first run experience
     [void](dotnet help *>&1)
 
-    [String]$gitVersionStatus = dotnet tool install -g gitversion.tool --version 5.3.3 *>&1
-    if ($GitversionStatus -notmatch 'is already installed|was successfully installed') {
-        throw "Error Installing Gitversion Global Tool: $gitVersionStatus"
+    try {
+        [String]$gitVersionStatus = dotnet tool install -g gitversion.tool --version 5.3.3 *>&1
+    } catch {
+        if ([String]$PSItem -notmatch 'is already installed') {
+            throw $PSItem.exception
+        }
     }
 
     #Reference Dotnet Local Tool directly rather than trying to go through .NET EXE
@@ -38,8 +41,6 @@ function Get-PowerCDVersion {
         }
 
         $GitVersionInfo | format-list | out-string | write-verbose
-
-
 
         #TODO: Older packagemanagement don't support hyphens in Nuget name for some reason. Restore when fixed
         #[String]$PCDSetting.PreRelease   = $GitVersionInfo.NuGetPreReleaseTagV2
