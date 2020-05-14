@@ -20,11 +20,11 @@ jobs:
       "##vso[task.setvariable variable=modulespath]$modulesPath"
     displayName: Determine PowerCD Cache Folder
 
-  - task: Cache@2
-    displayName: PowerCD Cache
-    inputs:
-      key: 'modules | $(Agent.OS)'
-      path: $(powerCDPath)
+  # - task: Cache@2
+  #   displayName: PowerCD Cache
+  #   inputs:
+  #     key: 'modules | $(Agent.OS)'
+  #     path: $(powerCDPath)
   - ${{parameters.psVersion}}: ${{parameters.script}}
   - publish: BuildOutput
     displayName: 'Capture Powershell Module as Artifact'
