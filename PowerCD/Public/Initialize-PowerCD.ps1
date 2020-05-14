@@ -64,7 +64,7 @@ function Initialize-PowerCD {
         @{ModuleName='Pester__rc6';RequiredVersion='5.0.0'}
         'BuildHelpers'
         'PSScriptAnalyzer'
-        #FIXME: Powwerconfig doesn't work on Windows Powershell due to assembly differences
+        #FIXME: Powerconfig doesn't work on Windows Powershell due to assembly differences
         #@{ModuleName='PowerConfig__beta0010';RequiredVersion='0.1.1'}
     )
 

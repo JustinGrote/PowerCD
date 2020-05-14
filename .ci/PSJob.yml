@@ -4,24 +4,40 @@ parameters:
   psVersion: 'pwsh'
   script: "$PSVersionTable | Out-String"
 jobs:
-  - job:
-    displayName: "${{parameters.vmImage}} ${{parameters.psVersion}}"
-    pool:
-      vmImage: ${{ parameters.vmImage }}
-    steps:
-    - ${{parameters.psVersion}}: ${{parameters.script}}
-    - publish: BuildOutput
-      displayName: 'Capture Powershell Module as Artifact'
-      artifact: '${{parameters.vmImage}}-${{parameters.psVersion}}'
-    - task: PublishCodeCoverageResults@1
-      displayName: 'Capture Pester Code Coverage Result'
-      inputs:
-        summaryFileLocation: '**/CodeCoverage.xml'
-        failIfCoverageEmpty: false
-    - task: PublishTestResults@2
-      displayName: 'Capture Pester Test Result'
-      inputs:
-        testRunner: 'NUnit'
-        testRunTitle: 'Pester ${{parameters.vmImage}}-${{parameters.psVersion}}'
-        failTaskOnFailedTests: true
-        #testResultsFiles: '**/TestResults.xml'
+- job:
+  displayName: "${{parameters.vmImage}} ${{parameters.psVersion}}"
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  steps:
+  # - pwsh: |
+  #     $powerCDPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD'
+  #     $pwshVersion = $IsCoreCLR ? 'powershell' : 'WindowsPowershell'
+  #     $basePath = $IsWindows ?
+  #       [Environment]::GetFolderPath('MyDocuments') :
+  #       [Environment]::GetFolderPath('LocalApplicationData')
+  #     $modulesPath = Join-Path $basePath $pwshVersion 'Modules'
+  #     "##vso[task.setvariable variable=powercdpath]$powerCDPath"
+  #     "##vso[task.setvariable variable=modulespath]$modulesPath"
+  #   displayName: Determine PowerCD Cache Folder
+  # - task: Cache@2
+  #   displayName: PowerCD Cache
+  #   inputs:
+  #     key: 'modules | $(Agent.OS)'
+  #     path: $(powerCDPath)
+
+  - ${{parameters.psVersion}}: ${{parameters.script}}
+  - publish: BuildOutput
+    displayName: 'Capture Powershell Module as Artifact'
+    artifact: '${{parameters.vmImage}}-${{parameters.psVersion}}'
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Capture Pester Code Coverage Result'
+    inputs:
+      summaryFileLocation: '**/CodeCoverage.xml'
+      failIfCoverageEmpty: false
+  - task: PublishTestResults@2
+    displayName: 'Capture Pester Test Result'
+    inputs:
+      testRunner: 'NUnit'
+      testRunTitle: 'Pester ${{parameters.vmImage}}-${{parameters.psVersion}}'
+      failTaskOnFailedTests: true
+      #testResultsFiles: '**/TestResults.xml'

@@ -1,7 +1,8 @@
 #requires -version 5.1
 
 #region PowerCDBootstrap
-. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
+#. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
+. $PSScriptRoot\PowerCD\PowerCD.bootstrap.ps1
 #endregion PowerCDBootstrap
 
 task PowerCD.CopyPowerCDConfigFiles -After PowerCD.BuildPSModule {

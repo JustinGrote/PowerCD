@@ -11,21 +11,19 @@ trigger:
       - ci
 
 stages:
-- stage: build
-  displayName: Build Powershell Module
-  jobs:
-  - template: .ci/PowerCD.yml
-    parameters:
-      vmImage:
-        - 'ubuntu-latest'
-        - 'windows-latest'
-        - 'macOS-latest'
-      psVersion:
-        - pwsh
-        - powershell
-      script: './build.ps1'
-      linuxContainer: 'skip'
-      windowsContainer: 'skip'
+- template: .ci/PowerCD.yml
+  parameters:
+    vmImage:
+      - 'ubuntu-latest'
+      - 'windows-latest'
+      - 'macOS-latest'
+    psVersion:
+      - pwsh
+      - powershell
+    script: './build.ps1'
+    linuxContainer: 'skip'
+    windowsContainer: 'skip'
+
 - stage: deploy
   condition: |
     and(
@@ -46,8 +44,9 @@ stages:
   displayName: Deploy Powershell Module
   jobs:
   - deployment: psgallery
-    environment: 'psgallery-prerelease'
-    displayName: "[Master] Publish Prerelease to Powershell Gallery"
+    #TODO: Different environments for master vs. tag vs. production
+    environment: 'Powershell Gallery'
+    displayName: "[Master] Publish to Powershell Gallery"
     strategy:
       runOnce:
         deploy:
@@ -68,6 +67,7 @@ stages:
                 $PublishModuleParams.Whatif = $true
               }
               Publish-Module @publishModuleParams
+
             displayName: Publish to PSGallery
             workingDirectory: $(Pipeline.Workspace)/ubuntu-latest-pwsh
             env:
