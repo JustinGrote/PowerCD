@@ -12,6 +12,7 @@ task PowerCD.CopyPowerCDConfigFiles -After PowerCD.BuildPSModule {
             "GitVersion.yml",
             "PowerCD\PowerCD.bootstrap.ps1",
             "PowerCD\PowerCD.tasks.ps1"
+            "Tests\00_PSModule.tests.ps1"
         ).foreach{
             $sourceItem = Join-Path $BuildRoot $PSItem
             if (Test-Path $sourceItem) {
