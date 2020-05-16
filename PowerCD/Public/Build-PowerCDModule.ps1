@@ -79,7 +79,7 @@ function Build-PowerCDModule {
 
         #Use a stringbuilder to piece the portions of the config back together, with using statements up-front
         [Text.StringBuilder]$OutputRootModule = ''
-        $UsingLines | Select-Object -Unique | Foreach-Object {
+        $UsingLines.trim() | Sort-Object -Unique | Foreach-Object {
             [void]$OutputRootModule.AppendLine($PSItem)
         }
         [void]$OutputRootModule.AppendLine($SourceRootModule)
