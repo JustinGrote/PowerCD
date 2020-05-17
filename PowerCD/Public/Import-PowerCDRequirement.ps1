@@ -122,6 +122,7 @@ function Import-PowerCDRequirement {
                     Import-Module $ModuleManifestPath -Global -ErrorAction Stop -Verbose:$false > $null
                 }
             } catch {
+                $caughtError = $PSItem
                 #Catch common issues
                 switch -regex ([String]$PSItem) {
                     'Error in TypeData "Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.RuleInfo"' {
@@ -131,7 +132,7 @@ function Import-PowerCDRequirement {
                         throw [InvalidOperationException]'Detected an incompatible Pester was already loaded. Please restart your Powershell session.'
                     }
                     default {
-                        throw $PSItem.Exception
+                        throw $CaughtError.Exception
                     }
                 }
             }
