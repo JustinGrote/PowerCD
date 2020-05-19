@@ -70,10 +70,24 @@ task PowerCD.Package.Zip {
 }
 
 #region MetaTasks
-task PowerCD.Build PowerCD.Version,PowerCD.BuildPSModule,PowerCD.UpdateVersion,PowerCD.UpdatePublicFunctions
-task PowerCD.Package PowerCD.Package.Zip,PowerCD.Package.Nuget
-task PowerCD.Test PowerCD.Test.Pester
-task PowerCD.Default PowerCD.Clean,PowerCD.Build,PowerCD.Test
+task PowerCD.Build @(
+    PowerCD.Version
+    PowerCD.BuildPSModule
+    PowerCD.UpdateVersion
+    PowerCD.UpdatePublicFunctions
+)
+task PowerCD.Package @(
+    PowerCD.Package.Zip
+    PowerCD.Package.Nuget
+)
+task PowerCD.Test @(
+    PowerCD.Test.Pester
+)
+task PowerCD.Default @(
+    PowerCD.Clean
+    PowerCD.Build
+    PowerCD.Test
+)
 #endregion MetaTasks
 
 #region Defaults
