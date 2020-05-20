@@ -61,13 +61,12 @@ function Initialize-PowerCD {
     #Import Prerequisites
     #To specify prerelease, you must use requiredversion and the prefix added to the modulename with '__'
     Import-PowerCDRequirement -ModuleInfo @(
-        @{ModuleName='Pester__rc6';RequiredVersion='5.0.0'}
+        @{ModuleName='Pester__rc9';RequiredVersion='5.0.0'}
         'BuildHelpers'
         'PSScriptAnalyzer'
         #FIXME: Powerconfig doesn't work on Windows Powershell due to assembly differences
         #@{ModuleName='PowerConfig__beta0010';RequiredVersion='0.1.1'}
     )
-
 
     #Start a new PowerConfig, using PowerCDSetting as a base
     $PCDDefaultSetting = Get-PowerCDSetting
