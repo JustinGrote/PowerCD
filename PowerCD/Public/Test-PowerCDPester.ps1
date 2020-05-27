@@ -25,6 +25,10 @@ function Test-PowerCDPester {
         $Configuration.CodeCoverage.OutputPath = "$OutputPath/CodeCoverage.xml"
         $Configuration.TestResult.Enabled = $true
         $Configuration.TestResult.OutputPath = "$OutputPath/TEST-Results.xml"
+        #Exclude the output folder in case we copied any tests there to avoid duplicate testing. This should generally only matter for "meta" like PowerCD
+        #FIXME: Specify just the directory instead of a path search when https://github.com/pester/Pester/issues/1575 is fixed
+        $Configuration.Run.ExcludePath = [String[]](Get-ChildItem -Recurse $OutputPath -Include '*.Tests.ps1')
+
         $GLOBAL:TestResults = Invoke-Pester -Configuration $Configuration
     }
 
