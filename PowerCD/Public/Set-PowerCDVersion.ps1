@@ -13,7 +13,7 @@ function Set-PowerCDVersion {
         [String]$PreRelease= $PCDSetting.Prerelease
     )
     #Default is to update version so no propertyname specified
-    BuildHelpers\Update-Metadata -Path $Path -Value $Version
+    Configuration\Update-Metadata -Path $Path -Value $Version
 
-    BuildHelpers\Update-Metadata -Path $Path -PropertyName PreRelease -Value $PreRelease
+    Configuration\Update-Metadata -Path $Path -PropertyName PreRelease -Value $PreRelease
 }
