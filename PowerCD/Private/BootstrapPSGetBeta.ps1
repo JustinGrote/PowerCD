@@ -10,7 +10,8 @@ function BootstrapPSGetBeta {
         Write-Verbose 'PowershellGet 3.0 Detected, skipping bootstrap'
         return
     }
-    $moduleInfo = (Invoke-RestMethod -UseBasicParsing 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27PowershellGet%27%20and%20Version%20ge%20%273.0.0%27%20and%20IsPrerelease%20eq%20true&$orderby=Version%20desc&$top=1&$select=Id,Version,NormalizedVersion')
+    #Get latest published prelease version
+    $moduleInfo = (Invoke-RestMethod -UseBasicParsing 'https://www.powershellgallery.com/api/v2/Packages?$filter=Id%20eq%20%27PowershellGet%27%20and%20IsAbsoluteLatestVersion%20eq%20true&$select=Id,Version,NormalizedVersion')
     $moduleVersion = $moduleInfo.properties.NormalizedVersion
     $moduleUri = $moduleInfo.content.src
     $psgetModulePath = Join-Path $powercdModulePath 'PowerShellGet'

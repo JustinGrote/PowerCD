@@ -1,4 +1,4 @@
-#Requires -Module @{ModuleName='BuildHelpers';MaximumVersion='2.0.11'}
+#Requires -Module @{ModuleName='BuildHelpers';ModuleVersion='2.0.11'}
 #Requires -Module @{ModuleName='Pester';ModuleVersion='5.0.0';MaximumVersion='5.99.99'}
 
 <#
